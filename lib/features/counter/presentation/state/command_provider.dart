@@ -4,12 +4,24 @@ import '../../domain/entities/command.dart';
 
 class CommandProvider extends ChangeNotifier {
   final List<Command> _commands;
+  String _searchQuery = '';
 
   CommandProvider({
     List<Command>? commands,
   }) : _commands = List<Command>.from(commands ?? <Command>[]);
 
   List<Command> get commands => List.unmodifiable(_commands);
+
+  String get searchQuery => _searchQuery;
+
+  /// Définit la requête de recherche.
+  /// Le filtrage est appliqué dans `commandsFilteredSorted`.
+  void setSearchQuery(String query) {
+    final normalized = query.trim();
+    if (normalized == _searchQuery) return;
+    _searchQuery = normalized;
+    notifyListeners();
+  }
 
   Command? getById(String id) {
     try {
@@ -66,9 +78,12 @@ class CommandProvider extends ChangeNotifier {
     required Set<CommandStatusFilter> statuses,
     required CommandSort sort,
   }) {
+    final q = _searchQuery.toLowerCase();
+
     final List<Command> filtered = _commands
         .where((c) => frequencies == null ? true : frequencies.contains(c.frequency))
         .where((c) => statuses.isEmpty ? true : statuses.contains(_statusOf(c)))
+        .where((c) => q.isEmpty ? true : c.title.toLowerCase().contains(q))
         .toList(growable: false);
 
     double ratio(Command c) => c.target <= 0 ? 0.0 : c.progress / c.target;
