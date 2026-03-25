@@ -22,6 +22,54 @@ class _CommandCardState extends State<CommandCard> {
   late double _fromRatio;
   late double _toRatio;
 
+  List<TextSpan> _buildHighlightedSpans({
+    required String text,
+    required String query,
+    required TextStyle baseStyle,
+    required TextStyle highlightStyle,
+  }) {
+    final q = query.trim();
+    if (q.isEmpty) {
+      return <TextSpan>[TextSpan(text: text, style: baseStyle)];
+    }
+
+    final lowerText = text.toLowerCase();
+    final lowerQuery = q.toLowerCase();
+
+    final spans = <TextSpan>[];
+    int start = 0;
+
+    while (true) {
+      final idx = lowerText.indexOf(lowerQuery, start);
+      if (idx == -1) {
+        if (start < text.length) {
+          spans.add(TextSpan(
+            text: text.substring(start),
+            style: baseStyle,
+          ));
+        }
+        break;
+      }
+
+      if (idx > start) {
+        spans.add(TextSpan(
+          text: text.substring(start, idx),
+          style: baseStyle,
+        ));
+      }
+
+      spans.add(TextSpan(
+        text: text.substring(idx, idx + q.length),
+        style: highlightStyle,
+      ));
+
+      start = idx + q.length;
+      if (start >= text.length) break;
+    }
+
+    return spans;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +108,9 @@ class _CommandCardState extends State<CommandCard> {
   Widget build(BuildContext context) {
     final commandProvider = context.read<CommandProvider>();
     final command = widget.command;
+    final searchQuery = context.select<CommandProvider, String>(
+      (p) => p.searchQuery,
+    );
     final isCompleted = command.isCompleted();
     final progressColor = isCompleted
         ? Colors.greenAccent.shade200
@@ -100,9 +151,39 @@ class _CommandCardState extends State<CommandCard> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      command.title,
-                      style: Theme.of(context).textTheme.titleMedium,
+                    child: Builder(
+                      builder: (_) {
+                        final baseStyle = Theme.of(context).textTheme.titleMedium;
+                        if (baseStyle == null) {
+                          return Text(command.title);
+                        }
+
+                        final q = searchQuery.trim();
+                        if (q.isEmpty) {
+                          return Text(command.title, style: baseStyle);
+                        }
+
+                        final highlightStyle = baseStyle.copyWith(
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.22),
+                          fontWeight: FontWeight.w600,
+                        );
+
+                        final spans = _buildHighlightedSpans(
+                          text: command.title,
+                          query: q,
+                          baseStyle: baseStyle,
+                          highlightStyle: highlightStyle,
+                        );
+
+                        return RichText(
+                          text: TextSpan(children: spans),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
                     ),
                   ),
                   AnimatedSwitcher(
@@ -209,7 +290,7 @@ class _CommandCardState extends State<CommandCard> {
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
-                  tooltip: 'Reset',
+                  tooltip: 'Réinitialiser',
                   onPressed: () => commandProvider.resetProgress(command.id),
                   icon: const Icon(Icons.refresh),
                 ),

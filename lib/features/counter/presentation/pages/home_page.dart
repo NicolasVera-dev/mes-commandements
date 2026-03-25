@@ -5,6 +5,7 @@ import '../state/command_provider.dart';
 import '../../domain/entities/command.dart';
 import '../widgets/create_command_sheet.dart';
 import '../widgets/command_card.dart';
+import '../widgets/expandable_search_bar.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/filter_chips_bar.dart';
 
@@ -37,7 +38,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes commandements'),
+        title: const ExpandableSearchBar(collapsedTitle: 'Mes commandements'),
         actions: [
           IconButton(
             tooltip: 'Filtres',
@@ -132,7 +133,7 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: KeyedSubtree(
                       key: ValueKey<String>(
-                        'list-$listKey-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_sort.name}',
+                        'list-$listKey-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_sort.name}-q:${commandProvider.searchQuery}',
                       ),
                       child: commands.isEmpty
                           ? Center(
@@ -141,7 +142,9 @@ class _HomePageState extends State<HomePage> {
                                     MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.hourglass_empty_rounded,
+                                    commandProvider.searchQuery.isNotEmpty
+                                        ? Icons.search_off_rounded
+                                        : Icons.hourglass_empty_rounded,
                                     size: 48,
                                     color: Theme.of(context)
                                         .colorScheme
@@ -149,10 +152,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    _emptyMessage(
-                                      frequencies: _selectedFrequencies,
-                                      statuses: _selectedStatuses,
-                                    ),
+                                    'Aucun commandement trouvé',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge,
@@ -197,45 +197,6 @@ class _HomePageState extends State<HomePage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
-}
-
-String _emptyMessage({
-  required Set<Frequency>? frequencies,
-  required Set<CommandStatusFilter> statuses,
-}) {
-  String base;
-  if (frequencies == null) {
-    base = 'Aucun commandement';
-  } else if (frequencies.length == 1) {
-    final f = frequencies.first;
-    base = switch (f) {
-      Frequency.daily => "Aucun commandement pour aujourd'hui",
-      Frequency.weekly => 'Aucun commandement pour cette semaine',
-      Frequency.monthly => 'Aucun commandement pour ce mois ci',
-      Frequency.yearly => 'Aucun commandement pour cette année',
-    };
-  } else {
-    base = 'Aucun commandement pour ces périodes';
-  }
-
-  if (statuses.isEmpty) {
-    return base;
-  }
-
-  if (statuses.length == 1) {
-    final s = statuses.first;
-    final label = switch (s) {
-      CommandStatusFilter.completed => 'terminé',
-      CommandStatusFilter.started => 'initié',
-      CommandStatusFilter.notStarted => 'non démarré',
-      CommandStatusFilter.all => '',
-    };
-    if (label.isNotEmpty) {
-      return base.replaceFirst('Aucun commandement', 'Aucun commandement $label');
-    }
-  }
-
-  return '$base (statuts sélectionnés)';
 }
 
 class _ActiveDot extends StatelessWidget {
