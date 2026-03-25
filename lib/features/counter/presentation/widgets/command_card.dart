@@ -6,6 +6,7 @@ import '../../domain/entities/command.dart';
 import '../pages/edit_command_page.dart';
 import '../state/command_provider.dart';
 import 'dynamic_progress_bar.dart';
+import 'increment_animation_overlay.dart';
 
 class CommandCard extends StatefulWidget {
   final Command command;
@@ -97,9 +98,9 @@ class _CommandCardState extends State<CommandCard> {
       elevation: isCompleted ? 4 : 2,
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+      child: IncrementAnimationOverlay(
+        enabled: !isCompleted,
         onTap: () {
-          if (isCompleted) return;
           commandProvider.incrementProgress(command.id);
         },
         borderRadius: BorderRadius.circular(16),
