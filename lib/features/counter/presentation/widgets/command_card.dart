@@ -257,6 +257,17 @@ class _CommandCardState extends State<CommandCard> {
                   ),
                 ],
               ),
+              if (command.description.trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  command.description.trim(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
               const SizedBox(height: 10),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
