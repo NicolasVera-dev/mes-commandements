@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
+import '../utils/command_form_validators.dart';
 
 Future<void> showCreateCommandSheet({
   required BuildContext context,
@@ -36,6 +38,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
   late Frequency _frequency;
   final TextEditingController _targetController = TextEditingController();
 
@@ -44,19 +47,15 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
     super.initState();
     _frequency = widget.initialFrequency;
     _titleController = TextEditingController();
+    _descriptionController = TextEditingController();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
+    _descriptionController.dispose();
     _targetController.dispose();
     super.dispose();
-  }
-
-  int? _parseTarget() {
-    final raw = _targetController.text.trim();
-    if (raw.isEmpty) return null;
-    return int.tryParse(raw);
   }
 
   @override
@@ -73,6 +72,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
       child: SingleChildScrollView(
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -99,18 +99,30 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
               TextFormField(
                 controller: _targetController,
                 keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Objectif',
                   hintText: 'Ex: 10',
                   prefixIcon: Icon(Icons.flag),
                 ),
-                validator: (value) {
-                  final t = _parseTarget();
-                  if (t == null) return 'Veuillez entrer un nombre';
-                  if (t <= 0) return 'L’objectif doit être > 0';
-                  return null;
-                },
+                validator: validateRequiredPositiveInt,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                minLines: 2,
+                maxLength: Command.maxDescriptionLength,
+                textInputAction: TextInputAction.newline,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Description (optionnelle)',
+                  alignLabelWithHint: true,
+                  prefixIcon: Icon(Icons.notes_rounded),
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<Frequency>(
@@ -138,12 +150,14 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                     final isValid = _formKey.currentState?.validate() ?? false;
                     if (!isValid) return;
 
-                    final target = _parseTarget()!;
+                    final target = parsePositiveInt(_targetController.text)!;
                     final title = _titleController.text.trim();
+                    final description = _descriptionController.text.trim();
 
                     final command = Command(
                       id: 'cmd-${DateTime.now().microsecondsSinceEpoch}',
                       title: title,
+                      description: description,
                       target: target,
                       progress: 0,
                       frequency: _frequency,
