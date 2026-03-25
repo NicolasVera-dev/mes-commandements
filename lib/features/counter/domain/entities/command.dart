@@ -3,8 +3,11 @@ import 'package:meta/meta.dart';
 /// Domain model representing a command/progress item.
 @immutable
 class Command {
+  static const int maxDescriptionLength = 150;
+
   final String id;
   final String title;
+  final String description;
   final int target;
   final int progress;
   final Frequency frequency;
@@ -12,10 +15,14 @@ class Command {
   const Command({
     required this.id,
     required this.title,
+    this.description = '',
     required this.target,
     required this.progress,
     required this.frequency,
-  });
+  }) : assert(
+          description.length <= maxDescriptionLength,
+          'La description ne doit pas dépasser $maxDescriptionLength caractères.',
+        );
 
   /// `true` si la progression a atteint (ou dépassé) la cible.
   bool isCompleted() => progress >= target;
@@ -26,6 +33,7 @@ class Command {
   Command copyWith({
     String? id,
     String? title,
+    String? description,
     int? target,
     int? progress,
     Frequency? frequency,
@@ -33,6 +41,7 @@ class Command {
     return Command(
       id: id ?? this.id,
       title: title ?? this.title,
+      description: description ?? this.description,
       target: target ?? this.target,
       progress: progress ?? this.progress,
       frequency: frequency ?? this.frequency,
@@ -53,13 +62,15 @@ class Command {
     return other is Command &&
         other.id == id &&
         other.title == title &&
+        other.description == description &&
         other.target == target &&
         other.progress == progress &&
         other.frequency == frequency;
   }
 
   @override
-  int get hashCode => Object.hash(id, title, target, progress, frequency);
+  int get hashCode =>
+      Object.hash(id, title, description, target, progress, frequency);
 }
 
 enum Frequency { daily, weekly, monthly, yearly }
