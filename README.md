@@ -162,13 +162,3 @@ enum Frequency { daily, weekly, monthly, yearly }
 ```
 
 ---
-
-## Contribuer
-
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une *issue* ou une *pull request*.
-
-1. Forkez le projet
-2. Créez votre branche (`git checkout -b feature/ma-fonctionnalite`)
-3. Committez vos changements (`git commit -m 'feat: ajout de ma fonctionnalité'`)
-4. Poussez la branche (`git push origin feature/ma-fonctionnalite`)
-5. Ouvrez une Pull Request
