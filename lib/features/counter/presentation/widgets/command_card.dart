@@ -144,7 +144,7 @@ class _CommandCardState extends State<CommandCard> {
             ),
             borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -258,7 +258,7 @@ class _CommandCardState extends State<CommandCard> {
                 ],
               ),
               if (command.description.trim().isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   command.description.trim(),
                   maxLines: 2,
@@ -268,7 +268,7 @@ class _CommandCardState extends State<CommandCard> {
                       ),
                 ),
               ],
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
                 child: Text(
@@ -277,7 +277,7 @@ class _CommandCardState extends State<CommandCard> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               TweenAnimationBuilder<double>(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeOut,
@@ -292,12 +292,12 @@ class _CommandCardState extends State<CommandCard> {
                   );
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 'Fréquence: ${_frequencyLabel(command.frequency)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
