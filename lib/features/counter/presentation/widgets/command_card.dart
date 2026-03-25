@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../domain/entities/command.dart';
 import '../pages/edit_command_page.dart';
 import '../state/command_provider.dart';
+import 'dynamic_progress_bar.dart';
 
 class CommandCard extends StatefulWidget {
   final Command command;
@@ -19,9 +20,6 @@ class CommandCard extends StatefulWidget {
 }
 
 class _CommandCardState extends State<CommandCard> {
-  late double _fromRatio;
-  late double _toRatio;
-
   List<TextSpan> _buildHighlightedSpans({
     required String text,
     required String query,
@@ -71,37 +69,14 @@ class _CommandCardState extends State<CommandCard> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    final ratio = _progressRatio(widget.command);
-    _fromRatio = ratio;
-    _toRatio = ratio;
-  }
-
-  @override
   void didUpdateWidget(covariant CommandCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    final oldRatio = _progressRatio(oldWidget.command);
-    final newRatio = _progressRatio(widget.command);
     final oldCompleted = oldWidget.command.isCompleted();
     final newCompleted = widget.command.isCompleted();
 
     if (oldCompleted != newCompleted && newCompleted) {
       HapticFeedback.mediumImpact();
     }
-
-    if (oldRatio == newRatio && oldCompleted == newCompleted) return;
-
-    setState(() {
-      _fromRatio = oldRatio;
-      _toRatio = newRatio;
-    });
-  }
-
-  double _progressRatio(Command command) {
-    if (command.target <= 0) return 0.0;
-    return command.progress / command.target;
   }
 
   @override
@@ -112,9 +87,6 @@ class _CommandCardState extends State<CommandCard> {
       (p) => p.searchQuery,
     );
     final isCompleted = command.isCompleted();
-    final progressColor = isCompleted
-        ? Colors.greenAccent.shade200
-        : Theme.of(context).colorScheme.primary;
 
     final borderColor = isCompleted
         ? Colors.greenAccent.shade200.withValues(alpha: 0.55)
@@ -271,26 +243,11 @@ class _CommandCardState extends State<CommandCard> {
               const SizedBox(height: 8),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
-                child: Text(
-                  '${command.progress} / ${command.target}',
-                  key: ValueKey<int>(command.progress),
-                  style: Theme.of(context).textTheme.titleLarge,
+                child: DynamicProgressBar(
+                  key: ValueKey<String>('progress-${command.progress}-${command.target}'),
+                  progress: command.progress,
+                  target: command.target,
                 ),
-              ),
-              const SizedBox(height: 8),
-              TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOut,
-                tween: Tween<double>(begin: _fromRatio, end: _toRatio),
-                builder: (context, value, _) {
-                  return LinearProgressIndicator(
-                    value: value.clamp(0.0, 1.0),
-                    minHeight: 10,
-                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                  );
-                },
               ),
               const SizedBox(height: 8),
               Text(
