@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
+import '../utils/command_form_validators.dart';
 
 class EditCommandPage extends StatefulWidget {
   final String commandId;
@@ -20,6 +22,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
   late final TextEditingController _targetController;
   late final TextEditingController _progressController;
 
@@ -30,6 +33,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
   void initState() {
     super.initState();
     _titleController = TextEditingController();
+    _descriptionController = TextEditingController();
     _targetController = TextEditingController();
     _progressController = TextEditingController();
   }
@@ -37,6 +41,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
   @override
   void dispose() {
     _titleController.dispose();
+    _descriptionController.dispose();
     _targetController.dispose();
     _progressController.dispose();
     super.dispose();
@@ -52,16 +57,11 @@ class _EditCommandPageState extends State<EditCommandPage> {
 
     _frequency = command.frequency;
     _titleController.text = command.title;
+    _descriptionController.text = command.description;
     _targetController.text = command.target.toString();
     _progressController.text = command.progress.toString();
 
     _initialized = true;
-  }
-
-  int? _parseInt(String raw) {
-    final v = raw.trim();
-    if (v.isEmpty) return null;
-    return int.tryParse(v);
   }
 
   @override
@@ -83,6 +83,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
           : SafeArea(
               child: Form(
                 key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
@@ -110,35 +111,49 @@ class _EditCommandPageState extends State<EditCommandPage> {
                     TextFormField(
                       controller: _targetController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         labelText: 'Objectif',
                         prefixIcon: Icon(Icons.flag),
                       ),
-                      validator: (value) {
-                        final t = _parseInt(value ?? '');
-                        if (t == null) return 'Veuillez entrer un nombre';
-                        if (t <= 0) return "L'objectif doit être > 0";
-                        return null;
-                      },
+                      validator: validateRequiredPositiveInt,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _descriptionController,
+                      maxLines: 3,
+                      minLines: 2,
+                      maxLength: Command.maxDescriptionLength,
+                      textInputAction: TextInputAction.newline,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        hintText: 'Description (optionnelle)',
+                        alignLabelWithHint: true,
+                        prefixIcon: Icon(Icons.notes_rounded),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _progressController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
-                        labelText: 'Progress',
+                        labelText: 'Progression',
                         prefixIcon: Icon(Icons.timeline),
                       ),
                       validator: (value) {
-                        final p = _parseInt(value ?? '');
-                        if (p == null) return 'Veuillez entrer un nombre';
-                        if (p < 0) return 'Le progress doit être >= 0';
+                        final p = parseNonNegativeInt(value ?? '');
+                        if (p == null) return 'Veuillez entrer un nombre valide';
 
-                        final t = _parseInt(_targetController.text);
+                        final t = parsePositiveInt(_targetController.text);
                         if (t != null && p > t) {
-                          return 'Le progress ne peut pas dépasser l’objectif';
+                          return 'La progression ne peut pas dépasser l’objectif';
                         }
                         return null;
                       },
@@ -169,8 +184,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
                         if (!isValid) return;
 
                         final title = _titleController.text.trim();
-                        final target = _parseInt(_targetController.text);
-                        final progress = _parseInt(_progressController.text);
+                        final description = _descriptionController.text.trim();
+                        final target = parsePositiveInt(_targetController.text);
+                        final progress = parseNonNegativeInt(_progressController.text);
                         if (title.isEmpty || target == null || progress == null) {
                           return;
                         }
@@ -181,6 +197,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                         commandProvider.updateCommand(
                           command.copyWith(
                             title: title,
+                            description: description,
                             target: target,
                             progress: clampedProgress,
                             frequency: _frequency,
