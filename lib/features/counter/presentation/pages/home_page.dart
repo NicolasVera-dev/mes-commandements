@@ -121,6 +121,8 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                 if (hasActiveFilters) const SizedBox(height: 12),
+                _ProgressSummaryCard(commands: commandProvider.commands),
+                const SizedBox(height: 12),
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
@@ -210,6 +212,75 @@ class _ActiveDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+class _ProgressSummaryCard extends StatelessWidget {
+  final List<Command> commands;
+
+  const _ProgressSummaryCard({required this.commands});
+
+  @override
+  Widget build(BuildContext context) {
+    if (commands.isEmpty) return const SizedBox.shrink();
+
+    final total = commands.length;
+    final completed = commands.where((c) => c.isCompleted()).length;
+    final ratio = total > 0 ? completed / total : 0.0;
+    final percent = (ratio * 100).round();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$completed / $total commandement${total != 1 ? 's' : ''} complété${completed != 1 ? 's' : ''}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              Text(
+                '$percent %',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: completed == total && total > 0
+                          ? Colors.greenAccent.shade200
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOut,
+            tween: Tween<double>(begin: 0, end: ratio),
+            builder: (context, value, _) {
+              return LinearProgressIndicator(
+                value: value.clamp(0.0, 1.0),
+                minHeight: 8,
+                borderRadius: BorderRadius.circular(4),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  completed == total && total > 0
+                      ? Colors.greenAccent.shade200
+                      : Theme.of(context).colorScheme.primary,
+                ),
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+              );
+            },
+          ),
+        ],
       ),
     );
   }

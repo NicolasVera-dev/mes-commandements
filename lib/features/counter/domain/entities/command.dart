@@ -57,6 +57,27 @@ class Command {
   /// Remet la progression à 0.
   Command resetProgress() => copyWith(progress: 0);
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'target': target,
+        'progress': progress,
+        'frequency': frequency.name,
+      };
+
+  factory Command.fromJson(Map<String, dynamic> json) => Command(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        description: (json['description'] as String?) ?? '',
+        target: json['target'] as int,
+        progress: json['progress'] as int,
+        frequency: Frequency.values.firstWhere(
+          (f) => f.name == json['frequency'],
+          orElse: () => Frequency.daily,
+        ),
+      );
+
   @override
   bool operator ==(Object other) {
     return other is Command &&

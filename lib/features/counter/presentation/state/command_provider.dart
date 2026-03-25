@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/command.dart';
 
 class CommandProvider extends ChangeNotifier {
   final List<Command> _commands;
   String _searchQuery = '';
+
+  static const String _storageKey = 'commands';
 
   CommandProvider({
     List<Command>? commands,
@@ -13,6 +18,29 @@ class CommandProvider extends ChangeNotifier {
   List<Command> get commands => List.unmodifiable(_commands);
 
   String get searchQuery => _searchQuery;
+
+  /// Persiste la liste de commandements dans SharedPreferences.
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(_commands.map((c) => c.toJson()).toList());
+    await prefs.setString(_storageKey, encoded);
+  }
+
+  /// Charge les commandements depuis SharedPreferences.
+  /// Retourne `null` si aucune donnée n'est sauvegardée.
+  static Future<List<Command>?> loadFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = prefs.getString(_storageKey);
+    if (encoded == null) return null;
+    try {
+      final List<dynamic> decoded = jsonDecode(encoded) as List<dynamic>;
+      return decoded
+          .map((e) => Command.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Définit la requête de recherche.
   /// Le filtrage est appliqué dans `commandsFilteredSorted`.
@@ -34,6 +62,7 @@ class CommandProvider extends ChangeNotifier {
   void addCommand(Command command) {
     _commands.add(command);
     notifyListeners();
+    _persist();
   }
 
   void updateCommand(Command updatedCommand) {
@@ -42,11 +71,13 @@ class CommandProvider extends ChangeNotifier {
 
     _commands[idx] = updatedCommand;
     notifyListeners();
+    _persist();
   }
 
   void deleteCommand(String id) {
     _commands.removeWhere((c) => c.id == id);
     notifyListeners();
+    _persist();
   }
 
   void incrementProgress(String commandId) {
