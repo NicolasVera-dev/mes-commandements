@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class DynamicProgressBar extends StatefulWidget {
   final int progress;
   final int target;
+  final Color? accentTintColor;
 
   const DynamicProgressBar({
     super.key,
     required this.progress,
     required this.target,
+    this.accentTintColor,
   });
 
   @override
@@ -27,9 +29,13 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
   }
 
   Color _progressColor(BuildContext context) {
-    if (_ratio < 0.5) return Colors.redAccent;
-    if (_ratio < 0.8) return Colors.orangeAccent;
-    return Colors.greenAccent.shade200;
+    final base = _ratio < 0.5
+        ? Colors.redAccent
+        : (_ratio < 0.8 ? Colors.orangeAccent : Colors.greenAccent.shade200);
+    final accent = widget.accentTintColor;
+    if (accent == null) return base;
+    // Teinte subtile en conservant la lisibilité des seuils de progression.
+    return Color.alphaBlend(accent.withValues(alpha: 0.22), base);
   }
 
   @override

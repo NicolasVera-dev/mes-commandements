@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
 import '../utils/command_form_validators.dart';
+import '../widgets/accent_color_picker_field.dart';
+import '../widgets/emoji_picker_field.dart';
+import '../widgets/tag_input_field.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 
@@ -29,6 +32,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
   late final TextEditingController _progressController;
 
   Frequency _frequency = Frequency.daily;
+  String _emoji = Command.defaultEmoji;
+  int? _accentColorValue;
+  List<String> _tags = <String>[];
   bool _initialized = false;
 
   @override
@@ -62,6 +68,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
     _descriptionController.text = command.description;
     _targetController.text = command.target.toString();
     _progressController.text = command.progress.toString();
+    _emoji = command.emoji;
+    _accentColorValue = command.accentColorValue;
+    _tags = List<String>.from(command.tags);
 
     _initialized = true;
   }
@@ -109,7 +118,10 @@ class _EditCommandPageState extends State<EditCommandPage> {
               child: Form(
                 key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: ListView(
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOut,
+                  child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
                     Text(
@@ -117,6 +129,11 @@ class _EditCommandPageState extends State<EditCommandPage> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
+                    Text(
+                      'Essentiel',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: 8),
                     TextFormField(
                       controller: _titleController,
                       textInputAction: TextInputAction.next,
@@ -133,6 +150,24 @@ class _EditCommandPageState extends State<EditCommandPage> {
                       },
                     ),
                     const SizedBox(height: 12),
+                    DropdownButtonFormField<Frequency>(
+                      initialValue: _frequency,
+                      decoration: const InputDecoration(
+                        labelText: 'Fréquence',
+                        prefixIcon: Icon(Icons.schedule),
+                      ),
+                      items: Frequency.values.map((frequency) {
+                        return DropdownMenuItem<Frequency>(
+                          value: frequency,
+                          child: Text(_frequencyLabel(frequency)),
+                        );
+                      }).toList(growable: false),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => _frequency = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _targetController,
                       keyboardType: TextInputType.number,
@@ -145,20 +180,6 @@ class _EditCommandPageState extends State<EditCommandPage> {
                         prefixIcon: Icon(Icons.flag),
                       ),
                       validator: validateRequiredPositiveInt,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 3,
-                      minLines: 2,
-                      maxLength: Command.maxDescriptionLength,
-                      textInputAction: TextInputAction.newline,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Description (optionnelle)',
-                        alignLabelWithHint: true,
-                        prefixIcon: Icon(Icons.notes_rounded),
-                      ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -184,22 +205,46 @@ class _EditCommandPageState extends State<EditCommandPage> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<Frequency>(
-                      initialValue: _frequency,
+                    TextFormField(
+                      controller: _descriptionController,
+                      maxLines: 3,
+                      minLines: 2,
+                      maxLength: Command.maxDescriptionLength,
+                      textInputAction: TextInputAction.newline,
                       decoration: const InputDecoration(
-                        labelText: 'Fréquence',
-                        prefixIcon: Icon(Icons.schedule),
+                        labelText: 'Description',
+                        hintText: 'Description (optionnelle)',
+                        alignLabelWithHint: true,
+                        prefixIcon: Icon(Icons.notes_rounded),
                       ),
-                      items: Frequency.values.map((frequency) {
-                        return DropdownMenuItem<Frequency>(
-                          value: frequency,
-                          child: Text(_frequencyLabel(frequency)),
-                        );
-                      }).toList(growable: false),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _frequency = value);
-                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Personnalisation visuelle',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    EmojiPickerField(
+                      selectedEmoji: _emoji,
+                      onChanged: (emoji) => setState(() => _emoji = emoji),
+                    ),
+                    AccentColorPickerField(
+                      selectedColorValue: _accentColorValue,
+                      emojiPreview: _emoji,
+                      onChanged: (colorValue) =>
+                          setState(() => _accentColorValue = colorValue),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Organisation',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    TagInputField(
+                      initialTags: _tags,
+                      suggestions: commandProvider.availableTags,
+                      accentColorValue: _accentColorValue,
+                      onChanged: (tags) => setState(() => _tags = tags),
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
@@ -229,6 +274,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
                             target: target,
                             progress: clampedProgress,
                             frequency: _frequency,
+                            emoji: _emoji,
+                            accentColorValue: _accentColorValue,
+                            tags: _tags,
                           ),
                         );
 
@@ -242,6 +290,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                       child: const Text('Annuler'),
                     ),
                   ],
+                ),
                 ),
               ),
             ),
