@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/repositories/command_repository.dart';
 
@@ -45,6 +46,18 @@ class CommandProvider extends ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  /// Déclenche silencieusement l'application des resets automatiques en batch.
+  /// Ne bloque pas l'UI et n'affiche pas d'erreur utilisateur.
+  Future<AutoResetReport> applyPendingAutoResetsSilently() async {
+    try {
+      return await _repository.applyPendingAutoResets(DateTime.now().toUtc());
+    } catch (error, st) {
+      debugPrint('Erreur reset automatique batch: $error');
+      debugPrint('$st');
+      return const AutoResetReport.empty();
+    }
   }
 
   Future<void> retrySync() async {

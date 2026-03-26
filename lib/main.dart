@@ -9,6 +9,7 @@ import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/state/auth_provider.dart';
 import 'features/auth/presentation/widgets/auth_gate.dart';
 import 'features/counter/presentation/state/command_provider.dart';
+import 'features/counter/presentation/widgets/command_reset_lifecycle_listener.dart';
 
 class MyApp extends StatelessWidget {
   final AuthRepository authRepository;
@@ -37,7 +38,9 @@ class MyApp extends StatelessWidget {
         title: 'Mes commandements',
         themeMode: ThemeMode.dark,
         theme: ThemeData.dark(useMaterial3: true),
-        home: const AuthGate(),
+        home: const CommandResetLifecycleListener(
+          child: AuthGate(),
+        ),
       ),
     );
   }

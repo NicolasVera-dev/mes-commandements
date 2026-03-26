@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/repositories/command_repository.dart';
 import '../../../auth/domain/entities/auth_user.dart';
@@ -24,6 +25,16 @@ class FirestoreCommandRepository implements CommandRepository {
   Future<String?> _currentUserId() async {
     final user = await _authRepository.authStateChanges().first;
     return user?.uid;
+  }
+
+  Map<String, Object?> _commandEditableFields(Command command) {
+    return <String, Object?>{
+      'title': command.title,
+      'description': command.description,
+      'target': command.target,
+      'progress': command.progress,
+      'frequency': command.frequency.name,
+    };
   }
 
   @override
@@ -75,6 +86,58 @@ class FirestoreCommandRepository implements CommandRepository {
   }
 
   @override
+  Future<AutoResetReport> applyPendingAutoResets(DateTime now) async {
+    final uid = await _currentUserId();
+    if (uid == null) return const AutoResetReport.empty();
+
+    final collection = _collectionForUser(uid);
+    final snapshot = await collection.get();
+    if (snapshot.docs.isEmpty) return const AutoResetReport.empty();
+
+    final nowUtc = now.toUtc();
+    final dueDocs = snapshot.docs.where((doc) {
+      final command = Command.fromMap(
+        id: doc.id,
+        map: Map<String, Object?>.from(doc.data()),
+      );
+      return command.shouldAutoReset(nowUtc);
+    }).toList(growable: false);
+
+    if (dueDocs.isEmpty) return const AutoResetReport.empty();
+
+    var updatedCount = 0;
+    final byFrequency = <Frequency, int>{};
+    const maxBatchSize = 500;
+
+    for (var i = 0; i < dueDocs.length; i += maxBatchSize) {
+      final end = (i + maxBatchSize > dueDocs.length)
+          ? dueDocs.length
+          : i + maxBatchSize;
+      final chunk = dueDocs.sublist(i, end);
+
+      final batch = _firestore.batch();
+      for (final doc in chunk) {
+        final command = Command.fromMap(
+          id: doc.id,
+          map: Map<String, Object?>.from(doc.data()),
+        );
+        final resetCommand = command.applyAutoResetIfNeeded(nowUtc);
+        if (resetCommand == command) continue;
+        batch.update(doc.reference, <String, Object?>{
+          'progress': resetCommand.progress,
+          'lastResetAt': resetCommand.lastResetAt?.toIso8601String(),
+        });
+        updatedCount++;
+        byFrequency[command.frequency] =
+            (byFrequency[command.frequency] ?? 0) + 1;
+      }
+      await batch.commit();
+    }
+
+    return AutoResetReport(total: updatedCount, byFrequency: byFrequency);
+  }
+
+  @override
   Future<void> add(Command command) async {
     final uid = await _currentUserId();
     if (uid == null) return;
@@ -87,7 +150,7 @@ class FirestoreCommandRepository implements CommandRepository {
     if (uid == null) return;
     await _collectionForUser(uid)
         .doc(command.id)
-        .set(command.toMap(), SetOptions(merge: true));
+        .update(_commandEditableFields(command));
   }
 
   @override
@@ -115,9 +178,9 @@ class FirestoreCommandRepository implements CommandRepository {
         map: Map<String, Object?>.from(data),
       );
       final updated = command.incrementProgress();
-      // Par défaut merge=false. Sur web, éviter SetOptions explicite aide à réduire
-      // les erreurs d'interop.
-      tx.set(docRef, updated.toMap());
+      tx.update(docRef, <String, Object?>{
+        'progress': updated.progress,
+      });
     });
   }
 
@@ -139,8 +202,10 @@ class FirestoreCommandRepository implements CommandRepository {
         map: Map<String, Object?>.from(data),
       );
       final updated = command.resetProgress();
-      // Par défaut merge=false.
-      tx.set(docRef, updated.toMap());
+      tx.update(docRef, <String, Object?>{
+        'progress': updated.progress,
+        'lastResetAt': updated.lastResetAt?.toIso8601String(),
+      });
     });
   }
 }
