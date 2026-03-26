@@ -71,6 +71,54 @@ class Command {
   @override
   int get hashCode =>
       Object.hash(id, title, description, target, progress, frequency);
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'title': title,
+      'description': description,
+      'target': target,
+      'progress': progress,
+      'frequency': frequency.name,
+    };
+  }
+
+  factory Command.fromMap({
+    required String id,
+    required Map<String, Object?> map,
+  }) {
+    final rawFrequency = map['frequency'];
+    final frequencyName = rawFrequency is String ? rawFrequency : null;
+
+    final frequency = frequencyName == null
+        ? Frequency.daily
+        : Frequency.values.firstWhere(
+            (f) => f.name == frequencyName,
+            orElse: () => Frequency.daily,
+          );
+
+    final description = (map['description'] ?? '').toString();
+    final clampedDescription = description.length > maxDescriptionLength
+        ? description.substring(0, maxDescriptionLength)
+        : description;
+
+    final rawTarget = map['target'];
+    final target = rawTarget is num
+        ? rawTarget.toInt()
+        : int.tryParse((rawTarget ?? '').toString()) ?? 0;
+    final rawProgress = map['progress'];
+    final progress = rawProgress is num
+        ? rawProgress.toInt()
+        : int.tryParse((rawProgress ?? '').toString()) ?? 0;
+
+    return Command(
+      id: id,
+      title: (map['title'] ?? '').toString(),
+      description: clampedDescription,
+      target: target,
+      progress: progress,
+      frequency: frequency,
+    );
+  }
 }
 
 enum Frequency { daily, weekly, monthly, yearly }
