@@ -47,10 +47,10 @@ class _HomePageState extends State<HomePage> {
         _selectedTags.isEmpty &&
         commandProvider.searchQuery.isEmpty;
 
-    final listKey = commands.map((c) => c.id).join('-');
-
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 68,
+        titleSpacing: 8,
         title: const ExpandableSearchBar(collapsedTitle: 'Mes commandements'),
         actions: [
           IconButton(
@@ -212,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: KeyedSubtree(
                       key: ValueKey<String>(
-                        'list-$listKey-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_sort.name}-q:${commandProvider.searchQuery}-l:${commandProvider.isInitialLoading}-e:${commandProvider.syncErrorMessage ?? ""}',
+                        'list-${commands.length}-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_selectedTags.join(",")}-${_sort.name}-q:${commandProvider.searchQuery}-l:${commandProvider.isInitialLoading}-e:${commandProvider.syncErrorMessage ?? ""}',
                       ),
                       child: commandProvider.isInitialLoading
                           ? Center(

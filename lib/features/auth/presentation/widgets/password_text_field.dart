@@ -8,6 +8,9 @@ class PasswordTextField extends StatefulWidget {
   final TextInputAction textInputAction;
   final String? errorText;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
+  final FocusNode? focusNode;
+  final Iterable<String>? autofillHints;
   final int minLines;
   final int maxLines;
   final bool autoFocus;
@@ -21,6 +24,9 @@ class PasswordTextField extends StatefulWidget {
     this.textInputAction = TextInputAction.next,
     this.errorText,
     this.onChanged,
+    this.onFieldSubmitted,
+    this.focusNode,
+    this.autofillHints,
     this.minLines = 1,
     this.maxLines = 1,
     this.autoFocus = false,
@@ -40,13 +46,16 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
     return TextFormField(
       controller: widget.controller,
       enabled: widget.enabled,
+      focusNode: widget.focusNode,
       obscureText: _obscure,
       minLines: widget.minLines,
       maxLines: widget.maxLines,
       autofocus: widget.autoFocus,
       textInputAction: widget.textInputAction,
       keyboardType: TextInputType.visiblePassword,
+      autofillHints: widget.autofillHints,
       onChanged: widget.onChanged,
+      onFieldSubmitted: widget.onFieldSubmitted,
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
