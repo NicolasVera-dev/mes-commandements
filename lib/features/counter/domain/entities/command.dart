@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 /// Domain model representing a command/progress item.
 @immutable
 class Command {
+  static const int maxTitleLength = 60;
   static const int maxDescriptionLength = 150;
   static const String defaultEmoji = '🎯';
   static const int maxTagsCount = 5;
@@ -33,6 +34,14 @@ class Command {
     this.position = 0,
     this.tags = const <String>[],
   }) : assert(
+          title.trim().isNotEmpty,
+          'Le titre ne doit pas être vide.',
+        ),
+        assert(
+          title.trim().length <= maxTitleLength,
+          'Le titre ne doit pas dépasser $maxTitleLength caractères.',
+        ),
+        assert(
           description.length <= maxDescriptionLength,
           'La description ne doit pas dépasser $maxDescriptionLength caractères.',
         ),
@@ -191,6 +200,10 @@ class Command {
     final clampedDescription = description.length > maxDescriptionLength
         ? description.substring(0, maxDescriptionLength)
         : description;
+    final rawTitle = (map['title'] ?? '').toString().trim();
+    final title = rawTitle.length > maxTitleLength
+        ? rawTitle.substring(0, maxTitleLength)
+        : rawTitle;
 
     final rawTarget = map['target'];
     final target = rawTarget is num
@@ -223,7 +236,7 @@ class Command {
 
     return Command(
       id: id,
-      title: (map['title'] ?? '').toString(),
+      title: title,
       description: clampedDescription,
       target: target,
       progress: progress,

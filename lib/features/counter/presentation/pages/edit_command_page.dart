@@ -136,6 +136,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _titleController,
+                      maxLength: Command.maxTitleLength,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         labelText: 'Titre',
@@ -145,6 +146,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
                         final v = value?.trim() ?? '';
                         if (v.length < 2) {
                           return 'Veuillez entrer un titre (min. 2)';
+                        }
+                        if (v.length > Command.maxTitleLength) {
+                          return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
                         }
                         return null;
                       },

@@ -100,6 +100,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
+                maxLength: Command.maxTitleLength,
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Titre',
@@ -109,6 +110,9 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                 validator: (value) {
                   final v = value?.trim() ?? '';
                   if (v.length < 2) return 'Veuillez entrer un titre (min. 2)';
+                  if (v.length > Command.maxTitleLength) {
+                    return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
+                  }
                   return null;
                 },
               ),
