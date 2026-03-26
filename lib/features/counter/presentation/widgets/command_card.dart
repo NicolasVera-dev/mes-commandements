@@ -172,7 +172,7 @@ class _CommandCardState extends State<CommandCard> {
                                 child: Text(
                                   command.title,
                                   style: baseStyle,
-                                  maxLines: 1,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -220,7 +220,7 @@ class _CommandCardState extends State<CommandCard> {
                             Expanded(
                               child: RichText(
                                 text: TextSpan(children: spans),
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
