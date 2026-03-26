@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "233539778173",
+    "project_id": "mes-commandements-cddb2",
+    "storage_bucket": "mes-commandements-cddb2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233539778173:android:aaa9140d037f57629aa314",
+        "android_client_info": {
+          "package_name": "com.example.mes_commandements"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChxp9yxCAihAJkck0QEyXdcnqx6eLytbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
