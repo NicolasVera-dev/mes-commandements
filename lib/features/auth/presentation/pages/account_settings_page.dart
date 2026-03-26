@@ -210,15 +210,19 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
       appBar: AppBar(
         title: const Text('Paramètres du compte'),
       ),
-      body: SafeArea(
-        child: Padding(
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: Padding(
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
             top: 12,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            bottom: 16,
           ),
           child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             children: [
               Text(
                 'Utilisateur connecté${auth.user?.email != null ? ' : ${auth.user!.email}' : ''}',
@@ -389,6 +393,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

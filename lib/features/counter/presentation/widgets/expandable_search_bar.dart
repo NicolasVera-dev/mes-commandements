@@ -158,9 +158,12 @@ class _CollapsedTitle extends StatelessWidget {
         Expanded(
           child: Text(
             collapsedTitle,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  height: 1.12,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ),
         IconButton(
