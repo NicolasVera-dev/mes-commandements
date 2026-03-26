@@ -11,6 +11,7 @@ class Command {
   final int target;
   final int progress;
   final Frequency frequency;
+  final DateTime? lastResetAt;
 
   const Command({
     required this.id,
@@ -19,6 +20,7 @@ class Command {
     required this.target,
     required this.progress,
     required this.frequency,
+    this.lastResetAt,
   }) : assert(
           description.length <= maxDescriptionLength,
           'La description ne doit pas dépasser $maxDescriptionLength caractères.',
@@ -37,6 +39,8 @@ class Command {
     int? target,
     int? progress,
     Frequency? frequency,
+    DateTime? lastResetAt,
+    bool clearLastResetAt = false,
   }) {
     return Command(
       id: id ?? this.id,
@@ -45,6 +49,9 @@ class Command {
       target: target ?? this.target,
       progress: progress ?? this.progress,
       frequency: frequency ?? this.frequency,
+      lastResetAt: clearLastResetAt
+          ? null
+          : (lastResetAt ?? this.lastResetAt),
     );
   }
 
@@ -55,7 +62,39 @@ class Command {
   }
 
   /// Remet la progression à 0.
-  Command resetProgress() => copyWith(progress: 0);
+  Command resetProgress({DateTime? resetAt}) {
+    final normalizedResetAt = (resetAt ?? DateTime.now()).toUtc();
+    return copyWith(progress: 0, lastResetAt: normalizedResetAt);
+  }
+
+  /// Détermine si la progression doit être réinitialisée pour la période en cours.
+  bool shouldAutoReset(DateTime now) {
+    final currentBoundary = _periodStart(now.toUtc());
+    final effectiveLastReset = lastResetAt?.toUtc();
+    if (effectiveLastReset == null) return true;
+    return effectiveLastReset.isBefore(currentBoundary);
+  }
+
+  /// Applique un reset automatique si nécessaire, sinon retourne l'instance.
+  Command applyAutoResetIfNeeded(DateTime now) {
+    if (!shouldAutoReset(now)) return this;
+    return resetProgress(resetAt: now.toUtc());
+  }
+
+  DateTime _periodStart(DateTime nowUtc) {
+    switch (frequency) {
+      case Frequency.daily:
+        return DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day);
+      case Frequency.weekly:
+        final deltaFromMonday = nowUtc.weekday - DateTime.monday;
+        final monday = nowUtc.subtract(Duration(days: deltaFromMonday));
+        return DateTime.utc(monday.year, monday.month, monday.day);
+      case Frequency.monthly:
+        return DateTime.utc(nowUtc.year, nowUtc.month, 1);
+      case Frequency.yearly:
+        return DateTime.utc(nowUtc.year, 1, 1);
+    }
+  }
 
   @override
   bool operator ==(Object other) {
@@ -65,12 +104,21 @@ class Command {
         other.description == description &&
         other.target == target &&
         other.progress == progress &&
-        other.frequency == frequency;
+        other.frequency == frequency &&
+        other.lastResetAt == lastResetAt;
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, title, description, target, progress, frequency);
+      Object.hash(
+        id,
+        title,
+        description,
+        target,
+        progress,
+        frequency,
+        lastResetAt,
+      );
 
   Map<String, Object?> toMap() {
     return <String, Object?>{
@@ -79,6 +127,7 @@ class Command {
       'target': target,
       'progress': progress,
       'frequency': frequency.name,
+      'lastResetAt': lastResetAt?.toUtc().toIso8601String(),
     };
   }
 
@@ -109,6 +158,7 @@ class Command {
     final progress = rawProgress is num
         ? rawProgress.toInt()
         : int.tryParse((rawProgress ?? '').toString()) ?? 0;
+    final lastResetAt = _parseDateTime(map['lastResetAt']);
 
     return Command(
       id: id,
@@ -117,7 +167,15 @@ class Command {
       target: target,
       progress: progress,
       frequency: frequency,
+      lastResetAt: lastResetAt,
     );
+  }
+
+  static DateTime? _parseDateTime(Object? raw) {
+    if (raw == null) return null;
+    if (raw is DateTime) return raw.toUtc();
+    final parsed = DateTime.tryParse(raw.toString());
+    return parsed?.toUtc();
   }
 }
 
