@@ -1,63 +1,107 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 import '../../domain/entities/command.dart';
 import '../../domain/repositories/command_repository.dart';
+import '../../../auth/domain/entities/auth_user.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 
 class FirestoreCommandRepository implements CommandRepository {
   final FirebaseFirestore _firestore;
-  final String _collectionPath;
+  final AuthRepository _authRepository;
 
   FirestoreCommandRepository({
+    required AuthRepository authRepository,
     FirebaseFirestore? firestore,
-    String collectionPath = 'commands',
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _collectionPath = collectionPath;
+        _authRepository = authRepository;
 
-  CollectionReference<Map<String, Object?>> get _collection {
-    return _firestore.collection(_collectionPath);
+  CollectionReference<Map<String, Object?>> _collectionForUser(String uid) {
+    return _firestore.collection('users/$uid/commands');
   }
 
-  bool get _isFirebaseReady => Firebase.apps.isNotEmpty;
+  Future<String?> _currentUserId() async {
+    final user = await _authRepository.authStateChanges().first;
+    return user?.uid;
+  }
 
   @override
   Stream<List<Command>> watchAll() {
-    if (!_isFirebaseReady) return const Stream.empty();
+    final controller = StreamController<List<Command>>();
 
-    return _collection.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map(
-            (doc) => Command.fromMap(
-              id: doc.id,
-              map: Map<String, Object?>.from(doc.data()),
-            ),
-          )
-          .toList();
-    });
+    StreamSubscription<AuthUser?>? authSub;
+    StreamSubscription<QuerySnapshot<Map<String, Object?>>>? commandsSub;
+
+    Future<void> startForUser(AuthUser? user) async {
+      await commandsSub?.cancel();
+      commandsSub = null;
+
+      if (controller.isClosed) return;
+
+      if (user == null) {
+        controller.add(<Command>[]);
+        return;
+      }
+
+      final collection = _collectionForUser(user.uid);
+      commandsSub = collection.snapshots().listen(
+        (snapshot) {
+          final commands = snapshot.docs
+              .map(
+                (doc) => Command.fromMap(
+                  id: doc.id,
+                  map: Map<String, Object?>.from(doc.data()),
+                ),
+              )
+              .toList();
+          controller.add(commands);
+        },
+        onError: controller.addError,
+      );
+    }
+
+    authSub = _authRepository.authStateChanges().listen(
+      (user) => startForUser(user),
+      onError: controller.addError,
+    );
+
+    controller.onCancel = () async {
+      await authSub?.cancel();
+      await commandsSub?.cancel();
+    };
+
+    return controller.stream;
   }
 
   @override
   Future<void> add(Command command) async {
-    if (!_isFirebaseReady) return;
-    await _collection.doc(command.id).set(command.toMap());
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    await _collectionForUser(uid).doc(command.id).set(command.toMap());
   }
 
   @override
   Future<void> update(Command command) async {
-    if (!_isFirebaseReady) return;
-    await _collection.doc(command.id).set(command.toMap(), SetOptions(merge: true));
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    await _collectionForUser(uid)
+        .doc(command.id)
+        .set(command.toMap(), SetOptions(merge: true));
   }
 
   @override
   Future<void> delete(String commandId) async {
-    if (!_isFirebaseReady) return;
-    await _collection.doc(commandId).delete();
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    await _collectionForUser(uid).doc(commandId).delete();
   }
 
   @override
   Future<void> incrementProgress(String commandId) async {
-    if (!_isFirebaseReady) return;
-    final docRef = _collection.doc(commandId);
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    final docRef = _collectionForUser(uid).doc(commandId);
 
     await _firestore.runTransaction<void>((tx) async {
       final snapshot = await tx.get(docRef);
@@ -79,8 +123,9 @@ class FirestoreCommandRepository implements CommandRepository {
 
   @override
   Future<void> resetProgress(String commandId) async {
-    if (!_isFirebaseReady) return;
-    final docRef = _collection.doc(commandId);
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    final docRef = _collectionForUser(uid).doc(commandId);
 
     await _firestore.runTransaction<void>((tx) async {
       final snapshot = await tx.get(docRef);

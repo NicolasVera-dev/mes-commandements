@@ -8,6 +8,9 @@ import '../widgets/command_card.dart';
 import '../widgets/expandable_search_bar.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/filter_chips_bar.dart';
+import '../../../auth/presentation/state/auth_provider.dart';
+import '../../../auth/presentation/pages/login_page.dart';
+import '../../../auth/presentation/pages/account_settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final commandProvider = context.watch<CommandProvider>();
+    final authProvider = context.watch<AuthProvider>();
     final commands = commandProvider.commandsFilteredSorted(
       frequencies: _selectedFrequencies,
       statuses: _selectedStatuses,
@@ -75,6 +79,32 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
+          if (!authProvider.isInitialLoading)
+            IconButton(
+              tooltip: authProvider.isConnected
+                  ? 'Paramètres du compte'
+                  : 'Connexion',
+              icon: Icon(
+                authProvider.isConnected
+                    ? Icons.settings_outlined
+                    : Icons.login_rounded,
+              ),
+              onPressed: () {
+                if (authProvider.isConnected) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AccountSettingsPage(),
+                    ),
+                  );
+                } else {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LoginPage(),
+                    ),
+                  );
+                }
+              },
+            ),
         ],
       ),
       body: Stack(
@@ -234,15 +264,23 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showCreateCommandSheet(
-            context: context,
-            initialFrequency: _selectedFrequencies != null &&
-                    _selectedFrequencies!.length == 1
-                ? _selectedFrequencies!.first
-                : Frequency.daily,
-          );
-        },
+        onPressed: authProvider.isConnected
+            ? () {
+                showCreateCommandSheet(
+                  context: context,
+                  initialFrequency: _selectedFrequencies != null &&
+                          _selectedFrequencies!.length == 1
+                      ? _selectedFrequencies!.first
+                      : Frequency.daily,
+                );
+              }
+            : () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const LoginPage(),
+                  ),
+                );
+              },
         icon: const Icon(Icons.add),
         label: const Text('Nouveau commandement'),
       ),
