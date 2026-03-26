@@ -37,6 +37,8 @@ class CommandProvider extends ChangeNotifier {
       onError: (Object error, StackTrace st) {
         debugPrint('Erreur de synchronisation Firestore: $error');
         debugPrint('$st');
+        // On évite d'afficher de potentielles données obsolètes.
+        _commands = <Command>[];
         _isInitialLoading = false;
         _syncErrorMessage =
             'Une erreur est survenue lors de la synchronisation.';
