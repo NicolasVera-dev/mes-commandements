@@ -133,9 +133,61 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: KeyedSubtree(
                       key: ValueKey<String>(
-                        'list-$listKey-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_sort.name}-q:${commandProvider.searchQuery}',
+                        'list-$listKey-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_sort.name}-q:${commandProvider.searchQuery}-l:${commandProvider.isInitialLoading}-e:${commandProvider.syncErrorMessage ?? ""}',
                       ),
-                      child: commands.isEmpty
+                      child: commandProvider.isInitialLoading
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const CircularProgressIndicator(),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Chargement des commandements...',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : commandProvider.syncErrorMessage != null
+                              ? Center(
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 12),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline_rounded,
+                                          size: 48,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .errorContainer,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          commandProvider.syncErrorMessage!,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        FilledButton.tonal(
+                                          onPressed: () {
+                                            commandProvider.retrySync();
+                                          },
+                                          child: const Text('Réessayer'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : commands.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment:

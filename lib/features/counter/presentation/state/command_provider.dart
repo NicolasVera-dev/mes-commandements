@@ -1,14 +1,74 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import '../../domain/entities/command.dart';
+import '../../domain/repositories/command_repository.dart';
 
 class CommandProvider extends ChangeNotifier {
-  final List<Command> _commands;
+  final CommandRepository _repository;
+  late StreamSubscription<List<Command>> _subscription;
+  List<Command> _commands = <Command>[];
   String _searchQuery = '';
+  bool _isInitialLoading = true;
+  bool _isMutating = false;
+  String? _syncErrorMessage;
 
   CommandProvider({
-    List<Command>? commands,
-  }) : _commands = List<Command>.from(commands ?? <Command>[]);
+    required CommandRepository repository,
+  }) : _repository = repository {
+    _listenToRepository();
+  }
+
+  bool get isInitialLoading => _isInitialLoading;
+  bool get isMutating => _isMutating;
+  String? get syncErrorMessage => _syncErrorMessage;
+
+  void _listenToRepository() {
+    _syncErrorMessage = null;
+    _isInitialLoading = true;
+
+    _subscription = _repository.watchAll().listen(
+      (commands) {
+        _commands = List<Command>.from(commands);
+        _isInitialLoading = false;
+        _syncErrorMessage = null;
+        notifyListeners();
+      },
+      onError: (Object error, StackTrace st) {
+        debugPrint('Erreur de synchronisation Firestore: $error');
+        debugPrint('$st');
+        _isInitialLoading = false;
+        _syncErrorMessage =
+            'Une erreur est survenue lors de la synchronisation.';
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> retrySync() async {
+    await _subscription.cancel();
+    _listenToRepository();
+  }
+
+  Future<void> _runMutation(Future<void> Function() mutation) async {
+    // Une seule mutation à la fois pour garder l'UI stable.
+    if (_isMutating) return;
+    _isMutating = true;
+    _syncErrorMessage = null;
+    notifyListeners();
+
+    try {
+      await mutation();
+    } catch (e, st) {
+      debugPrint('Erreur mutation Firestore: $e');
+      debugPrint('$st');
+      _syncErrorMessage =
+          'Une erreur est survenue lors de la modification.';
+    } finally {
+      _isMutating = false;
+      notifyListeners();
+    }
+  }
 
   List<Command> get commands => List.unmodifiable(_commands);
 
@@ -32,35 +92,39 @@ class CommandProvider extends ChangeNotifier {
   }
 
   void addCommand(Command command) {
-    _commands.add(command);
-    notifyListeners();
+    unawaited(
+      _runMutation(() => _repository.add(command)),
+    );
   }
 
   void updateCommand(Command updatedCommand) {
-    final idx = _commands.indexWhere((c) => c.id == updatedCommand.id);
-    if (idx == -1) return;
-
-    _commands[idx] = updatedCommand;
-    notifyListeners();
+    unawaited(
+      _runMutation(() => _repository.update(updatedCommand)),
+    );
   }
 
   void deleteCommand(String id) {
-    _commands.removeWhere((c) => c.id == id);
-    notifyListeners();
+    unawaited(
+      _runMutation(() => _repository.delete(id)),
+    );
   }
 
   void incrementProgress(String commandId) {
     final command = getById(commandId);
     if (command == null) return;
 
-    updateCommand(command.incrementProgress());
+    unawaited(
+      _runMutation(() => _repository.incrementProgress(commandId)),
+    );
   }
 
   void resetProgress(String commandId) {
     final command = getById(commandId);
     if (command == null) return;
 
-    updateCommand(command.resetProgress());
+    unawaited(
+      _runMutation(() => _repository.resetProgress(commandId)),
+    );
   }
 
   List<Command> commandsByFrequency(Frequency frequency) {
@@ -121,6 +185,12 @@ class CommandProvider extends ChangeNotifier {
     if (command.isCompleted()) return CommandStatusFilter.completed;
     if (command.isStarted()) return CommandStatusFilter.started;
     return CommandStatusFilter.notStarted;
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }
 
