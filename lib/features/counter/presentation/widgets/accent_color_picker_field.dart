@@ -2,6 +2,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 
 typedef AccentColorChanged = void Function(int? colorValue);
+const String _useThemeDefaultColorToken = '__use_theme_default_color__';
 
 class AccentColorPickerField extends StatelessWidget {
   final int? selectedColorValue;
@@ -28,7 +29,7 @@ class AccentColorPickerField extends StatelessWidget {
       subtitle: const Text('Personnaliser la couleur du commandement'),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () async {
-        final selected = await showModalBottomSheet<int?>(
+        final selected = await showModalBottomSheet<Object?>(
           context: context,
           isScrollControlled: true,
           showDragHandle: true,
@@ -37,11 +38,11 @@ class AccentColorPickerField extends StatelessWidget {
             emojiPreview: emojiPreview,
           ),
         );
-        if (selected == null && selected != selectedColorValue) {
+        if (selected == _useThemeDefaultColorToken) {
           onChanged(null);
           return;
         }
-        if (selected != null) onChanged(selected);
+        if (selected is int) onChanged(selected);
       },
     );
   }
@@ -75,12 +76,20 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
   ];
 
   late Color _selectedColor;
+  late Color _themeDefaultColor;
 
   @override
   void initState() {
     super.initState();
+    _selectedColor = const Color(0xFF6750A4);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _themeDefaultColor = Theme.of(context).colorScheme.primary;
     _selectedColor = widget.initialColorValue == null
-        ? _materialPalette.first
+        ? _themeDefaultColor
         : Color(widget.initialColorValue!);
   }
 
@@ -154,8 +163,9 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(null),
-                      child: const Text('Couleur par défaut'),
+                      onPressed: () =>
+                          Navigator.of(context).pop(_useThemeDefaultColorToken),
+                      child: const Text('Couleur par défaut (thème)'),
                     ),
                   ),
                   const SizedBox(width: 12),

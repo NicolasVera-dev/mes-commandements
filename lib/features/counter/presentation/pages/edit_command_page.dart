@@ -105,7 +105,12 @@ class _EditCommandPageState extends State<EditCommandPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Modifier le commandement'),
+        title: Text(
+          'Modifier le commandement',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
       ),
       body: command == null
           ? Center(
@@ -280,6 +285,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                             frequency: _frequency,
                             emoji: _emoji,
                             accentColorValue: _accentColorValue,
+                            clearAccentColorValue: _accentColorValue == null,
                             tags: _tags,
                           ),
                         );
