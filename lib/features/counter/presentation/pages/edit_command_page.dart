@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
 import '../utils/command_form_validators.dart';
+import '../../../auth/presentation/state/auth_provider.dart';
+import '../../../auth/presentation/pages/login_page.dart';
 
 class EditCommandPage extends StatefulWidget {
   final String commandId;
@@ -66,6 +68,29 @@ class _EditCommandPageState extends State<EditCommandPage> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    if (auth.isInitialLoading) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 12),
+              Text(
+                'Vérification de la session...',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (!auth.isConnected) {
+      return const LoginPage();
+    }
+
     final commandProvider = context.watch<CommandProvider>();
     final command = commandProvider.getById(widget.commandId);
 
@@ -179,15 +204,18 @@ class _EditCommandPageState extends State<EditCommandPage> {
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: () {
-                        final isValid = _formKey.currentState?.validate() ??
-                            false;
+                        final isValid =
+                            _formKey.currentState?.validate() ?? false;
                         if (!isValid) return;
 
                         final title = _titleController.text.trim();
                         final description = _descriptionController.text.trim();
                         final target = parsePositiveInt(_targetController.text);
-                        final progress = parseNonNegativeInt(_progressController.text);
-                        if (title.isEmpty || target == null || progress == null) {
+                        final progress =
+                            parseNonNegativeInt(_progressController.text);
+                        if (title.isEmpty ||
+                            target == null ||
+                            progress == null) {
                           return;
                         }
 

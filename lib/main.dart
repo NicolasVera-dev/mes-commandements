@@ -4,23 +4,40 @@ import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'features/counter/data/repositories/firestore_command_repository.dart';
+import 'features/auth/data/repositories/firebase_auth_repository.dart';
+import 'features/auth/domain/repositories/auth_repository.dart';
+import 'features/auth/presentation/state/auth_provider.dart';
+import 'features/auth/presentation/widgets/auth_gate.dart';
 import 'features/counter/presentation/state/command_provider.dart';
-import 'features/counter/presentation/pages/home_page.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AuthRepository authRepository;
+
+  const MyApp({
+    super.key,
+    required this.authRepository,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CommandProvider(
-        repository: FirestoreCommandRepository(),
-      ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(repository: authRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CommandProvider(
+            repository: FirestoreCommandRepository(
+              authRepository: authRepository,
+            ),
+          ),
+        ),
+      ],
       child: MaterialApp(
         title: 'Mes commandements',
         themeMode: ThemeMode.dark,
         theme: ThemeData.dark(useMaterial3: true),
-        home: const HomePage(),
+        home: const AuthGate(),
       ),
     );
   }
@@ -31,5 +48,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  final authRepository = FirebaseAuthRepository();
+  runApp(MyApp(authRepository: authRepository));
 }
