@@ -21,10 +21,20 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
   late final AnimationController _sweepController;
   late final Animation<double> _sweepOffset;
   late final Animation<double> _sweepOpacity;
+  late double _previousRatio;
 
   double get _ratio {
     if (widget.target <= 0) return 0.0;
     final value = widget.progress / widget.target;
+    return value.clamp(0.0, 1.0);
+  }
+
+  double _ratioFor({
+    required int progress,
+    required int target,
+  }) {
+    if (target <= 0) return 0.0;
+    final value = progress / target;
     return value.clamp(0.0, 1.0);
   }
 
@@ -41,6 +51,7 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
   @override
   void initState() {
     super.initState();
+    _previousRatio = _ratio;
     _sweepController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 380),
@@ -63,6 +74,14 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
   @override
   void didUpdateWidget(covariant DynamicProgressBar oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final oldRatio = _ratioFor(
+      progress: oldWidget.progress,
+      target: oldWidget.target,
+    );
+    final newRatio = _ratio;
+    if (oldRatio != newRatio) {
+      _previousRatio = oldRatio;
+    }
     if (widget.progress > oldWidget.progress) {
       _sweepController
         ..stop()
@@ -91,7 +110,10 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
         TweenAnimationBuilder<double>(
           duration: const Duration(milliseconds: 350),
           curve: Curves.easeOutCubic,
-          tween: Tween<double>(begin: 0, end: _ratio),
+          tween: Tween<double>(begin: _previousRatio, end: _ratio),
+          onEnd: () {
+            _previousRatio = _ratio;
+          },
           builder: (context, value, _) {
             return SizedBox(
               height: 10,

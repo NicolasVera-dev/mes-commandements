@@ -215,22 +215,7 @@ class _HomePageState extends State<HomePage> {
                         'list-${commands.length}-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_selectedTags.join(",")}-${_sort.name}-q:${commandProvider.searchQuery}-l:${commandProvider.isInitialLoading}-e:${commandProvider.syncErrorMessage ?? ""}',
                       ),
                       child: commandProvider.isInitialLoading
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const CircularProgressIndicator(),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'Chargement des commandements...',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            )
+                          ? const _InitialLoadingList()
                           : commandProvider.syncErrorMessage != null
                               ? Center(
                                   child: Padding(
@@ -404,6 +389,120 @@ class _ActiveDot extends StatelessWidget {
         color: Theme.of(context).colorScheme.primary,
         shape: BoxShape.circle,
       ),
+    );
+  }
+}
+
+class _InitialLoadingList extends StatelessWidget {
+  const _InitialLoadingList();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 100),
+      itemCount: 5,
+      separatorBuilder: (context, index) => const SizedBox(height: 14),
+      itemBuilder: (context, index) => const _LoadingCommandCard(),
+    );
+  }
+}
+
+class _LoadingCommandCard extends StatefulWidget {
+  const _LoadingCommandCard();
+
+  @override
+  State<_LoadingCommandCard> createState() => _LoadingCommandCardState();
+}
+
+class _LoadingCommandCardState extends State<_LoadingCommandCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = Curves.easeInOut.transform(_controller.value);
+        final base = Color.alphaBlend(
+          scheme.primary.withValues(alpha: 0.05 + (0.05 * t)),
+          scheme.surfaceContainerHighest,
+        );
+        final block = scheme.onSurface.withValues(alpha: 0.08 + (0.06 * t));
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: base,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.25),
+            ),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: block,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: block,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                height: 12,
+                width: 180,
+                decoration: BoxDecoration(
+                  color: block,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                height: 10,
+                decoration: BoxDecoration(
+                  color: block,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
