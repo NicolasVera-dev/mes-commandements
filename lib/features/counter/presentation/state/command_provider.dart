@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
+import '../../domain/entities/command_position_update.dart';
 import '../../domain/repositories/command_repository.dart';
 
 class CommandProvider extends ChangeNotifier {
@@ -86,6 +87,14 @@ class CommandProvider extends ChangeNotifier {
   }
 
   List<Command> get commands => List.unmodifiable(_commands);
+  List<String> get availableTags {
+    final set = <String>{};
+    for (final command in _commands) {
+      set.addAll(command.tags);
+    }
+    final list = set.toList(growable: false)..sort();
+    return list;
+  }
 
   String get searchQuery => _searchQuery;
 
@@ -142,10 +151,57 @@ class CommandProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> reorderCommands({
+    required int oldIndex,
+    required int newIndex,
+    required List<Command> visibleCommands,
+  }) async {
+    if (oldIndex < 0 ||
+        oldIndex >= visibleCommands.length ||
+        newIndex < 0 ||
+        newIndex > visibleCommands.length) {
+      return;
+    }
+
+    final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    if (adjustedNewIndex == oldIndex) return;
+
+    final visibleIds = visibleCommands.map((c) => c.id).toSet();
+    final reorderedVisible = List<Command>.from(visibleCommands);
+    final moved = reorderedVisible.removeAt(oldIndex);
+    reorderedVisible.insert(adjustedNewIndex, moved);
+
+    // Optimistic UI: réapplique le nouvel ordre sur la liste locale complète.
+    final others = _commands.where((c) => !visibleIds.contains(c.id)).toList();
+    final reindexedVisible = <Command>[];
+    for (var i = 0; i < reorderedVisible.length; i++) {
+      reindexedVisible.add(reorderedVisible[i].copyWith(position: i));
+    }
+    _commands = <Command>[...reindexedVisible, ...others];
+    notifyListeners();
+
+    final updates = <CommandPositionUpdate>[
+      for (var i = 0; i < reorderedVisible.length; i++)
+        CommandPositionUpdate(commandId: reorderedVisible[i].id, position: i),
+    ];
+
+    try {
+      await _repository.updatePositions(updates);
+    } catch (e, st) {
+      debugPrint('Erreur reorder Firestore: $e');
+      debugPrint('$st');
+      _syncErrorMessage =
+          'Le nouvel ordre n’a pas pu être synchronisé pour le moment.';
+      notifyListeners();
+      await retrySync();
+    }
+  }
+
   List<Command> commandsByFrequency(Frequency frequency) {
     return commandsFilteredSorted(
       frequencies: {frequency},
       statuses: const {},
+      tags: const {},
       sort: CommandSort.alpha,
     );
   }
@@ -155,6 +211,8 @@ class CommandProvider extends ChangeNotifier {
     required Set<Frequency>? frequencies,
     /// empty => "Tous" (no status filtering).
     required Set<CommandStatusFilter> statuses,
+    /// empty => no tag filtering.
+    required Set<String> tags,
     required CommandSort sort,
   }) {
     final q = _searchQuery.toLowerCase();
@@ -162,6 +220,7 @@ class CommandProvider extends ChangeNotifier {
     final List<Command> filtered = _commands
         .where((c) => frequencies == null ? true : frequencies.contains(c.frequency))
         .where((c) => statuses.isEmpty ? true : statuses.contains(_statusOf(c)))
+        .where((c) => tags.isEmpty ? true : c.tags.any(tags.contains))
         .where((c) => q.isEmpty ? true : c.title.toLowerCase().contains(q))
         .toList(growable: false);
 
@@ -173,7 +232,9 @@ class CommandProvider extends ChangeNotifier {
 
       switch (sort) {
         case CommandSort.alpha:
-          return aAlpha.compareTo(bAlpha);
+          return (a.position == b.position)
+              ? aAlpha.compareTo(bAlpha)
+              : a.position.compareTo(b.position);
         case CommandSort.completedFirst:
           return (a.isCompleted() == b.isCompleted())
               ? aAlpha.compareTo(bAlpha)
