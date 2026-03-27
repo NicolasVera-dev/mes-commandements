@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/entities/command.dart';
+import '../pages/command_detail_page.dart';
 import '../pages/edit_command_page.dart';
 import '../state/command_provider.dart';
 import 'dynamic_progress_bar.dart';
@@ -21,6 +22,42 @@ class CommandCard extends StatefulWidget {
 }
 
 class _CommandCardState extends State<CommandCard> {
+  Future<void> _confirmAndDelete({
+    required BuildContext context,
+    required CommandProvider commandProvider,
+    required Command command,
+  }) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Supprimer le commandement ?'),
+          content: const Text(
+            'Cette action est irréversible.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      commandProvider.deleteCommand(command.id);
+    }
+  }
+
   List<TextSpan> _buildHighlightedSpans({
     required String text,
     required String query,
@@ -162,9 +199,15 @@ class _CommandCardState extends State<CommandCard> {
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  command.emoji,
-                                  style: const TextStyle(fontSize: 18),
+                                child: Hero(
+                                  tag: 'command-emoji-${command.id}',
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: Text(
+                                      command.emoji,
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -211,9 +254,15 @@ class _CommandCardState extends State<CommandCard> {
                                 shape: BoxShape.circle,
                               ),
                               alignment: Alignment.center,
-                              child: Text(
-                                command.emoji,
-                                style: const TextStyle(fontSize: 18),
+                              child: Hero(
+                                tag: 'command-emoji-${command.id}',
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: Text(
+                                    command.emoji,
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -250,55 +299,68 @@ class _CommandCardState extends State<CommandCard> {
                           )
                         : const SizedBox.shrink(key: ValueKey('incomplete')),
                   ),
-                  IconButton(
-                    tooltip: 'Modifier',
-                    color: iconAccent,
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => EditCommandPage(commandId: command.id),
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    tooltip: 'Supprimer',
-                    color: iconAccent,
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (dialogContext) {
-                          return AlertDialog(
-                            title: const Text('Supprimer le commandement ?'),
-                            content: const Text(
-                              'Cette action est irréversible.',
+                  PopupMenuButton<_CommandCardMenuAction>(
+                    tooltip: 'Actions',
+                    icon: const Icon(Icons.more_vert_rounded),
+                    iconColor: iconAccent,
+                    constraints: const BoxConstraints(
+                      minWidth: 190,
+                    ),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(44, 44),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                    onSelected: (action) async {
+                      switch (action) {
+                        case _CommandCardMenuAction.details:
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => CommandDetailPage(commandId: command.id),
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(dialogContext).pop(false),
-                                child: const Text('Annuler'),
-                              ),
-                              FilledButton(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.errorContainer,
-                                  foregroundColor:
-                                      Theme.of(context).colorScheme.onErrorContainer,
-                                ),
-                                onPressed: () => Navigator.of(dialogContext).pop(true),
-                                child: const Text('Supprimer'),
-                              ),
-                            ],
                           );
-                        },
-                      );
-
-                      if (confirm == true) {
-                        commandProvider.deleteCommand(command.id);
+                          break;
+                        case _CommandCardMenuAction.edit:
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => EditCommandPage(commandId: command.id),
+                            ),
+                          );
+                          break;
+                        case _CommandCardMenuAction.delete:
+                          await _confirmAndDelete(
+                            context: context,
+                            commandProvider: commandProvider,
+                            command: command,
+                          );
+                          break;
                       }
                     },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem<_CommandCardMenuAction>(
+                        value: _CommandCardMenuAction.details,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.info_outline_rounded),
+                          title: Text('Voir le détail'),
+                        ),
+                      ),
+                      PopupMenuItem<_CommandCardMenuAction>(
+                        value: _CommandCardMenuAction.edit,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.edit_outlined),
+                          title: Text('Modifier'),
+                        ),
+                      ),
+                      PopupMenuItem<_CommandCardMenuAction>(
+                        value: _CommandCardMenuAction.delete,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.delete_outline_rounded),
+                          title: Text('Supprimer'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -367,6 +429,12 @@ class _CommandCardState extends State<CommandCard> {
       ),
     );
   }
+}
+
+enum _CommandCardMenuAction {
+  details,
+  edit,
+  delete,
 }
 
 String _frequencyLabel(Frequency frequency) {

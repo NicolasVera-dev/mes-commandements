@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
+import 'features/counter/data/repositories/firestore_command_event_repository.dart';
 import 'features/counter/data/repositories/firestore_command_repository.dart';
 import 'features/auth/data/repositories/firebase_auth_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/state/auth_provider.dart';
 import 'features/auth/presentation/widgets/auth_gate.dart';
+import 'features/counter/domain/repositories/command_event_repository.dart';
 import 'features/counter/presentation/state/command_provider.dart';
 import 'features/counter/presentation/widgets/command_reset_lifecycle_listener.dart';
 
@@ -21,8 +23,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final commandEventRepository = FirestoreCommandEventRepository(
+      authRepository: authRepository,
+    );
+
     return MultiProvider(
       providers: [
+        Provider<CommandEventRepository>.value(
+          value: commandEventRepository,
+        ),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(repository: authRepository),
         ),
@@ -30,6 +39,7 @@ class MyApp extends StatelessWidget {
           create: (_) => CommandProvider(
             repository: FirestoreCommandRepository(
               authRepository: authRepository,
+              eventRepository: commandEventRepository,
             ),
           ),
         ),

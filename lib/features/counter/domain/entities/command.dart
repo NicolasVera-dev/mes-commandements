@@ -1,4 +1,6 @@
 import 'package:meta/meta.dart';
+import '../services/cycle_key_generator.dart';
+import 'command_event.dart';
 
 /// Domain model representing a command/progress item.
 @immutable
@@ -16,6 +18,7 @@ class Command {
   final int progress;
   final Frequency frequency;
   final DateTime? lastResetAt;
+  final DateTime? createdAt;
   final String emoji;
   final int? accentColorValue;
   final int position;
@@ -29,6 +32,7 @@ class Command {
     required this.progress,
     required this.frequency,
     this.lastResetAt,
+    this.createdAt,
     this.emoji = defaultEmoji,
     this.accentColorValue,
     this.position = 0,
@@ -68,6 +72,7 @@ class Command {
     int? progress,
     Frequency? frequency,
     DateTime? lastResetAt,
+    DateTime? createdAt,
     String? emoji,
     int? accentColorValue,
     int? position,
@@ -85,6 +90,7 @@ class Command {
       lastResetAt: clearLastResetAt
           ? null
           : (lastResetAt ?? this.lastResetAt),
+      createdAt: createdAt ?? this.createdAt,
       emoji: emoji ?? this.emoji,
       accentColorValue: clearAccentColorValue
           ? null
@@ -120,6 +126,26 @@ class Command {
     return resetProgress(resetAt: now.toUtc());
   }
 
+  /// Génère un cycleKey déterministe en fonction de la fréquence.
+  String cycleKeyAt(DateTime atUtc) {
+    return CycleKeyGenerator.forFrequency(
+      frequency: frequency,
+      atUtc: atUtc.toUtc(),
+    );
+  }
+
+  /// Construit un événement domain à partir de l'état courant.
+  CommandEvent toEvent({
+    required CommandEventType type,
+    required DateTime actionAtUtc,
+  }) {
+    return CommandEvent.fromCommandSnapshot(
+      type: type,
+      command: this,
+      actionAtUtc: actionAtUtc.toUtc(),
+    );
+  }
+
   DateTime _periodStart(DateTime nowUtc) {
     switch (frequency) {
       case Frequency.daily:
@@ -145,6 +171,7 @@ class Command {
         other.progress == progress &&
         other.frequency == frequency &&
         other.lastResetAt == lastResetAt &&
+        other.createdAt == createdAt &&
         other.emoji == emoji &&
         other.accentColorValue == accentColorValue &&
         other.position == position &&
@@ -161,6 +188,7 @@ class Command {
         progress,
         frequency,
         lastResetAt,
+        createdAt,
         emoji,
         accentColorValue,
         position,
@@ -175,6 +203,7 @@ class Command {
       'progress': progress,
       'frequency': frequency.name,
       'lastResetAt': lastResetAt?.toUtc().toIso8601String(),
+      'createdAt': createdAt?.toUtc().toIso8601String(),
       'emoji': emoji,
       'accentColorValue': accentColorValue,
       'position': position,
@@ -214,6 +243,7 @@ class Command {
         ? rawProgress.toInt()
         : int.tryParse((rawProgress ?? '').toString()) ?? 0;
     final lastResetAt = _parseDateTime(map['lastResetAt']);
+    final createdAt = _parseDateTime(map['createdAt']);
     final rawAccentColor = map['accentColorValue'];
     final accentColorValue = rawAccentColor is num
         ? rawAccentColor.toInt()
@@ -242,6 +272,7 @@ class Command {
       progress: progress,
       frequency: frequency,
       lastResetAt: lastResetAt,
+      createdAt: createdAt,
       emoji: emoji,
       accentColorValue: accentColorValue,
       position: position,
@@ -252,6 +283,13 @@ class Command {
   static DateTime? _parseDateTime(Object? raw) {
     if (raw == null) return null;
     if (raw is DateTime) return raw.toUtc();
+    try {
+      final dynamicValue = raw as dynamic;
+      final timestampDate = dynamicValue.toDate();
+      if (timestampDate is DateTime) return timestampDate.toUtc();
+    } catch (_) {
+      // Ignorer et tenter un parsing string juste après.
+    }
     final parsed = DateTime.tryParse(raw.toString());
     return parsed?.toUtc();
   }
