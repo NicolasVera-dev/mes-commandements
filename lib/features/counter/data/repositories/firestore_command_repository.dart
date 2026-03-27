@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
+import '../../domain/entities/command_position_update.dart';
 import '../../domain/repositories/command_repository.dart';
 import '../../../auth/domain/entities/auth_user.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
@@ -34,6 +35,10 @@ class FirestoreCommandRepository implements CommandRepository {
       'target': command.target,
       'progress': command.progress,
       'frequency': command.frequency.name,
+      'emoji': command.emoji,
+      'accentColorValue': command.accentColorValue,
+      'position': command.position,
+      'tags': command.tags,
     };
   }
 
@@ -141,7 +146,41 @@ class FirestoreCommandRepository implements CommandRepository {
   Future<void> add(Command command) async {
     final uid = await _currentUserId();
     if (uid == null) return;
-    await _collectionForUser(uid).doc(command.id).set(command.toMap());
+    final collection = _collectionForUser(uid);
+    final snapshot = await collection.get();
+    var maxPosition = -1;
+    for (final doc in snapshot.docs) {
+      final existing = Command.fromMap(
+        id: doc.id,
+        map: Map<String, Object?>.from(doc.data()),
+      );
+      if (existing.position > maxPosition) {
+        maxPosition = existing.position;
+      }
+    }
+    final withPosition = command.copyWith(position: maxPosition + 1);
+    await collection.doc(command.id).set(withPosition.toMap());
+  }
+
+  @override
+  Future<void> updatePositions(List<CommandPositionUpdate> updates) async {
+    final uid = await _currentUserId();
+    if (uid == null || updates.isEmpty) return;
+    final collection = _collectionForUser(uid);
+    const maxBatchSize = 500;
+
+    for (var i = 0; i < updates.length; i += maxBatchSize) {
+      final end = (i + maxBatchSize > updates.length)
+          ? updates.length
+          : i + maxBatchSize;
+      final chunk = updates.sublist(i, end);
+      final batch = _firestore.batch();
+      for (final update in chunk) {
+        final ref = collection.doc(update.commandId);
+        batch.update(ref, <String, Object?>{'position': update.position});
+      }
+      await batch.commit();
+    }
   }
 
   @override

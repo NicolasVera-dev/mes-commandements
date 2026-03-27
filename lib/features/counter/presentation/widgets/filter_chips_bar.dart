@@ -9,6 +9,7 @@ class FilterChipsBar extends StatefulWidget {
   final FilterSettings current;
   final void Function(Set<Frequency>? frequencies) onFrequenciesChanged;
   final void Function(Set<CommandStatusFilter> statuses) onStatusesChanged;
+  final void Function(Set<String> tags) onTagsChanged;
   final void Function(CommandSort) onSortChanged;
 
   const FilterChipsBar({
@@ -16,6 +17,7 @@ class FilterChipsBar extends StatefulWidget {
     required this.current,
     required this.onFrequenciesChanged,
     required this.onStatusesChanged,
+    required this.onTagsChanged,
     required this.onSortChanged,
   });
 
@@ -53,6 +55,21 @@ class _FilterChipsBarState extends State<FilterChipsBar> {
             onRemove: () {
               final next = Set<CommandStatusFilter>.from(selectedStatuses)..remove(status);
               widget.onStatusesChanged(next);
+            },
+          ),
+        );
+      }
+    }
+
+    final selectedTags = widget.current.selectedTags;
+    if (selectedTags.isNotEmpty) {
+      for (final tag in selectedTags) {
+        chips.add(
+          _ActiveChip(
+            label: '#$tag',
+            onRemove: () {
+              final next = Set<String>.from(selectedTags)..remove(tag);
+              widget.onTagsChanged(next);
             },
           ),
         );
@@ -146,7 +163,7 @@ String _statusLabel(CommandStatusFilter status) {
 String _sortLabel(CommandSort sort) {
   switch (sort) {
     case CommandSort.alpha:
-      return 'A-Z';
+      return 'Manuel';
     case CommandSort.completedFirst:
       return "Terminés d'abord";
     case CommandSort.highestProgressFirst:

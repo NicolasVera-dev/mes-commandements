@@ -8,11 +8,13 @@ class FilterSettings {
   final Set<Frequency>? selectedFrequencies;
   /// empty => "Tous" (no status filtering)
   final Set<CommandStatusFilter> selectedStatuses;
+  final Set<String> selectedTags;
   final CommandSort sort;
 
   const FilterSettings({
     required this.selectedFrequencies,
     required this.selectedStatuses,
+    required this.selectedTags,
     required this.sort,
   });
 }
@@ -20,22 +22,28 @@ class FilterSettings {
 Future<FilterSettings?> showFilterBottomSheet({
   required BuildContext context,
   required FilterSettings initial,
+  required List<String> availableTags,
 }) {
   return showModalBottomSheet<FilterSettings>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     builder: (context) {
-      return _FilterBottomSheet(initial: initial);
+      return _FilterBottomSheet(
+        initial: initial,
+        availableTags: availableTags,
+      );
     },
   );
 }
 
 class _FilterBottomSheet extends StatefulWidget {
   final FilterSettings initial;
+  final List<String> availableTags;
 
   const _FilterBottomSheet({
     required this.initial,
+    required this.availableTags,
   });
 
   @override
@@ -45,6 +53,7 @@ class _FilterBottomSheet extends StatefulWidget {
 class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   late Set<Frequency>? _frequencies;
   late Set<CommandStatusFilter> _statuses;
+  late Set<String> _tags;
   late CommandSort _sort;
 
   final _formKey = GlobalKey<FormState>();
@@ -54,6 +63,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     super.initState();
     _frequencies = widget.initial.selectedFrequencies;
     _statuses = widget.initial.selectedStatuses;
+    _tags = Set<String>.from(widget.initial.selectedTags);
     _sort = widget.initial.sort;
   }
 
@@ -61,6 +71,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     setState(() {
       _frequencies = null;
       _statuses = <CommandStatusFilter>{};
+      _tags = <String>{};
       _sort = CommandSort.alpha;
     });
   }
@@ -177,6 +188,32 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 ],
               ),
               const SizedBox(height: 18),
+              _SectionTitle('Tags'),
+              const SizedBox(height: 10),
+              if (widget.availableTags.isEmpty)
+                Text(
+                  'Aucun tag disponible pour le moment.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: widget.availableTags.map((tag) {
+                    return FilterChip(
+                      label: Text(tag),
+                      selected: _tags.contains(tag),
+                      onSelected: (_) => setState(() {
+                        if (_tags.contains(tag)) {
+                          _tags.remove(tag);
+                        } else {
+                          _tags.add(tag);
+                        }
+                      }),
+                    );
+                  }).toList(growable: false),
+                ),
+              const SizedBox(height: 18),
               _SectionTitle('Tri'),
               const SizedBox(height: 10),
               Wrap(
@@ -184,7 +221,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 runSpacing: 6,
                 children: [
                   FilterChip(
-                    label: const Text('A-Z'),
+                    label: const Text('Manuel'),
                     selected: _sort == CommandSort.alpha,
                     onSelected: (_) =>
                         setState(() => _sort = CommandSort.alpha),
@@ -228,6 +265,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         final settings = FilterSettings(
                           selectedFrequencies: _frequencies,
                           selectedStatuses: _statuses,
+                          selectedTags: _tags,
                           sort: _sort,
                         );
                         Navigator.of(context).pop(settings);

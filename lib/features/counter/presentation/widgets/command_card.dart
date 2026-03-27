@@ -88,10 +88,25 @@ class _CommandCardState extends State<CommandCard> {
       (p) => p.searchQuery,
     );
     final isCompleted = command.isCompleted();
+    final hasCustomAccent = command.accentColorValue != null;
+    final accentColor = command.accentColorValue == null
+        ? Theme.of(context).colorScheme.primary
+        : Color(command.accentColorValue!);
 
     final borderColor = isCompleted
         ? Colors.greenAccent.shade200.withValues(alpha: 0.55)
-        : Colors.transparent;
+        : (hasCustomAccent
+            ? accentColor.withValues(alpha: 0.5)
+            : Colors.transparent);
+    final cardBackgroundColor = isCompleted
+        ? Colors.green.withValues(alpha: 0.12)
+        : hasCustomAccent
+            ? Color.alphaBlend(
+                accentColor.withValues(alpha: 0.08),
+                Theme.of(context).colorScheme.surfaceContainerHighest,
+              )
+            : Theme.of(context).colorScheme.surfaceContainerHighest;
+    final iconAccent = hasCustomAccent ? accentColor : null;
 
     return Material(
       type: MaterialType.card,
@@ -108,9 +123,7 @@ class _CommandCardState extends State<CommandCard> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: isCompleted
-                ? Colors.green.withValues(alpha: 0.12)
-                : Theme.of(context).colorScheme.surfaceContainerHighest,
+            color: cardBackgroundColor,
             border: Border.all(
               color: borderColor,
               width: 1,
@@ -133,7 +146,38 @@ class _CommandCardState extends State<CommandCard> {
 
                         final q = searchQuery.trim();
                         if (q.isEmpty) {
-                          return Text(command.title, style: baseStyle);
+                          return Row(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 260),
+                                curve: Curves.easeOut,
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: hasCustomAccent
+                                      ? accentColor.withValues(alpha: 0.2)
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHigh,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  command.emoji,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  command.title,
+                                  style: baseStyle,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          );
                         }
 
                         final highlightStyle = baseStyle.copyWith(
@@ -151,10 +195,36 @@ class _CommandCardState extends State<CommandCard> {
                           highlightStyle: highlightStyle,
                         );
 
-                        return RichText(
-                          text: TextSpan(children: spans),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        return Row(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 260),
+                              curve: Curves.easeOut,
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: hasCustomAccent
+                                    ? accentColor.withValues(alpha: 0.2)
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHigh,
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                command.emoji,
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(children: spans),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -182,6 +252,7 @@ class _CommandCardState extends State<CommandCard> {
                   ),
                   IconButton(
                     tooltip: 'Modifier',
+                    color: iconAccent,
                     icon: const Icon(Icons.edit_outlined),
                     onPressed: () {
                       Navigator.of(context).push(
@@ -193,6 +264,7 @@ class _CommandCardState extends State<CommandCard> {
                   ),
                   IconButton(
                     tooltip: 'Supprimer',
+                    color: iconAccent,
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
@@ -248,6 +320,7 @@ class _CommandCardState extends State<CommandCard> {
                   key: ValueKey<String>('progress-${command.progress}-${command.target}'),
                   progress: command.progress,
                   target: command.target,
+                  accentTintColor: hasCustomAccent ? accentColor : null,
                 ),
               ),
               const SizedBox(height: 8),
@@ -255,11 +328,35 @@ class _CommandCardState extends State<CommandCard> {
                 'Fréquence: ${_frequencyLabel(command.frequency)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              if (command.tags.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: command.tags
+                      .map(
+                        (tag) => Chip(
+                          label: Text('#$tag'),
+                          visualDensity: VisualDensity.compact,
+                          side: hasCustomAccent
+                              ? BorderSide(
+                                  color: accentColor.withValues(alpha: 0.55),
+                                )
+                              : null,
+                          backgroundColor: hasCustomAccent
+                              ? accentColor.withValues(alpha: 0.16)
+                              : null,
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ],
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
                   tooltip: 'Réinitialiser',
+                  color: iconAccent,
                   onPressed: () => commandProvider.resetProgress(command.id),
                   icon: const Icon(Icons.refresh),
                 ),
