@@ -22,6 +22,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
 
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -76,6 +79,9 @@ class _SignUpPageState extends State<SignUpPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
@@ -153,19 +159,25 @@ class _SignUpPageState extends State<SignUpPage> {
       appBar: AppBar(
         title: const Text('Inscription'),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          ),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: ListView(
-              children: [
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 12,
+              bottom: 16,
+            ),
+            child: AutofillGroup(
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  children: [
                 Text(
                   'Créez votre compte',
                   style: Theme.of(context).textTheme.titleLarge,
@@ -173,9 +185,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _emailController,
+                  focusNode: _emailFocus,
                   enabled: !_isSubmitting,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
+                  autofillHints: const <String>[AutofillHints.username, AutofillHints.email],
+                  onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
@@ -192,9 +207,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 12),
                 PasswordTextField(
                   controller: _passwordController,
+                  focusNode: _passwordFocus,
                   enabled: !_isSubmitting,
                   labelText: 'Mot de passe',
                   textInputAction: TextInputAction.next,
+                  autofillHints: const <String>[AutofillHints.newPassword],
+                  onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
                   onChanged: (_) {
                     if (_errorMessage != null) setState(() => _errorMessage = null);
                   },
@@ -204,9 +222,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 12),
                 PasswordTextField(
                   controller: _confirmController,
+                  focusNode: _confirmFocus,
                   enabled: !_isSubmitting,
                   labelText: 'Confirmer le mot de passe',
                   textInputAction: TextInputAction.done,
+                  autofillHints: const <String>[AutofillHints.newPassword],
+                  onFieldSubmitted: (_) => _submit(),
                   onChanged: (_) {
                     if (_errorMessage != null) setState(() => _errorMessage = null);
                     setState(() {});
@@ -259,7 +280,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         },
                   child: const Text('J’ai déjà un compte'),
                 ),
-              ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),

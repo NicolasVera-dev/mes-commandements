@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
 import '../utils/command_form_validators.dart';
+import 'accent_color_picker_field.dart';
+import 'emoji_picker_field.dart';
+import 'tag_input_field.dart';
 
 Future<void> showCreateCommandSheet({
   required BuildContext context,
@@ -40,6 +43,9 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late Frequency _frequency;
+  String _emoji = Command.defaultEmoji;
+  int? _accentColorValue;
+  List<String> _tags = <String>[];
   final TextEditingController _targetController = TextEditingController();
 
   @override
@@ -73,7 +79,10 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
         child: Form(
           key: _formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: Column(
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
@@ -81,8 +90,17 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Essentiel',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
+                maxLength: Command.maxTitleLength,
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Titre',
@@ -92,7 +110,28 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                 validator: (value) {
                   final v = value?.trim() ?? '';
                   if (v.length < 2) return 'Veuillez entrer un titre (min. 2)';
+                  if (v.length > Command.maxTitleLength) {
+                    return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
+                  }
                   return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<Frequency>(
+                initialValue: _frequency,
+                decoration: const InputDecoration(
+                  labelText: 'Fréquence',
+                  prefixIcon: Icon(Icons.schedule),
+                ),
+                items: Frequency.values.map((frequency) {
+                  return DropdownMenuItem<Frequency>(
+                    value: frequency,
+                    child: Text(_frequencyLabel(frequency)),
+                  );
+                }).toList(growable: false),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => _frequency = value);
                 },
               ),
               const SizedBox(height: 12),
@@ -125,22 +164,38 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                 ),
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<Frequency>(
-                initialValue: _frequency,
-                decoration: const InputDecoration(
-                  labelText: 'Fréquence',
-                  prefixIcon: Icon(Icons.schedule),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Personnalisation visuelle',
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
-                items: Frequency.values.map((frequency) {
-                  return DropdownMenuItem<Frequency>(
-                    value: frequency,
-                    child: Text(_frequencyLabel(frequency)),
-                  );
-                }).toList(growable: false),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _frequency = value);
-                },
+              ),
+              const SizedBox(height: 8),
+              EmojiPickerField(
+                selectedEmoji: _emoji,
+                onChanged: (emoji) => setState(() => _emoji = emoji),
+              ),
+              AccentColorPickerField(
+                selectedColorValue: _accentColorValue,
+                emojiPreview: _emoji,
+                onChanged: (colorValue) =>
+                    setState(() => _accentColorValue = colorValue),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Organisation',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TagInputField(
+                initialTags: _tags,
+                suggestions: commandProvider.availableTags,
+                accentColorValue: _accentColorValue,
+                onChanged: (tags) => setState(() => _tags = tags),
               ),
               const SizedBox(height: 18),
               SizedBox(
@@ -161,6 +216,9 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                       target: target,
                       progress: 0,
                       frequency: _frequency,
+                      emoji: _emoji,
+                      accentColorValue: _accentColorValue,
+                      tags: _tags,
                     );
 
                     commandProvider.addCommand(command);
@@ -180,6 +238,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
               const SizedBox(height: 8),
             ],
           ),
+        ),
         ),
       ),
     );

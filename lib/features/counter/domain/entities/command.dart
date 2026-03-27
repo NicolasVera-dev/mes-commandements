@@ -3,7 +3,11 @@ import 'package:meta/meta.dart';
 /// Domain model representing a command/progress item.
 @immutable
 class Command {
+  static const int maxTitleLength = 60;
   static const int maxDescriptionLength = 150;
+  static const String defaultEmoji = '🎯';
+  static const int maxTagsCount = 5;
+  static const int maxTagLength = 20;
 
   final String id;
   final String title;
@@ -12,8 +16,12 @@ class Command {
   final int progress;
   final Frequency frequency;
   final DateTime? lastResetAt;
+  final String emoji;
+  final int? accentColorValue;
+  final int position;
+  final List<String> tags;
 
-  const Command({
+  Command({
     required this.id,
     required this.title,
     this.description = '',
@@ -21,9 +29,29 @@ class Command {
     required this.progress,
     required this.frequency,
     this.lastResetAt,
+    this.emoji = defaultEmoji,
+    this.accentColorValue,
+    this.position = 0,
+    this.tags = const <String>[],
   }) : assert(
+          title.trim().isNotEmpty,
+          'Le titre ne doit pas être vide.',
+        ),
+        assert(
+          title.trim().length <= maxTitleLength,
+          'Le titre ne doit pas dépasser $maxTitleLength caractères.',
+        ),
+        assert(
           description.length <= maxDescriptionLength,
           'La description ne doit pas dépasser $maxDescriptionLength caractères.',
+        ),
+        assert(
+          tags.length <= maxTagsCount,
+          'Le nombre de tags ne doit pas dépasser $maxTagsCount.',
+        ),
+        assert(
+          tags.every((t) => t.trim().length <= maxTagLength),
+          'Chaque tag ne doit pas dépasser $maxTagLength caractères.',
         );
 
   /// `true` si la progression a atteint (ou dépassé) la cible.
@@ -40,7 +68,12 @@ class Command {
     int? progress,
     Frequency? frequency,
     DateTime? lastResetAt,
+    String? emoji,
+    int? accentColorValue,
+    int? position,
+    List<String>? tags,
     bool clearLastResetAt = false,
+    bool clearAccentColorValue = false,
   }) {
     return Command(
       id: id ?? this.id,
@@ -52,6 +85,12 @@ class Command {
       lastResetAt: clearLastResetAt
           ? null
           : (lastResetAt ?? this.lastResetAt),
+      emoji: emoji ?? this.emoji,
+      accentColorValue: clearAccentColorValue
+          ? null
+          : (accentColorValue ?? this.accentColorValue),
+      position: position ?? this.position,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -105,7 +144,11 @@ class Command {
         other.target == target &&
         other.progress == progress &&
         other.frequency == frequency &&
-        other.lastResetAt == lastResetAt;
+        other.lastResetAt == lastResetAt &&
+        other.emoji == emoji &&
+        other.accentColorValue == accentColorValue &&
+        other.position == position &&
+        _listEquals(other.tags, tags);
   }
 
   @override
@@ -118,6 +161,10 @@ class Command {
         progress,
         frequency,
         lastResetAt,
+        emoji,
+        accentColorValue,
+        position,
+        Object.hashAll(tags),
       );
 
   Map<String, Object?> toMap() {
@@ -128,6 +175,10 @@ class Command {
       'progress': progress,
       'frequency': frequency.name,
       'lastResetAt': lastResetAt?.toUtc().toIso8601String(),
+      'emoji': emoji,
+      'accentColorValue': accentColorValue,
+      'position': position,
+      'tags': tags,
     };
   }
 
@@ -149,6 +200,10 @@ class Command {
     final clampedDescription = description.length > maxDescriptionLength
         ? description.substring(0, maxDescriptionLength)
         : description;
+    final rawTitle = (map['title'] ?? '').toString().trim();
+    final title = rawTitle.length > maxTitleLength
+        ? rawTitle.substring(0, maxTitleLength)
+        : rawTitle;
 
     final rawTarget = map['target'];
     final target = rawTarget is num
@@ -159,15 +214,38 @@ class Command {
         ? rawProgress.toInt()
         : int.tryParse((rawProgress ?? '').toString()) ?? 0;
     final lastResetAt = _parseDateTime(map['lastResetAt']);
+    final rawAccentColor = map['accentColorValue'];
+    final accentColorValue = rawAccentColor is num
+        ? rawAccentColor.toInt()
+        : int.tryParse((rawAccentColor ?? '').toString());
+    final rawPosition = map['position'];
+    final position = rawPosition is num
+        ? rawPosition.toInt()
+        : int.tryParse((rawPosition ?? '').toString()) ?? 0;
+    final rawTags = map['tags'];
+    final tags = rawTags is List
+        ? rawTags
+            .map((e) => e.toString().trim())
+            .where((t) => t.isNotEmpty)
+            .take(maxTagsCount)
+            .map((t) => t.length > maxTagLength ? t.substring(0, maxTagLength) : t)
+            .toList(growable: false)
+        : const <String>[];
+    final rawEmoji = (map['emoji'] ?? '').toString().trim();
+    final emoji = rawEmoji.isEmpty ? defaultEmoji : rawEmoji;
 
     return Command(
       id: id,
-      title: (map['title'] ?? '').toString(),
+      title: title,
       description: clampedDescription,
       target: target,
       progress: progress,
       frequency: frequency,
       lastResetAt: lastResetAt,
+      emoji: emoji,
+      accentColorValue: accentColorValue,
+      position: position,
+      tags: tags,
     );
   }
 
@@ -176,6 +254,15 @@ class Command {
     if (raw is DateTime) return raw.toUtc();
     final parsed = DateTime.tryParse(raw.toString());
     return parsed?.toUtc();
+  }
+
+  static bool _listEquals(List<Object?> a, List<Object?> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }
 

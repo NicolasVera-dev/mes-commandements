@@ -17,6 +17,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
+  final _emailFocus = FocusNode();
 
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -24,6 +25,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   @override
   void dispose() {
+    _emailFocus.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -87,19 +89,25 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       appBar: AppBar(
         title: const Text('Réinitialisation du mot de passe'),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          ),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: ListView(
-              children: [
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 12,
+              bottom: 16,
+            ),
+            child: AutofillGroup(
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  children: [
                 Text(
                   'Entrez votre email',
                   style: Theme.of(context).textTheme.titleLarge,
@@ -107,9 +115,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _emailController,
+                  focusNode: _emailFocus,
                   enabled: !_isSubmitting,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.done,
+                  autofillHints: const <String>[AutofillHints.username, AutofillHints.email],
+                  onFieldSubmitted: (_) => _submit(),
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
@@ -166,7 +177,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                         },
                   child: const Text('Retour à la connexion'),
                 ),
-              ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),

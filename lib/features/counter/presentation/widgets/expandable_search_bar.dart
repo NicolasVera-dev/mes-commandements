@@ -158,9 +158,12 @@ class _CollapsedTitle extends StatelessWidget {
         Expanded(
           child: Text(
             collapsedTitle,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  height: 1.12,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ),
         IconButton(
@@ -199,12 +202,12 @@ class _SearchField extends StatelessWidget {
         final hasText = value.text.isNotEmpty;
 
         return Container(
-            width: double.infinity,
-          height: 40,
+          width: double.infinity,
+          height: 46,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(23),
           ),
           child: TextField(
             controller: controller,
@@ -215,22 +218,33 @@ class _SearchField extends StatelessWidget {
             maxLines: 1,
             minLines: 1,
             keyboardType: TextInputType.text,
+            textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               hintText: 'Rechercher un commandement...',
               hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
               border: InputBorder.none,
-              prefixIcon: const Icon(Icons.search_rounded),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 36,
+                minHeight: 36,
+              ),
+              suffixIconConstraints: const BoxConstraints(
+                minWidth: 36,
+                minHeight: 36,
+              ),
+              prefixIcon: const Icon(Icons.search_rounded, size: 20),
               suffixIcon: hasText
                   ? IconButton(
                       tooltip: 'Effacer',
-                      icon: const Icon(Icons.clear_rounded),
+                      icon: const Icon(Icons.clear_rounded, size: 20),
                       onPressed: onClear,
                     )
                   : IconButton(
                       tooltip: 'Fermer',
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(Icons.close_rounded, size: 20),
                       onPressed: onClose,
                     ),
             ),
