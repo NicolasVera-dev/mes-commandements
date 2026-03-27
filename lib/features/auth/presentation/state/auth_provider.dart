@@ -79,7 +79,12 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     clearError();
     try {
-      await _repository.signUp(email: email, password: password);
+      final user = await _repository.signUp(email: email, password: password);
+      _user = user;
+      _hasReceivedFirstAuthEvent = true;
+      _isInitialLoading = false;
+      _status = AuthStatus.connecte;
+      notifyListeners();
     } on AuthFailure catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -93,7 +98,12 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     clearError();
     try {
-      await _repository.signIn(email: email, password: password);
+      final user = await _repository.signIn(email: email, password: password);
+      _user = user;
+      _hasReceivedFirstAuthEvent = true;
+      _isInitialLoading = false;
+      _status = AuthStatus.connecte;
+      notifyListeners();
     } on AuthFailure catch (e) {
       _errorMessage = e.message;
       notifyListeners();

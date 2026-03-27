@@ -7,12 +7,12 @@ abstract class AuthRepository {
   /// État de connexion en temps réel.
   Stream<AuthUser?> authStateChanges();
 
-  Future<void> signUp({
+  Future<AuthUser> signUp({
     required String email,
     required String password,
   });
 
-  Future<void> signIn({
+  Future<AuthUser> signIn({
     required String email,
     required String password,
   });

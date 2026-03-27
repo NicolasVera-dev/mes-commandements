@@ -1,19 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/auth_user.dart';
 import '../../domain/errors/auth_failure.dart';
+import '../../domain/repositories/account_data_cleanup_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final FirebaseAuth _auth;
-  final FirebaseFirestore _firestore;
+  final AccountDataCleanupRepository _accountDataCleanupRepository;
 
   FirebaseAuthRepository({
     FirebaseAuth? auth,
-    FirebaseFirestore? firestore,
+    required AccountDataCleanupRepository accountDataCleanupRepository,
   })  : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+        _accountDataCleanupRepository = accountDataCleanupRepository;
 
   @override
   Stream<AuthUser?> authStateChanges() {
@@ -24,12 +24,20 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signUp({
+  Future<AuthUser> signUp({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = credential.user;
+      if (user == null) {
+        throw const AuthFailure("Une erreur est survenue. Veuillez réessayer.");
+      }
+      return AuthUser(uid: user.uid, email: user.email);
     } on FirebaseAuthException catch (e) {
       throw AuthFailure(_mapAuthCodeToFrenchMessage(e.code));
     } catch (_) {
@@ -38,12 +46,20 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signIn({
+  Future<AuthUser> signIn({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = credential.user;
+      if (user == null) {
+        throw const AuthFailure("Une erreur est survenue. Veuillez réessayer.");
+      }
+      return AuthUser(uid: user.uid, email: user.email);
     } on FirebaseAuthException catch (e) {
       throw AuthFailure(_mapAuthCodeToFrenchMessage(e.code));
     } catch (_) {
@@ -125,7 +141,7 @@ class FirebaseAuthRepository implements AuthRepository {
         password: currentPassword,
       );
       await user.reauthenticateWithCredential(credential);
-      await _deleteAllUserCommandsAndEvents(uid: user.uid);
+      await _accountDataCleanupRepository.deleteAllUserData(uid: user.uid);
       await user.delete();
     } on FirebaseAuthException catch (e) {
       throw AuthFailure(_mapAuthCodeToFrenchMessage(e.code));
@@ -133,45 +149,6 @@ class FirebaseAuthRepository implements AuthRepository {
       throw AuthFailure(e.message);
     } catch (_) {
       throw const AuthFailure("Une erreur est survenue. Veuillez réessayer.");
-    }
-  }
-
-  Future<void> _deleteAllUserCommandsAndEvents({
-    required String uid,
-  }) async {
-    final commandsCollection = _firestore.collection('users/$uid/commands');
-    final commandsSnapshot = await commandsCollection.get();
-    if (commandsSnapshot.docs.isEmpty) return;
-
-    const maxBatchOps = 500;
-
-    for (final commandDoc in commandsSnapshot.docs) {
-      final eventsSnapshot = await commandDoc.reference.collection('events').get();
-      final eventDocs = eventsSnapshot.docs;
-
-      var cursor = 0;
-      while (cursor < eventDocs.length) {
-        final availableForEvents = maxBatchOps - 1;
-        final end = (cursor + availableForEvents > eventDocs.length)
-            ? eventDocs.length
-            : cursor + availableForEvents;
-
-        final batch = _firestore.batch();
-        for (var i = cursor; i < end; i++) {
-          batch.delete(eventDocs[i].reference);
-        }
-
-        if (end == eventDocs.length) {
-          batch.delete(commandDoc.reference);
-        }
-
-        await batch.commit();
-        cursor = end;
-      }
-
-      if (eventDocs.isEmpty) {
-        await commandDoc.reference.delete();
-      }
     }
   }
 

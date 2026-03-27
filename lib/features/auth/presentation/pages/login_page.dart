@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../counter/presentation/pages/home_page.dart';
 import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_text_field.dart';
 import '../state/auth_provider.dart';
@@ -69,14 +68,6 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        FadeScalePageRoute<void>(
-          pageBuilder: (_) => const HomePage(),
-        ),
-        (_) => false,
-      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _errorMessage = auth.errorMessage);
@@ -89,28 +80,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    if (auth.isInitialLoading) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 12),
-              Text(
-                'Vérification de la session...',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    if (auth.isConnected) {
-      return const HomePage();
-    }
-
     final canSubmit = !_isSubmitting &&
         _isEmailValid(_emailController.text) &&
         _passwordController.text.isNotEmpty;

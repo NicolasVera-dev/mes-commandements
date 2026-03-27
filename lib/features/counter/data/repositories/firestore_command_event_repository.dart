@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -105,8 +106,13 @@ class FirestoreCommandEventRepository implements CommandEventRepository {
       await _eventsCollection(uid: uid, commandId: commandId).add(
         _toFirestoreMap(event),
       );
-    } catch (_) {
-      // Fire-and-forget: on n'interrompt jamais l'UI.
+    } catch (error, st) {
+      // Fire-and-forget intentionnel: log uniquement.
+      developer.log(
+        'Erreur ajout event Firestore ($commandId): $error',
+        name: 'FirestoreCommandEventRepository',
+        stackTrace: st,
+      );
     }
   }
 
