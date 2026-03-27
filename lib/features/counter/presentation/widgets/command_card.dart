@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/entities/command.dart';
+import '../../../../app/app_theme.dart';
 import '../pages/command_detail_page.dart';
 import '../pages/edit_command_page.dart';
 import '../state/command_provider.dart';
@@ -125,18 +126,24 @@ class _CommandCardState extends State<CommandCard> {
       (p) => p.searchQuery,
     );
     final isCompleted = command.isCompleted();
+    final scheme = Theme.of(context).colorScheme;
+    final semanticColors = Theme.of(context).extension<AppSemanticColors>();
     final hasCustomAccent = command.accentColorValue != null;
     final accentColor = command.accentColorValue == null
         ? Theme.of(context).colorScheme.primary
         : Color(command.accentColorValue!);
 
     final borderColor = isCompleted
-        ? Colors.greenAccent.shade200.withValues(alpha: 0.55)
+        ? (semanticColors?.completedCardBorder ?? scheme.primary)
         : (hasCustomAccent
             ? accentColor.withValues(alpha: 0.5)
             : Colors.transparent);
     final cardBackgroundColor = isCompleted
-        ? Colors.green.withValues(alpha: 0.12)
+        ? (semanticColors?.completedCardBackground ??
+            Color.alphaBlend(
+              scheme.primary.withValues(alpha: 0.12),
+              scheme.surfaceContainerHighest,
+            ))
         : hasCustomAccent
             ? Color.alphaBlend(
                 accentColor.withValues(alpha: 0.08),
@@ -295,7 +302,7 @@ class _CommandCardState extends State<CommandCard> {
                         ? Icon(
                             Icons.check_circle_rounded,
                             key: const ValueKey('completed'),
-                            color: Colors.greenAccent.shade200,
+                            color: semanticColors?.completedCardIcon ?? scheme.primary,
                           )
                         : const SizedBox.shrink(key: ValueKey('incomplete')),
                   ),
