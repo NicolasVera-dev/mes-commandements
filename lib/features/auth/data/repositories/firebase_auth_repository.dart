@@ -24,12 +24,20 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signUp({
+  Future<AuthUser> signUp({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = credential.user;
+      if (user == null) {
+        throw const AuthFailure("Une erreur est survenue. Veuillez réessayer.");
+      }
+      return AuthUser(uid: user.uid, email: user.email);
     } on FirebaseAuthException catch (e) {
       throw AuthFailure(_mapAuthCodeToFrenchMessage(e.code));
     } catch (_) {
@@ -38,12 +46,20 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signIn({
+  Future<AuthUser> signIn({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = credential.user;
+      if (user == null) {
+        throw const AuthFailure("Une erreur est survenue. Veuillez réessayer.");
+      }
+      return AuthUser(uid: user.uid, email: user.email);
     } on FirebaseAuthException catch (e) {
       throw AuthFailure(_mapAuthCodeToFrenchMessage(e.code));
     } catch (_) {
