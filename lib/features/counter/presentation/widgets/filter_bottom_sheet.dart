@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/command.dart';
-import '../state/command_provider.dart';
+import '../../domain/usecases/filter_and_sort_commands_usecase.dart';
 
 class FilterSettings {
   /// null => "Toutes" (no frequency filtering).

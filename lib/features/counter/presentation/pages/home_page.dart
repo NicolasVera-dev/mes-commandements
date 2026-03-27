@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../state/command_provider.dart';
 import '../../domain/entities/command.dart';
+import '../../domain/usecases/filter_and_sort_commands_usecase.dart';
 import '../widgets/create_command_sheet.dart';
 import '../widgets/command_card.dart';
 import '../widgets/expandable_search_bar.dart';

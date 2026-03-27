@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../counter/presentation/pages/home_page.dart';
 import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_text_field.dart';
 import '../state/auth_provider.dart';
@@ -71,12 +70,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        FadeScalePageRoute<void>(
-          pageBuilder: (_) => const HomePage(),
-        ),
-        (_) => false,
-      );
+      Navigator.of(context).maybePop();
     } catch (_) {
       if (!mounted) return;
       setState(() => _errorMessage = auth.errorMessage);
@@ -108,7 +102,12 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
     if (auth.isConnected) {
-      return const HomePage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).maybePop();
+        }
+      });
+      return const SizedBox.shrink();
     }
 
     final canSubmit = !_isSubmitting &&

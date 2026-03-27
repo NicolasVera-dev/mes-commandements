@@ -13,12 +13,12 @@ void main() {
       expect(key, '2026-03-26');
     });
 
-    test('weekly -> YYYY-Www (ISO week)', () {
+    test('weekly -> YYYY-Sww (ISO week, format FR)', () {
       final key = CycleKeyGenerator.forFrequency(
         frequency: Frequency.weekly,
         atUtc: DateTime.utc(2026, 3, 26, 14, 10), // jeudi semaine 13
       );
-      expect(key, '2026-W13');
+      expect(key, '2026-S13');
     });
 
     test('weekly handles year boundary with ISO week year', () {
@@ -26,7 +26,7 @@ void main() {
         frequency: Frequency.weekly,
         atUtc: DateTime.utc(2021, 1, 1, 10, 0), // ISO week 53 of 2020
       );
-      expect(key, '2020-W53');
+      expect(key, '2020-S53');
     });
 
     test('monthly -> YYYY-MM', () {
@@ -86,7 +86,7 @@ void main() {
       );
 
       expect(event.type, CommandEventType.complete);
-      expect(event.cycleKey, '2026-W13');
+      expect(event.cycleKey, '2026-S13');
       expect(event.progressAfterAction, 10);
       expect(event.targetAtAction, 10);
     });

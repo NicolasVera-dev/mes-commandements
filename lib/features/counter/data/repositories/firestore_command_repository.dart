@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
@@ -144,8 +144,11 @@ class FirestoreCommandRepository implements CommandRepository {
         byFrequency[command.frequency] =
             (byFrequency[command.frequency] ?? 0) + 1;
       } catch (error, st) {
-        debugPrint('Erreur reset auto atomique (${command.id}): $error');
-        debugPrint('$st');
+        developer.log(
+          'Erreur reset auto atomique (${command.id}): $error',
+          name: 'FirestoreCommandRepository',
+          stackTrace: st,
+        );
       }
     }
 
@@ -157,17 +160,16 @@ class FirestoreCommandRepository implements CommandRepository {
     final uid = await _currentUserId();
     if (uid == null) return;
     final collection = _collectionForUser(uid);
-    final snapshot = await collection.get();
-    var maxPosition = -1;
-    for (final doc in snapshot.docs) {
-      final existing = Command.fromMap(
-        id: doc.id,
-        map: Map<String, Object?>.from(doc.data()),
-      );
-      if (existing.position > maxPosition) {
-        maxPosition = existing.position;
-      }
-    }
+    final snapshot = await collection
+        .orderBy('position', descending: true)
+        .limit(1)
+        .get();
+    final maxPosition = snapshot.docs.isEmpty
+        ? -1
+        : Command.fromMap(
+            id: snapshot.docs.first.id,
+            map: Map<String, Object?>.from(snapshot.docs.first.data()),
+          ).position;
     final withPosition = command.copyWith(
       position: maxPosition + 1,
       createdAt: command.createdAt ?? DateTime.now().toUtc(),
@@ -213,11 +215,12 @@ class FirestoreCommandRepository implements CommandRepository {
     if (uid == null) return;
 
     final commandRef = _collectionForUser(uid).doc(commandId);
-    final eventsSnapshot = await commandRef.collection('events').get();
+    final eventsCollection = commandRef.collection('events');
+    final eventsSnapshot = await eventsCollection.limit(500).get();
 
     // Firestore limite un batch à 500 opérations.
     // On réserve 1 opération pour le document commandement.
-    if (eventsSnapshot.docs.length > 499) {
+    if (eventsSnapshot.docs.length >= 500) {
       throw StateError(
         'Suppression impossible en un batch atomique: trop d’événements à supprimer.',
       );
@@ -322,6 +325,10 @@ class FirestoreCommandRepository implements CommandRepository {
 
     final cycleEventsSnapshot = await eventsCollection
         .where('cycleKey', isEqualTo: currentCycleKey)
+        .where('type', whereIn: <String>[
+          CommandEventType.complete.name,
+          CommandEventType.increment.name,
+        ])
         .get();
 
     final batch = _firestore.batch();
@@ -337,12 +344,7 @@ class FirestoreCommandRepository implements CommandRepository {
     batch.set(eventsCollection.doc(), _eventToMap(resetEvent));
 
     for (final eventDoc in cycleEventsSnapshot.docs) {
-      final map = eventDoc.data();
-      final type = (map['type'] ?? '').toString();
-      if (type == CommandEventType.complete.name ||
-          type == CommandEventType.increment.name) {
-        batch.delete(eventDoc.reference);
-      }
+      batch.delete(eventDoc.reference);
     }
 
     await batch.commit();

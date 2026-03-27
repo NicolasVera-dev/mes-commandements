@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../state/auth_provider.dart';
 import '../widgets/fade_scale_page_route.dart';
 import 'login_page.dart';
-import '../../../counter/presentation/pages/home_page.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key});
@@ -82,7 +81,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       );
     }
     if (auth.isConnected) {
-      return const HomePage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      });
+      return const SizedBox.shrink();
     }
 
     return Scaffold(

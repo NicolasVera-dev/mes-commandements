@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 
 import '../state/auth_provider.dart';
 import '../widgets/require_auth.dart';
-import '../../../counter/presentation/pages/home_page.dart';
 import '../pages/login_page.dart';
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  final Widget authenticatedChild;
+
+  const AuthGate({
+    super.key,
+    required this.authenticatedChild,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +40,7 @@ class AuthGate extends StatelessWidget {
     }
 
     // Auth connecté : on affiche la page principale.
-    return RequireAuth(child: const HomePage());
+    return RequireAuth(child: authenticatedChild);
   }
 }
 

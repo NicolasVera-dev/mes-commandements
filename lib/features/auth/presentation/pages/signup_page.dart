@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../counter/presentation/pages/home_page.dart';
 import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../widgets/password_text_field.dart';
@@ -117,10 +116,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        FadeScalePageRoute<void>(pageBuilder: (_) => const HomePage()),
-        (_) => false,
-      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (_) {
       if (!mounted) return;
       setState(() => _errorMessage = auth.errorMessage);
@@ -152,7 +148,12 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     }
     if (auth.isConnected) {
-      return const HomePage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      });
+      return const SizedBox.shrink();
     }
 
     return Scaffold(

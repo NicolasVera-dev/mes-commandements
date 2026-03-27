@@ -5,9 +5,11 @@ import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/entities/command_position_update.dart';
 import '../../domain/repositories/command_repository.dart';
+import '../../domain/usecases/filter_and_sort_commands_usecase.dart';
 
 class CommandProvider extends ChangeNotifier {
   final CommandRepository _repository;
+  final FilterAndSortCommandsUseCase _filterAndSortCommandsUseCase;
   late StreamSubscription<List<Command>> _subscription;
   List<Command> _commands = <Command>[];
   String _searchQuery = '';
@@ -17,7 +19,10 @@ class CommandProvider extends ChangeNotifier {
 
   CommandProvider({
     required CommandRepository repository,
-  }) : _repository = repository {
+    FilterAndSortCommandsUseCase? filterAndSortCommandsUseCase,
+  })  : _repository = repository,
+        _filterAndSortCommandsUseCase =
+            filterAndSortCommandsUseCase ?? const FilterAndSortCommandsUseCase() {
     _listenToRepository();
   }
 
@@ -215,52 +220,14 @@ class CommandProvider extends ChangeNotifier {
     required Set<String> tags,
     required CommandSort sort,
   }) {
-    final q = _searchQuery.toLowerCase();
-
-    final List<Command> filtered = _commands
-        .where((c) => frequencies == null ? true : frequencies.contains(c.frequency))
-        .where((c) => statuses.isEmpty ? true : statuses.contains(_statusOf(c)))
-        .where((c) => tags.isEmpty ? true : c.tags.any(tags.contains))
-        .where((c) => q.isEmpty ? true : c.title.toLowerCase().contains(q))
-        .toList(growable: false);
-
-    double ratio(Command c) => c.target <= 0 ? 0.0 : c.progress / c.target;
-
-    filtered.sort((a, b) {
-      final aAlpha = a.title.toLowerCase();
-      final bAlpha = b.title.toLowerCase();
-
-      switch (sort) {
-        case CommandSort.alpha:
-          return (a.position == b.position)
-              ? aAlpha.compareTo(bAlpha)
-              : a.position.compareTo(b.position);
-        case CommandSort.completedFirst:
-          return (a.isCompleted() == b.isCompleted())
-              ? aAlpha.compareTo(bAlpha)
-              : (a.isCompleted() ? -1 : 1);
-        case CommandSort.notCompletedFirst:
-          return (a.isCompleted() == b.isCompleted())
-              ? aAlpha.compareTo(bAlpha)
-              : (a.isCompleted() ? 1 : -1);
-        case CommandSort.highestProgressFirst:
-          final aR = ratio(a);
-          final bR = ratio(b);
-          return (aR == bR) ? aAlpha.compareTo(bAlpha) : bR.compareTo(aR);
-        case CommandSort.lowestProgressFirst:
-          final aR = ratio(a);
-          final bR = ratio(b);
-          return (aR == bR) ? aAlpha.compareTo(bAlpha) : aR.compareTo(bR);
-      }
-    });
-
-    return filtered;
-  }
-
-  CommandStatusFilter _statusOf(Command command) {
-    if (command.isCompleted()) return CommandStatusFilter.completed;
-    if (command.isStarted()) return CommandStatusFilter.started;
-    return CommandStatusFilter.notStarted;
+    return _filterAndSortCommandsUseCase.execute(
+      commands: _commands,
+      frequencies: frequencies,
+      statuses: statuses,
+      tags: tags,
+      sort: sort,
+      searchQuery: _searchQuery,
+    );
   }
 
   @override
@@ -268,20 +235,5 @@ class CommandProvider extends ChangeNotifier {
     _subscription.cancel();
     super.dispose();
   }
-}
-
-enum CommandStatusFilter {
-  all,
-  notStarted,
-  started,
-  completed,
-}
-
-enum CommandSort {
-  alpha,
-  completedFirst,
-  notCompletedFirst,
-  highestProgressFirst,
-  lowestProgressFirst,
 }
 

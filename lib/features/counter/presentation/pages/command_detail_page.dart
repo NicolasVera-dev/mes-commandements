@@ -8,6 +8,7 @@ import '../../domain/entities/command_event.dart';
 import '../../domain/entities/command_events_period.dart';
 import '../../domain/repositories/command_event_repository.dart';
 import '../../domain/services/cycle_key_generator.dart';
+import '../../domain/usecases/build_cycle_summary_usecase.dart';
 import '../state/command_provider.dart';
 import '../widgets/dynamic_progress_bar.dart';
 
@@ -261,7 +262,7 @@ class _DetailContent extends StatelessWidget {
                     ),
                 };
 
-                final summary = _summaryFor(
+                final summary = const BuildCycleSummaryUseCase().execute(
                   frequency: command.frequency,
                   anchorUtc: anchorUtc,
                   grouped: grouped,
@@ -749,110 +750,6 @@ class _YearlyBar extends StatelessWidget {
   }
 }
 
-class _Summary {
-  final int success;
-  final int failed;
-
-  const _Summary({
-    required this.success,
-    required this.failed,
-  });
-
-  int get total => success + failed;
-  int get completionRate => total == 0 ? 0 : ((success / total) * 100).round();
-}
-
-_Summary _summaryFor({
-  required Frequency frequency,
-  required DateTime anchorUtc,
-  required Map<String, List<CommandEvent>> grouped,
-  required String currentKey,
-  required DateTime createdAtUtc,
-}) {
-  final now = DateTime.now().toUtc();
-  final cycleKeys = <String>[];
-  switch (frequency) {
-    case Frequency.daily:
-      final start = DateTime.utc(anchorUtc.year, anchorUtc.month, 1);
-      final end = anchorUtc.month == 12
-          ? DateTime.utc(anchorUtc.year + 1, 1, 1)
-          : DateTime.utc(anchorUtc.year, anchorUtc.month + 1, 1);
-      var d = start;
-      while (d.isBefore(end)) {
-        if (_isCycleVisible(
-          frequency: Frequency.daily,
-          cycleStartUtc: d,
-          createdAtUtc: createdAtUtc,
-        )) {
-          cycleKeys.add('${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}');
-        }
-        d = d.add(const Duration(days: 1));
-      }
-      break;
-    case Frequency.weekly:
-      final monthStart = DateTime.utc(anchorUtc.year, anchorUtc.month, 1);
-      final monthEnd = anchorUtc.month == 12
-          ? DateTime.utc(anchorUtc.year + 1, 1, 1)
-          : DateTime.utc(anchorUtc.year, anchorUtc.month + 1, 1);
-      var cursor = monthStart;
-      while (cursor.isBefore(monthEnd)) {
-        final weekStart = _cycleStartUtc(Frequency.weekly, cursor);
-        if (_isCycleVisible(
-          frequency: Frequency.weekly,
-          cycleStartUtc: weekStart,
-          createdAtUtc: createdAtUtc,
-        )) {
-          final key = CycleKeyGenerator.forFrequency(
-            frequency: Frequency.weekly,
-            atUtc: cursor,
-          );
-          if (!cycleKeys.contains(key)) cycleKeys.add(key);
-        }
-        cursor = cursor.add(const Duration(days: 7));
-      }
-      break;
-    case Frequency.monthly:
-      for (var m = 1; m <= 12; m++) {
-        final monthStart = DateTime.utc(anchorUtc.year, m, 1);
-        if (_isCycleVisible(
-          frequency: Frequency.monthly,
-          cycleStartUtc: monthStart,
-          createdAtUtc: createdAtUtc,
-        )) {
-          cycleKeys.add('${anchorUtc.year}-${m.toString().padLeft(2, '0')}');
-        }
-      }
-      break;
-    case Frequency.yearly:
-      if (_isCycleVisible(
-        frequency: Frequency.yearly,
-        cycleStartUtc: DateTime.utc(anchorUtc.year, 1, 1),
-        createdAtUtc: createdAtUtc,
-      )) {
-        cycleKeys.add('${anchorUtc.year}');
-      }
-      break;
-  }
-
-  var success = 0;
-  var failed = 0;
-  for (final key in cycleKeys) {
-    final events = grouped[key] ?? const <CommandEvent>[];
-    if (_hasComplete(events)) {
-      success++;
-      continue;
-    }
-    final isPast = switch (frequency) {
-      Frequency.daily => DateTime.parse('${key}T00:00:00Z').isBefore(DateTime.utc(now.year, now.month, now.day)),
-      Frequency.weekly => key != currentKey && key.compareTo(currentKey) < 0,
-      Frequency.monthly => key.compareTo('${now.year}-${now.month.toString().padLeft(2, '0')}') < 0,
-      Frequency.yearly => int.parse(key) < now.year,
-    };
-    if (isPast) failed++;
-  }
-  return _Summary(success: success, failed: failed);
-}
-
 bool _isCycleVisible({
   required Frequency frequency,
   required DateTime cycleStartUtc,
@@ -1009,7 +906,7 @@ double _relativeLuminance(Color color) {
 }
 
 class _SummaryCard extends StatelessWidget {
-  final _Summary summary;
+  final CycleSummary summary;
 
   const _SummaryCard({
     required this.summary,
