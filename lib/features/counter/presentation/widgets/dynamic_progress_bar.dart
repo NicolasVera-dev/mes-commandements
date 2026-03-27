@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_theme.dart';
+
 class DynamicProgressBar extends StatefulWidget {
   final int progress;
   final int target;
@@ -39,9 +41,14 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
   }
 
   Color _progressColor(BuildContext context) {
+    final semanticColors = Theme.of(context).extension<AppSemanticColors>();
     final base = _ratio < 0.5
-        ? Colors.redAccent
-        : (_ratio < 0.8 ? Colors.orangeAccent : Colors.greenAccent.shade200);
+        ? (semanticColors?.progressLow ?? Theme.of(context).colorScheme.error)
+        : (_ratio < 0.8
+            ? (semanticColors?.progressMedium ??
+                Theme.of(context).colorScheme.tertiary)
+            : (semanticColors?.progressHigh ??
+                Theme.of(context).colorScheme.primary));
     final accent = widget.accentTintColor;
     if (accent == null) return base;
     // Teinte subtile en conservant la lisibilité des seuils de progression.
@@ -143,9 +150,18 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.white.withValues(alpha: 0),
-                                    Colors.white.withValues(alpha: _sweepOpacity.value),
-                                    Colors.white.withValues(alpha: 0),
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary
+                                        .withValues(alpha: 0),
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary
+                                        .withValues(alpha: _sweepOpacity.value),
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary
+                                        .withValues(alpha: 0),
                                   ],
                                 ),
                               ),

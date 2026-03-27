@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/app_theme.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/entities/command_event.dart';
 import '../../domain/entities/command_events_period.dart';
@@ -454,7 +455,7 @@ class _DailyCalendar extends StatelessWidget {
           isCurrent: isCurrent,
           isPast: isPast,
         );
-        final style = _styleForStatus(status);
+        final style = _styleForStatus(status, context);
         return Semantics(
           label: 'Jour ${day.day} ${_monthLabel(day.month)} ${day.year} : ${_statusSemantics(status)}',
           child: Container(
@@ -529,13 +530,14 @@ class _WeeklyList extends StatelessWidget {
         final progress = events.isEmpty
             ? 0
             : events.map((e) => e.progressAfterAction).reduce((a, b) => a > b ? a : b);
+        final progressRatio = target <= 0 ? 0.0 : (progress / target).clamp(0.0, 1.0);
         final success = _hasComplete(events);
         final status = _statusForCycle(
           isSuccess: success,
           isCurrent: weekKey == currentKey,
           isPast: weekStart.isBefore(currentWeekStart),
         );
-        final style = _styleForStatus(status);
+        final style = _styleForStatus(status, context);
         final textColor = _accessibleForegroundColor(
           backgroundColor: style.backgroundColor,
           context: context,
@@ -563,7 +565,14 @@ class _WeeklyList extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 6),
-                  LinearProgressIndicator(value: target <= 0 ? 0 : (progress / target).clamp(0.0, 1.0)),
+                  LinearProgressIndicator(
+                    value: progressRatio,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _progressColorForRatio(context, progressRatio),
+                    ),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHigh,
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
@@ -582,8 +591,8 @@ class _WeeklyList extends StatelessWidget {
                           (_) => Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.blueAccent,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -603,6 +612,17 @@ class _WeeklyList extends StatelessWidget {
       }).toList(growable: false),
     );
   }
+}
+
+Color _progressColorForRatio(BuildContext context, double ratio) {
+  final semanticColors = Theme.of(context).extension<AppSemanticColors>();
+  if (ratio < 0.5) {
+    return semanticColors?.progressLow ?? Theme.of(context).colorScheme.error;
+  }
+  if (ratio < 0.8) {
+    return semanticColors?.progressMedium ?? Theme.of(context).colorScheme.tertiary;
+  }
+  return semanticColors?.progressHigh ?? Theme.of(context).colorScheme.primary;
 }
 
 class _MonthlyGrid extends StatelessWidget {
@@ -649,7 +669,7 @@ class _MonthlyGrid extends StatelessWidget {
           isCurrent: isCurrent,
           isPast: isPast,
         );
-        final style = _styleForStatus(status);
+        final style = _styleForStatus(status, context);
         final textColor = _accessibleForegroundColor(
           backgroundColor: style.backgroundColor,
           context: context,
@@ -714,7 +734,7 @@ class _YearlyBar extends StatelessWidget {
       isCurrent: key == currentKey,
       isPast: year < nowYear,
     );
-    final style = _styleForStatus(status);
+    final style = _styleForStatus(status, context);
     final textColor = _accessibleForegroundColor(
       backgroundColor: style.backgroundColor,
       context: context,
@@ -820,25 +840,38 @@ class _CycleStyle {
   });
 }
 
-_CycleStyle _styleForStatus(_CycleVisualStatus status) {
+_CycleStyle _styleForStatus(_CycleVisualStatus status, BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  final semanticColors = Theme.of(context).extension<AppSemanticColors>();
   switch (status) {
     case _CycleVisualStatus.success:
       return _CycleStyle(
-        // Harmonisé avec CommandCard complétée.
-        backgroundColor: Colors.green.withValues(alpha: 0.12),
-        indicatorColor: Colors.greenAccent.shade200,
+        backgroundColor: semanticColors?.successBackground ??
+            Color.alphaBlend(
+              scheme.primary.withValues(alpha: 0.12),
+              scheme.surface,
+            ),
+        indicatorColor: semanticColors?.successIndicator ?? scheme.primary,
         stateIcon: Icons.check_rounded,
       );
     case _CycleVisualStatus.failed:
       return _CycleStyle(
-        backgroundColor: Colors.red.withValues(alpha: 0.12),
-        indicatorColor: Colors.redAccent.shade200,
+        backgroundColor: semanticColors?.failedBackground ??
+            Color.alphaBlend(
+              scheme.error.withValues(alpha: 0.12),
+              scheme.surface,
+            ),
+        indicatorColor: semanticColors?.failedIndicator ?? scheme.error,
         stateIcon: Icons.close_rounded,
       );
     case _CycleVisualStatus.current:
       return _CycleStyle(
-        backgroundColor: Colors.grey.withValues(alpha: 0.14),
-        indicatorColor: Colors.grey.shade400,
+        backgroundColor: semanticColors?.currentBackground ??
+            Color.alphaBlend(
+              scheme.surfaceContainerHighest.withValues(alpha: 0.45),
+              scheme.surface,
+            ),
+        indicatorColor: semanticColors?.currentIndicator ?? scheme.outline,
         stateIcon: Icons.schedule_rounded,
       );
   }
@@ -869,8 +902,8 @@ Color _accessibleForegroundColor({
   final blendedBackground = Color.alphaBlend(backgroundColor, baseSurface);
   final candidates = <Color>[
     Theme.of(context).colorScheme.onSurface,
-    Colors.white,
-    Colors.black,
+    Theme.of(context).colorScheme.onSurfaceVariant,
+    Theme.of(context).colorScheme.inverseSurface,
   ];
 
   var best = candidates.first;

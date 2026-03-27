@@ -6,7 +6,10 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:mes_commandements/app/theme_service.dart';
+import 'package:mes_commandements/app/user_preferences_service.dart';
 import 'package:mes_commandements/main.dart';
 import 'package:mes_commandements/features/auth/domain/entities/auth_user.dart';
 import 'package:mes_commandements/features/auth/domain/repositories/auth_repository.dart';
@@ -51,8 +54,17 @@ void main() {
   testWidgets(
     'Smoke test auth gate (skipped)',
     (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final prefs = await SharedPreferences.getInstance();
+      final themeService = ThemeService(prefs: prefs);
       await tester.pumpWidget(
-        MyApp(authRepository: _FakeAuthRepository()),
+        MyApp(
+          authRepository: _FakeAuthRepository(),
+          themeService: themeService,
+          userPreferencesService: UserPreferencesService(
+            themeService: themeService,
+          ),
+        ),
       );
       await tester.pump();
     },
