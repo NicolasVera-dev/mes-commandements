@@ -16,16 +16,16 @@ class _FakeAuthRepository implements AuthRepository {
   Stream<AuthUser?> authStateChanges() => const Stream<AuthUser?>.empty();
 
   @override
-  Future<void> signUp({
+  Future<AuthUser> signUp({
     required String email,
     required String password,
-  }) async {}
+  }) async => const AuthUser(uid: 'u1', email: 'test@example.com');
 
   @override
-  Future<void> signIn({
+  Future<AuthUser> signIn({
     required String email,
     required String password,
-  }) async {}
+  }) async => const AuthUser(uid: 'u1', email: 'test@example.com');
 
   @override
   Future<void> signOut() async {}

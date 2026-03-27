@@ -68,9 +68,6 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      if (!mounted) return;
-      Navigator.of(context).maybePop();
     } catch (_) {
       if (!mounted) return;
       setState(() => _errorMessage = auth.errorMessage);
@@ -83,33 +80,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    if (auth.isInitialLoading) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 12),
-              Text(
-                'Vérification de la session...',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    if (auth.isConnected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.of(context).maybePop();
-        }
-      });
-      return const SizedBox.shrink();
-    }
-
     final canSubmit = !_isSubmitting &&
         _isEmailValid(_emailController.text) &&
         _passwordController.text.isNotEmpty;
