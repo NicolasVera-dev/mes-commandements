@@ -35,11 +35,8 @@ class AuthGate extends StatelessWidget {
 
     return Navigator(
       pages: pages,
-      onPopPage: (route, result) {
-        if (!route.didPop(result)) {
-          return false;
-        }
-        return true;
+      onDidRemovePage: (page) {
+        // Les pages sont pilotées de manière déclarative via l'état auth.
       },
     );
   }
