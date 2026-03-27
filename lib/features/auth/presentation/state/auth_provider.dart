@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../../app/user_preferences_service.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/errors/auth_failure.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -15,6 +16,7 @@ enum AuthStatus {
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repository;
+  final UserPreferencesService? _userPreferencesService;
   late final StreamSubscription<AuthUser?> _subscription;
   late final Stream<AuthUser?> _authStream;
 
@@ -26,7 +28,9 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider({
     required AuthRepository repository,
-  }) : _repository = repository {
+    UserPreferencesService? userPreferencesService,
+  })  : _repository = repository,
+        _userPreferencesService = userPreferencesService {
     _authStream = _repository.authStateChanges();
 
     _subscription = _authStream.listen(
@@ -37,6 +41,11 @@ class AuthProvider extends ChangeNotifier {
         _isInitialLoading = false;
         _status = user == null ? AuthStatus.deconnecte : AuthStatus.connecte;
         notifyListeners();
+        if (user != null) {
+          unawaited(
+            _userPreferencesService?.syncThemeFromRemote(uid: user.uid),
+          );
+        }
       },
       onError: (Object error, StackTrace st) {
         debugPrint('Erreur auth stream: $error');
@@ -85,6 +94,9 @@ class AuthProvider extends ChangeNotifier {
       _isInitialLoading = false;
       _status = AuthStatus.connecte;
       notifyListeners();
+      unawaited(
+        _userPreferencesService?.syncThemeFromRemote(uid: user.uid),
+      );
     } on AuthFailure catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -104,6 +116,9 @@ class AuthProvider extends ChangeNotifier {
       _isInitialLoading = false;
       _status = AuthStatus.connecte;
       notifyListeners();
+      unawaited(
+        _userPreferencesService?.syncThemeFromRemote(uid: user.uid),
+      );
     } on AuthFailure catch (e) {
       _errorMessage = e.message;
       notifyListeners();

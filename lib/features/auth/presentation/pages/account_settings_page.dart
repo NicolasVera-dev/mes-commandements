@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/theme_service.dart';
+import '../../../../app/user_preferences_service.dart';
 import '../state/auth_provider.dart';
 import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_strength_indicator.dart';
@@ -183,6 +187,9 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final themeService = context.watch<ThemeService>();
+    final userPreferencesService = context.read<UserPreferencesService>();
+    final currentThemeMode = themeService.themeMode;
 
     if (auth.isInitialLoading) {
       return Scaffold(
@@ -227,6 +234,65 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
               Text(
                 'Utilisateur connecté${auth.user?.email != null ? ' : ${auth.user!.email}' : ''}',
                 style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 18),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Apparence',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 10),
+                      RadioGroup<ThemeMode>(
+                        groupValue: currentThemeMode,
+                        onChanged: (next) {
+                          if (_isUpdatingPassword || _isDeleting || _isSigningOut) {
+                            return;
+                          }
+                          if (next == null) return;
+                          unawaited(themeService.setThemeMode(next));
+                          unawaited(
+                            userPreferencesService.saveThemeToRemoteIfConnected(
+                              uid: auth.user?.uid,
+                              mode: next,
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: const [
+                            RadioListTile<ThemeMode>(
+                              value: ThemeMode.dark,
+                              title: Text('Sombre'),
+                              secondary: Icon(Icons.dark_mode_rounded),
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            RadioListTile<ThemeMode>(
+                              value: ThemeMode.light,
+                              title: Text('Clair'),
+                              secondary: Icon(Icons.light_mode_rounded),
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            RadioListTile<ThemeMode>(
+                              value: ThemeMode.system,
+                              title: Text('Automatique'),
+                              secondary: Icon(Icons.sync_rounded),
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 18),
               Card(
