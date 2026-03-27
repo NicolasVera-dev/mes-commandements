@@ -43,3 +43,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# iOS & macOS — CocoaPods, Flutter, Xcode (see also ios/.gitignore, macos/.gitignore)
+ios/Pods/
+ios/.symlinks/
+ios/Podfile.lock
+ios/Flutter/Flutter.podspec
+ios/Flutter/ephemeral/
+macos/Pods/
+macos/Podfile.lock
+macos/Flutter/ephemeral/
+
+**/DerivedData/
+**/xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
