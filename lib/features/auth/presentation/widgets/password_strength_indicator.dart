@@ -12,20 +12,21 @@ class PasswordStrengthIndicator extends StatelessWidget {
     this.showFirstError = true,
   });
 
-  Color _strengthColor(PasswordValidationResult r) {
+  Color _strengthColor(BuildContext context, PasswordValidationResult r) {
+    final scheme = Theme.of(context).colorScheme;
     final total = r.rules.length;
     final ratio = total == 0 ? 0.0 : r.satisfiedRulesCount / total;
 
-    if (ratio < 0.5) return Colors.redAccent;
-    if (ratio < 0.8) return Colors.orangeAccent;
-    return Colors.greenAccent.shade200;
+    if (ratio < 0.5) return scheme.error;
+    if (ratio < 0.8) return scheme.tertiary;
+    return scheme.primary;
   }
 
   @override
   Widget build(BuildContext context) {
     final total = result.rules.length;
     final ratio = total == 0 ? 0.0 : result.satisfiedRulesCount / total;
-    final strengthColor = _strengthColor(result);
+    final strengthColor = _strengthColor(context, result);
 
     final firstErrorMessage = result.rules
         .firstWhere((rule) => !rule.isValid, orElse: () => result.rules.first)
@@ -54,8 +55,8 @@ class PasswordStrengthIndicator extends StatelessWidget {
               ? Icons.check_circle_rounded
               : Icons.cancel_rounded;
           final iconColor = rule.isValid
-              ? Colors.greenAccent.shade200
-              : Theme.of(context).colorScheme.errorContainer;
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.error;
 
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
