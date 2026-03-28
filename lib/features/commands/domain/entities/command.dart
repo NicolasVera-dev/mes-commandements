@@ -147,18 +147,7 @@ class Command {
   }
 
   DateTime _periodStart(DateTime nowUtc) {
-    switch (frequency) {
-      case Frequency.daily:
-        return DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day);
-      case Frequency.weekly:
-        final deltaFromMonday = nowUtc.weekday - DateTime.monday;
-        final monday = nowUtc.subtract(Duration(days: deltaFromMonday));
-        return DateTime.utc(monday.year, monday.month, monday.day);
-      case Frequency.monthly:
-        return DateTime.utc(nowUtc.year, nowUtc.month, 1);
-      case Frequency.yearly:
-        return DateTime.utc(nowUtc.year, 1, 1);
-    }
+    return CycleKeyGenerator.cycleStartUtc(frequency, nowUtc);
   }
 
   @override
