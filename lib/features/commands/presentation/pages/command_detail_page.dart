@@ -503,7 +503,8 @@ class _WeeklyList extends StatelessWidget {
     final monthEnd = anchorUtc.month == 12
         ? DateTime.utc(anchorUtc.year + 1, 1, 1)
         : DateTime.utc(anchorUtc.year, anchorUtc.month + 1, 1);
-    final currentWeekStart = _cycleStartUtc(Frequency.weekly, DateTime.now().toUtc());
+    final currentWeekStart =
+        CycleKeyGenerator.cycleStartUtc(Frequency.weekly, DateTime.now().toUtc());
 
     DateTime cursor = monthStart;
     while (cursor.isBefore(monthEnd)) {
@@ -775,24 +776,9 @@ bool _isCycleVisible({
   required DateTime cycleStartUtc,
   required DateTime createdAtUtc,
 }) {
-  final firstVisibleCycleStart = _cycleStartUtc(frequency, createdAtUtc.toUtc());
+  final firstVisibleCycleStart =
+      CycleKeyGenerator.cycleStartUtc(frequency, createdAtUtc.toUtc());
   return !cycleStartUtc.toUtc().isBefore(firstVisibleCycleStart);
-}
-
-DateTime _cycleStartUtc(Frequency frequency, DateTime dateUtc) {
-  final utc = dateUtc.toUtc();
-  switch (frequency) {
-    case Frequency.daily:
-      return DateTime.utc(utc.year, utc.month, utc.day);
-    case Frequency.weekly:
-      final deltaFromMonday = utc.weekday - DateTime.monday;
-      final monday = utc.subtract(Duration(days: deltaFromMonday));
-      return DateTime.utc(monday.year, monday.month, monday.day);
-    case Frequency.monthly:
-      return DateTime.utc(utc.year, utc.month, 1);
-    case Frequency.yearly:
-      return DateTime.utc(utc.year, 1, 1);
-  }
 }
 
 DateTime _weekStartFromCycleKey(String cycleKey) {

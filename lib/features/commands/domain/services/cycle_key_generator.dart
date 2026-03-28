@@ -3,6 +3,22 @@ import '../entities/command.dart';
 class CycleKeyGenerator {
   const CycleKeyGenerator._();
 
+  static DateTime cycleStartUtc(Frequency frequency, DateTime atUtc) {
+    final utc = atUtc.toUtc();
+    switch (frequency) {
+      case Frequency.daily:
+        return DateTime.utc(utc.year, utc.month, utc.day);
+      case Frequency.weekly:
+        final deltaFromMonday = utc.weekday - DateTime.monday;
+        final monday = utc.subtract(Duration(days: deltaFromMonday));
+        return DateTime.utc(monday.year, monday.month, monday.day);
+      case Frequency.monthly:
+        return DateTime.utc(utc.year, utc.month, 1);
+      case Frequency.yearly:
+        return DateTime.utc(utc.year, 1, 1);
+    }
+  }
+
   static String forFrequency({
     required Frequency frequency,
     required DateTime atUtc,
