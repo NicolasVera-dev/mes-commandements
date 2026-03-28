@@ -82,17 +82,25 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/images/icon.png"
+  # Évite les bords noirs si le PNG a de la transparence autour du squircle.
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
   web:
     generate: false
 
 flutter_native_splash:
+  # Fond identique clair / sombre : le logo source inclut déjà une planche blanche ;
+  # un fond sombre (#121212) créait un « carré blanc sur noir » disgracieux.
   color: "#FFFFFF"
-  color_dark: "#121212"
+  color_dark: "#FFFFFF"
   image: assets/images/logo.png
   image_dark: assets/images/logo.png
+  ios_content_mode: scaleAspectFit
   android_12:
+    color: "#FFFFFF"
+    color_dark: "#FFFFFF"
     image: assets/images/logo.png
-    icon_background_color: "#FFFFFF"
     image_dark: assets/images/logo.png
-    icon_background_color_dark: "#121212"
+    icon_background_color: "#FFFFFF"
+    icon_background_color_dark: "#FFFFFF"
   fullscreen: false
