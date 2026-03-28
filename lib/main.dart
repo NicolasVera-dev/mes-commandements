@@ -1,8 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'app/app_root.dart';
 import 'app/theme_service.dart';
@@ -16,12 +19,17 @@ import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/state/auth_provider.dart';
 import 'features/commands/domain/repositories/command_event_repository.dart';
 import 'features/commands/presentation/state/command_provider.dart';
+import 'features/notifications/data/local_notification_scheduler.dart';
+import 'features/notifications/data/notification_preferences_service.dart';
+import 'features/notifications/domain/notification_scheduler.dart';
 
 class MyApp extends StatelessWidget {
   final AuthRepository authRepository;
   final CommandEventRepository commandEventRepository;
   final ThemeService themeService;
   final UserPreferencesService userPreferencesService;
+  final NotificationScheduler notificationScheduler;
+  final NotificationPreferencesService notificationPreferencesService;
 
   const MyApp({
     super.key,
@@ -29,6 +37,8 @@ class MyApp extends StatelessWidget {
     required this.commandEventRepository,
     required this.themeService,
     required this.userPreferencesService,
+    required this.notificationScheduler,
+    required this.notificationPreferencesService,
   });
 
   @override
@@ -46,12 +56,17 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ThemeService>.value(value: themeService),
         Provider<UserPreferencesService>.value(value: userPreferencesService),
+        Provider<NotificationScheduler>.value(value: notificationScheduler),
+        Provider<NotificationPreferencesService>.value(
+          value: notificationPreferencesService,
+        ),
         ChangeNotifierProvider(
           create: (_) => CommandProvider(
             repository: FirestoreCommandRepository(
               authRepository: authRepository,
               eventRepository: commandEventRepository,
             ),
+            notificationScheduler: notificationScheduler,
           ),
         ),
       ],
@@ -72,6 +87,8 @@ class MyApp extends StatelessWidget {
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  tz_data.initializeTimeZones();
+  tz.setLocalLocation(tz.UTC);
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -81,6 +98,16 @@ Future<void> main() async {
   await themeService.loadSavedTheme();
   final userPreferencesService = UserPreferencesService(
     themeService: themeService,
+  );
+  final notificationPreferencesService =
+      NotificationPreferencesService(sharedPrefs);
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  await LocalNotificationScheduler.initializePlugin(
+    flutterLocalNotificationsPlugin,
+  );
+  final notificationScheduler = LocalNotificationScheduler(
+    plugin: flutterLocalNotificationsPlugin,
+    preferences: notificationPreferencesService,
   );
   final accountDataCleanupRepository = FirestoreAccountDataCleanupRepository();
   final authRepository = FirebaseAuthRepository(
@@ -96,6 +123,8 @@ Future<void> main() async {
       commandEventRepository: commandEventRepository,
       themeService: themeService,
       userPreferencesService: userPreferencesService,
+      notificationScheduler: notificationScheduler,
+      notificationPreferencesService: notificationPreferencesService,
     ),
   );
 }
