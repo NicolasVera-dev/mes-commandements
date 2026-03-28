@@ -10,7 +10,7 @@ class NotificationPreferencesService {
   static const String reminderHourKey = 'notification_reminder_hour';
   static const String reminderMinuteKey = 'notification_reminder_minute';
 
-  bool get remindersEnabled => _prefs.getBool(remindersEnabledKey) ?? true;
+  bool get remindersEnabled => _prefs.getBool(remindersEnabledKey) ?? false;
 
   int get reminderHour => _prefs.getInt(reminderHourKey) ?? 18;
 
