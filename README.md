@@ -15,6 +15,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
 - 🔍 **Recherche, filtres et tri** : fréquence, statut, tags, recherche texte en direct
 - ☁️ **Synchronisation Firestore en temps réel** par utilisateur connecté
+- 🔔 **Rappels locaux** (optionnels) : notifications intelligentes par fréquence pour les commandements non terminés du cycle en cours ; réglage dans **Paramètres du compte** (activation, heure globale) ; préférences en local (`SharedPreferences`), pas dans Firestore ; **désactivés par défaut**
 - 🌙 **UI Material 3 dark** et support multi-plateformes (Android, iOS, Web, Windows, macOS, Linux)
 
 ---
@@ -29,7 +30,8 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 | [firebase_core](https://pub.dev/packages/firebase_core) | Initialisation Firebase |
 | [firebase_auth](https://pub.dev/packages/firebase_auth) | Authentification email/mot de passe |
 | [cloud_firestore](https://pub.dev/packages/cloud_firestore) | Persistance temps réel |
-| [shared_preferences](https://pub.dev/packages/shared_preferences) | Thème et préférences locales |
+| [shared_preferences](https://pub.dev/packages/shared_preferences) | Thème, préférences locales et options des rappels |
+| [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications), [timezone](https://pub.dev/packages/timezone), [flutter_timezone](https://pub.dev/packages/flutter_timezone) | Planification des rappels locaux et fuseau horaire de l’appareil |
 | [table_calendar](https://pub.dev/packages/table_calendar), [flex_color_picker](https://pub.dev/packages/flex_color_picker) | Calendriers et couleur d’accent dans les formulaires |
 | Material Design 3 | Système de design |
 
@@ -51,15 +53,19 @@ lib/
     │   ├── data/
     │   ├── domain/
     │   └── presentation/
-    └── commands/
+    ├── commands/
+    │   ├── data/
+    │   ├── domain/
+    │   └── presentation/
+    └── notifications/
         ├── data/
         ├── domain/
         └── presentation/
 ```
 
-- **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases
-- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, nettoyage des données compte)
-- **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles)
+- **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases, contrat `NotificationScheduler` et calcul des créneaux de rappel
+- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
+- **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles, carte de réglage des rappels)
 
 ---
 
@@ -67,7 +73,7 @@ lib/
 
 - [Flutter](https://flutter.dev/docs/get-started/install) avec **Dart SDK ^3.11.3** (contrainte `environment` du `pubspec.yaml`)
 - Compte / projet **Firebase** (Auth + Firestore) — le dépôt inclut `lib/firebase_options.dart` pour la config courante ; pour un nouveau projet, régénérez ce fichier avec la [CLI FlutterFire](https://firebase.google.com/docs/flutter/setup)
-- Pour Android : Android Studio / SDK
+- Pour Android : Android Studio / SDK (le build active le *core library desugaring* requis par les notifications locales)
 - Pour iOS / macOS : Xcode
 - Pour Windows : Visual Studio avec les workloads C++
 
@@ -136,7 +142,7 @@ flutter analyze
 
 ```
 lib/
-├── main.dart                                                # Firebase, splash, MultiProvider
+├── main.dart                                                # Firebase, fuseau tz, notifications, MultiProvider
 ├── firebase_options.dart                                    # Configuration Firebase générée
 ├── app/
 │   ├── app_root.dart                                        # Listener reset auto → AuthGate → HomePage
@@ -155,6 +161,16 @@ lib/
     │       ├── pages/                                       # login, signup, reset, compte
     │       ├── state/auth_provider.dart
     │       └── widgets/                                     # auth_gate, champs mot de passe, etc.
+    ├── notifications/
+    │   ├── data/
+    │   │   ├── local_notification_scheduler.dart
+    │   │   └── notification_preferences_service.dart
+    │   ├── domain/
+    │   │   ├── notification_scheduler.dart
+    │   │   ├── reminder_slot_calculator.dart
+    │   │   └── local_notification_ids.dart
+    │   └── presentation/
+    │       └── widgets/                                 # notification_settings_card (compte)
     └── commands/
         ├── data/repositories/
         │   ├── firestore_command_repository.dart
@@ -203,5 +219,16 @@ class CommandEvent {
 
 enum CommandEventType { increment, resetAuto, resetManual, complete }
 ```
+
+---
+
+## Rappels locaux (résumé)
+
+- **Où** : écran **Paramètres du compte**, section « Rappels », après « Apparence ».
+- **Comportement** : une notification par **fréquence** (quotidien, hebdomadaire, mensuel, annuel) uniquement s’il reste au moins un commandement **non complété** (`progress < target`) pour cette fréquence ; replanification après sync Firestore et après les actions qui changent la progression.
+- **Défaut** : rappels **désactivés** ; heure par défaut **18:00** (locale) une fois activés.
+- **Créneaux** (à l’heure choisie, fuseau de l’appareil) : quotidien chaque jour ; hebdomadaire mercredi et dimanche ; mensuel 7 jours et 2 jours avant la fin du mois ; annuel 1er novembre et 1er décembre.
+- **Plateformes** : planification effective sur Android, iOS et macOS ; pas de rappels sur Web dans l’implémentation actuelle.
+- **Android** : permissions et receivers nécessaires sont déclarés dans `AndroidManifest.xml` (notifications, alarmes exactes, redémarrage pour la replanification côté système).
 
 ---
