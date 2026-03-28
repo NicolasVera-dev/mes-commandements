@@ -308,15 +308,25 @@ Map<String, List<CommandEvent>> _groupByCycle(List<CommandEvent> events) {
 }
 
 String _nextResetText(Frequency frequency, DateTime nowUtc) {
-  final now = nowUtc.toUtc();
+  final utc = nowUtc.toUtc();
   switch (frequency) {
     case Frequency.daily:
-      return 'Reset demain';
+      if (utc.toLocal().hour >= 22) {
+        return 'Reset demain';
+      }
+      return 'Reset demain à minuit UTC';
     case Frequency.weekly:
-      return 'Reset lundi prochain';
+      final dayStart = DateTime.utc(utc.year, utc.month, utc.day);
+      final offset = dayStart.weekday - DateTime.monday;
+      final thisMonday = dayStart.subtract(Duration(days: offset));
+      final nextMonday = thisMonday.add(const Duration(days: 7));
+      return 'Reset le lundi ${nextMonday.day} ${monthLabel(nextMonday.month)}';
     case Frequency.monthly:
-      return 'Reset le 1er du mois prochain';
+      final nextFirst = utc.month == 12
+          ? DateTime.utc(utc.year + 1, 1, 1)
+          : DateTime.utc(utc.year, utc.month + 1, 1);
+      return 'Reset le 1er ${monthLabel(nextFirst.month)}';
     case Frequency.yearly:
-      return 'Reset le 1er janvier ${now.year + 1}';
+      return 'Reset le 1er janvier ${utc.year + 1}';
   }
 }
