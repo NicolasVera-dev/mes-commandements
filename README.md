@@ -11,7 +11,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
 - 🧭 **Page détail riche** : historique par période, résumé de cycles réussis/échoués, navigation temporelle
-- 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `reset_auto`, `reset_manual`) pour chaque commandement
+- 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `resetAuto`, `resetManual`) pour chaque commandement
 - 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
 - 🔍 **Recherche, filtres et tri** : fréquence, statut, tags, recherche texte en direct
 - ☁️ **Synchronisation Firestore en temps réel** par utilisateur connecté
@@ -29,6 +29,8 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 | [firebase_core](https://pub.dev/packages/firebase_core) | Initialisation Firebase |
 | [firebase_auth](https://pub.dev/packages/firebase_auth) | Authentification email/mot de passe |
 | [cloud_firestore](https://pub.dev/packages/cloud_firestore) | Persistance temps réel |
+| [shared_preferences](https://pub.dev/packages/shared_preferences) | Thème et préférences locales |
+| [table_calendar](https://pub.dev/packages/table_calendar), [flex_color_picker](https://pub.dev/packages/flex_color_picker) | Calendriers et couleur d’accent dans les formulaires |
 | Material Design 3 | Système de design |
 
 ---
@@ -40,28 +42,31 @@ Le projet suit l'architecture **Clean Architecture** avec une séparation strict
 ```
 lib/
 ├── app/
-│   └── app_root.dart
+│   ├── app_root.dart
+│   ├── app_theme.dart
+│   ├── theme_service.dart
+│   └── user_preferences_service.dart
 └── features/
     ├── auth/
     │   ├── data/
     │   ├── domain/
     │   └── presentation/
-    └── counter/
+    └── commands/
         ├── data/
         ├── domain/
         └── presentation/
 ```
 
 - **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases
-- **Data** : implémentations Firebase Auth / Firestore
-- **Presentation** : providers d'état, pages et widgets UI (auth, home, détail, édition)
+- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, nettoyage des données compte)
+- **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles)
 
 ---
 
 ## Prérequis
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) ≥ 3.11.3
-- Dart SDK (inclus avec Flutter)
+- [Flutter](https://flutter.dev/docs/get-started/install) avec **Dart SDK ^3.11.3** (contrainte `environment` du `pubspec.yaml`)
+- Compte / projet **Firebase** (Auth + Firestore) — le dépôt inclut `lib/firebase_options.dart` pour la config courante ; pour un nouveau projet, régénérez ce fichier avec la [CLI FlutterFire](https://firebase.google.com/docs/flutter/setup)
 - Pour Android : Android Studio / SDK
 - Pour iOS / macOS : Xcode
 - Pour Windows : Visual Studio avec les workloads C++
@@ -131,27 +136,39 @@ flutter analyze
 
 ```
 lib/
-├── main.dart                                                # Initialisation app/Firebase/providers
+├── main.dart                                                # Firebase, splash, MultiProvider
+├── firebase_options.dart                                    # Configuration Firebase générée
 ├── app/
-│   └── app_root.dart                                        # Composition racine (AuthGate + Home)
+│   ├── app_root.dart                                        # Listener reset auto → AuthGate → HomePage
+│   ├── app_theme.dart
+│   ├── theme_service.dart
+│   └── user_preferences_service.dart
 └── features/
     ├── auth/
-    │   ├── data/repositories/firebase_auth_repository.dart
-    │   ├── domain/repositories/auth_repository.dart
+    │   ├── data/repositories/
+    │   │   ├── firebase_auth_repository.dart
+    │   │   └── firestore_account_data_cleanup_repository.dart
+    │   ├── domain/repositories/
+    │   │   ├── auth_repository.dart
+    │   │   └── account_data_cleanup_repository.dart
     │   └── presentation/
     │       ├── pages/                                       # login, signup, reset, compte
     │       ├── state/auth_provider.dart
-    │       └── widgets/auth_gate.dart
-    └── counter/
-        ├── data/repositories/firestore_command_repository.dart
+    │       └── widgets/                                     # auth_gate, champs mot de passe, etc.
+    └── commands/
+        ├── data/repositories/
+        │   ├── firestore_command_repository.dart
+        │   └── firestore_command_event_repository.dart
         ├── domain/
-        │   ├── entities/                                    # command, events, reset report...
-        │   ├── repositories/                                # contrats command/event repositories
-        │   └── usecases/                                    # filtres, cycles, reset...
+        │   ├── entities/                                    # command, events, périodes, reset report...
+        │   ├── repositories/                                # contrats command / command_event
+        │   ├── services/                                    # génération des clés de cycle
+        │   └── usecases/                                    # filtres, cycles, résumés, reset...
         └── presentation/
             ├── pages/                                       # home, détail, édition
             ├── state/command_provider.dart
-            └── widgets/                                     # cards, sheets, filtres, animations
+            ├── utils/                                       # style des visualisations de cycles
+            └── widgets/                                     # cartes, filtres, calendriers, barres, etc.
 ```
 
 ---
@@ -166,21 +183,25 @@ class Command {
   final int target;
   final int progress;
   final Frequency frequency;
+  final DateTime? lastResetAt;
+  final DateTime? createdAt;
   final String emoji;
   final int? accentColorValue;
+  final int position;
   final List<String> tags;
-  final DateTime? createdAt;
 }
 
 enum Frequency { daily, weekly, monthly, yearly }
 
 class CommandEvent {
-  final String cycleKey;
   final CommandEventType type;
   final DateTime actionAtUtc;
+  final int progressAfterAction;
+  final int targetAtAction;
+  final String cycleKey;
 }
 
-enum CommandEventType { increment, complete, resetAuto, resetManual }
+enum CommandEventType { increment, resetAuto, resetManual, complete }
 ```
 
 ---
