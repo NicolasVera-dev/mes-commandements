@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/counter/domain/entities/command.dart';
-import 'package:mes_commandements/features/counter/domain/usecases/plan_edit_cycle_event_cleanup_usecase.dart';
+import 'package:mes_commandements/features/commands/domain/entities/command.dart';
+import 'package:mes_commandements/features/commands/domain/usecases/plan_edit_cycle_event_cleanup_usecase.dart';
 
 void main() {
   group('PlanEditCycleEventCleanupUseCase', () {

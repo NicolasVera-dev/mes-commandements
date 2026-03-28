@@ -15,6 +15,7 @@ class CommandProvider extends ChangeNotifier {
   String _searchQuery = '';
   bool _isInitialLoading = true;
   bool _isMutating = false;
+  final Set<String> _mutatingIds = <String>{};
   String? _syncErrorMessage;
 
   CommandProvider({
@@ -27,7 +28,7 @@ class CommandProvider extends ChangeNotifier {
   }
 
   bool get isInitialLoading => _isInitialLoading;
-  bool get isMutating => _isMutating;
+  bool get isMutating => _isMutating || _mutatingIds.isNotEmpty;
   String? get syncErrorMessage => _syncErrorMessage;
 
   void _listenToRepository() {
@@ -91,6 +92,28 @@ class CommandProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _runMutationForId(
+    String commandId,
+    Future<void> Function() mutation,
+  ) async {
+    if (_mutatingIds.contains(commandId)) return;
+    _mutatingIds.add(commandId);
+    _syncErrorMessage = null;
+    notifyListeners();
+
+    try {
+      await mutation();
+    } catch (e, st) {
+      debugPrint('Erreur mutation Firestore: $e');
+      debugPrint('$st');
+      _syncErrorMessage =
+          'Une erreur est survenue lors de la modification.';
+    } finally {
+      _mutatingIds.remove(commandId);
+      notifyListeners();
+    }
+  }
+
   List<Command> get commands => List.unmodifiable(_commands);
   List<String> get availableTags {
     final set = <String>{};
@@ -134,7 +157,7 @@ class CommandProvider extends ChangeNotifier {
 
   void deleteCommand(String id) {
     unawaited(
-      _runMutation(() => _repository.delete(id)),
+      _runMutationForId(id, () => _repository.delete(id)),
     );
   }
 
@@ -143,7 +166,10 @@ class CommandProvider extends ChangeNotifier {
     if (command == null) return;
 
     unawaited(
-      _runMutation(() => _repository.incrementProgress(commandId)),
+      _runMutationForId(
+        commandId,
+        () => _repository.incrementProgress(commandId),
+      ),
     );
   }
 
@@ -152,7 +178,10 @@ class CommandProvider extends ChangeNotifier {
     if (command == null) return;
 
     unawaited(
-      _runMutation(() => _repository.resetProgress(commandId)),
+      _runMutationForId(
+        commandId,
+        () => _repository.resetProgress(commandId),
+      ),
     );
   }
 
