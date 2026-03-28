@@ -16,6 +16,8 @@ import 'package:mes_commandements/features/auth/domain/repositories/auth_reposit
 import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
 import 'package:mes_commandements/features/commands/domain/entities/command_events_period.dart';
 import 'package:mes_commandements/features/commands/domain/repositories/command_event_repository.dart';
+import 'package:mes_commandements/features/notifications/data/notification_preferences_service.dart';
+import 'package:mes_commandements/features/notifications/domain/notification_scheduler.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
@@ -89,6 +91,8 @@ void main() {
           userPreferencesService: UserPreferencesService(
             themeService: themeService,
           ),
+          notificationScheduler: const NoOpNotificationScheduler(),
+          notificationPreferencesService: NotificationPreferencesService(prefs),
         ),
       );
       await tester.pump();
