@@ -81,7 +81,8 @@ class BuildCycleSummaryUseCase {
             : DateTime.utc(anchorUtc.year, anchorUtc.month + 1, 1);
         var cursor = monthStart;
         while (cursor.isBefore(monthEnd)) {
-          final weekStart = _cycleStartUtc(Frequency.weekly, cursor);
+          final weekStart =
+              CycleKeyGenerator.cycleStartUtc(Frequency.weekly, cursor);
           if (_isCycleVisible(frequency: frequency, cycleStartUtc: weekStart, createdAtUtc: createdAtUtc)) {
             final key = CycleKeyGenerator.forFrequency(
               frequency: Frequency.weekly,
@@ -118,27 +119,12 @@ class BuildCycleSummaryUseCase {
     required DateTime cycleStartUtc,
     required DateTime createdAtUtc,
   }) {
-    final firstVisibleCycleStart = _cycleStartUtc(frequency, createdAtUtc.toUtc());
+    final firstVisibleCycleStart =
+        CycleKeyGenerator.cycleStartUtc(frequency, createdAtUtc.toUtc());
     return !cycleStartUtc.toUtc().isBefore(firstVisibleCycleStart);
   }
 
   bool _hasComplete(List<CommandEvent> events) {
     return events.any((e) => e.type == CommandEventType.complete);
-  }
-
-  DateTime _cycleStartUtc(Frequency frequency, DateTime dateUtc) {
-    final utc = dateUtc.toUtc();
-    switch (frequency) {
-      case Frequency.daily:
-        return DateTime.utc(utc.year, utc.month, utc.day);
-      case Frequency.weekly:
-        final deltaFromMonday = utc.weekday - DateTime.monday;
-        final monday = utc.subtract(Duration(days: deltaFromMonday));
-        return DateTime.utc(monday.year, monday.month, monday.day);
-      case Frequency.monthly:
-        return DateTime.utc(utc.year, utc.month, 1);
-      case Frequency.yearly:
-        return DateTime.utc(utc.year, 1, 1);
-    }
   }
 }
