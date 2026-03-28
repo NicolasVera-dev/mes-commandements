@@ -128,7 +128,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
             final slot = _calculator.nextDailySlot(now, hour, minute);
             await _plugin.zonedSchedule(
               id: LocalNotificationIds.daily,
-              scheduledDate: _toUtcTz(slot),
+              scheduledDate: _toLocalTzDateTime(slot),
               notificationDetails: details,
               androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
               title: title,
@@ -144,7 +144,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
                   : LocalNotificationIds.weeklySunday;
               await _plugin.zonedSchedule(
                 id: id,
-                scheduledDate: _toUtcTz(slot),
+                scheduledDate: _toLocalTzDateTime(slot),
                 notificationDetails: details,
                 androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
                 title: title,
@@ -162,7 +162,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
             if (j7 != null) {
               await _plugin.zonedSchedule(
                 id: LocalNotificationIds.monthlySevenDaysBeforeEnd,
-                scheduledDate: _toUtcTz(j7),
+                scheduledDate: _toLocalTzDateTime(j7),
                 notificationDetails: details,
                 androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
                 title: title,
@@ -177,7 +177,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
             if (j2 != null) {
               await _plugin.zonedSchedule(
                 id: LocalNotificationIds.monthlyTwoDaysBeforeEnd,
-                scheduledDate: _toUtcTz(j2),
+                scheduledDate: _toLocalTzDateTime(j2),
                 notificationDetails: details,
                 androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
                 title: title,
@@ -196,7 +196,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
                   : LocalNotificationIds.yearlyDecemberFirst;
               await _plugin.zonedSchedule(
                 id: id,
-                scheduledDate: _toUtcTz(slot),
+                scheduledDate: _toLocalTzDateTime(slot),
                 notificationDetails: details,
                 androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
                 title: title,
@@ -225,8 +225,10 @@ class LocalNotificationScheduler implements NotificationScheduler {
     );
   }
 
-  tz.TZDateTime _toUtcTz(DateTime localWallClock) {
-    return tz.TZDateTime.from(localWallClock.toUtc(), tz.UTC);
+  /// [localWallClock] : date/heure « murales » dans le fuseau de l’utilisateur
+  /// (ex. [DateTime] local issu des calculs de créneaux).
+  tz.TZDateTime _toLocalTzDateTime(DateTime localWallClock) {
+    return tz.TZDateTime.from(localWallClock, tz.local);
   }
 
   String _messageBody(Frequency frequency, int count) {
