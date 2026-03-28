@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/theme_service.dart';
 import '../../../../app/user_preferences_service.dart';
+import '../../../notifications/presentation/widgets/notification_settings_card.dart';
 import '../state/auth_provider.dart';
 import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_strength_indicator.dart';
@@ -294,6 +295,8 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 18),
+              const NotificationSettingsCard(),
               const SizedBox(height: 18),
               Card(
                 elevation: 0,
