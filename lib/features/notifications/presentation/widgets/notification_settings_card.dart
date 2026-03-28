@@ -21,18 +21,21 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
   late bool _enabled;
   late int _hour;
   late int _minute;
+  late NotificationPreferencesService _prefs;
+  late NotificationScheduler _scheduler;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_prefsHydrated) {
-      return;
+    if (!_prefsHydrated) {
+      _prefsHydrated = true;
+      final p = context.read<NotificationPreferencesService>();
+      _enabled = p.remindersEnabled;
+      _hour = p.reminderHour;
+      _minute = p.reminderMinute;
     }
-    _prefsHydrated = true;
-    final p = context.read<NotificationPreferencesService>();
-    _enabled = p.remindersEnabled;
-    _hour = p.reminderHour;
-    _minute = p.reminderMinute;
+    _prefs = context.read<NotificationPreferencesService>();
+    _scheduler = context.read<NotificationScheduler>();
   }
 
   String _timeLabel() {
@@ -44,8 +47,6 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final prefs = context.read<NotificationPreferencesService>();
-    final scheduler = context.read<NotificationScheduler>();
 
     return Card(
       elevation: 0,
@@ -70,25 +71,25 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
               ),
               value: _enabled,
               onChanged: (value) async {
-                      if (value) {
-                        await scheduler.requestPermission();
-                        await prefs.setRemindersEnabled(true);
-                        if (!context.mounted) {
-                          return;
-                        }
-                        setState(() => _enabled = true);
-                        final commands =
-                            context.read<CommandProvider>().commands;
-                        unawaited(scheduler.rescheduleAll(commands));
-                      } else {
-                        await prefs.setRemindersEnabled(false);
-                        if (!context.mounted) {
-                          return;
-                        }
-                        setState(() => _enabled = false);
-                        unawaited(scheduler.cancelAll());
-                      }
-                    },
+                if (value) {
+                  await _scheduler.requestPermission();
+                  await _prefs.setRemindersEnabled(true);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  setState(() => _enabled = true);
+                  final commands =
+                      context.read<CommandProvider>().commands;
+                  unawaited(_scheduler.rescheduleAll(commands));
+                } else {
+                  await _prefs.setRemindersEnabled(false);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  setState(() => _enabled = false);
+                  unawaited(_scheduler.cancelAll());
+                }
+              },
             ),
             if (_enabled) ...[
               const SizedBox(height: 8),
@@ -111,7 +112,7 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
                   if (picked == null || !context.mounted) {
                     return;
                   }
-                  await prefs.setReminderHourMinute(picked.hour, picked.minute);
+                  await _prefs.setReminderHourMinute(picked.hour, picked.minute);
                   setState(() {
                     _hour = picked.hour;
                     _minute = picked.minute;
@@ -120,7 +121,7 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
                     return;
                   }
                   final commands = context.read<CommandProvider>().commands;
-                  unawaited(scheduler.rescheduleAll(commands));
+                  unawaited(_scheduler.rescheduleAll(commands));
                 },
               ),
             ],
