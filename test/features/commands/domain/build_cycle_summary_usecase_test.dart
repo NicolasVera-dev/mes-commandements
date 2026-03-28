@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/counter/domain/entities/command.dart';
-import 'package:mes_commandements/features/counter/domain/entities/command_event.dart';
-import 'package:mes_commandements/features/counter/domain/usecases/build_cycle_summary_usecase.dart';
+import 'package:mes_commandements/features/commands/domain/entities/command.dart';
+import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
+import 'package:mes_commandements/features/commands/domain/usecases/build_cycle_summary_usecase.dart';
 
 void main() {
   group('BuildCycleSummaryUseCase', () {

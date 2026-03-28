@@ -8,32 +8,31 @@ import 'app/app_root.dart';
 import 'app/theme_service.dart';
 import 'app/user_preferences_service.dart';
 import 'firebase_options.dart';
-import 'features/counter/data/repositories/firestore_command_event_repository.dart';
-import 'features/counter/data/repositories/firestore_command_repository.dart';
+import 'features/commands/data/repositories/firestore_command_event_repository.dart';
+import 'features/commands/data/repositories/firestore_command_repository.dart';
 import 'features/auth/data/repositories/firebase_auth_repository.dart';
 import 'features/auth/data/repositories/firestore_account_data_cleanup_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/state/auth_provider.dart';
-import 'features/counter/domain/repositories/command_event_repository.dart';
-import 'features/counter/presentation/state/command_provider.dart';
+import 'features/commands/domain/repositories/command_event_repository.dart';
+import 'features/commands/presentation/state/command_provider.dart';
 
 class MyApp extends StatelessWidget {
   final AuthRepository authRepository;
+  final CommandEventRepository commandEventRepository;
   final ThemeService themeService;
   final UserPreferencesService userPreferencesService;
 
   const MyApp({
     super.key,
     required this.authRepository,
+    required this.commandEventRepository,
     required this.themeService,
     required this.userPreferencesService,
   });
 
   @override
   Widget build(BuildContext context) {
-    final commandEventRepository = FirestoreCommandEventRepository(
-      authRepository: authRepository,
-    );
     return MultiProvider(
       providers: [
         Provider<CommandEventRepository>.value(
@@ -87,10 +86,14 @@ Future<void> main() async {
   final authRepository = FirebaseAuthRepository(
     accountDataCleanupRepository: accountDataCleanupRepository,
   );
+  final commandEventRepository = FirestoreCommandEventRepository(
+    authRepository: authRepository,
+  );
   FlutterNativeSplash.remove();
   runApp(
     MyApp(
       authRepository: authRepository,
+      commandEventRepository: commandEventRepository,
       themeService: themeService,
       userPreferencesService: userPreferencesService,
     ),

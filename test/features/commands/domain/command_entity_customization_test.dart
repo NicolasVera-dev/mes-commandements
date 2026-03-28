@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/counter/domain/entities/command.dart';
+import 'package:mes_commandements/features/commands/domain/entities/command.dart';
 
 void main() {
   group('Command personnalisable rétrocompatible', () {

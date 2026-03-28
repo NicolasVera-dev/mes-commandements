@@ -13,6 +13,9 @@ import 'package:mes_commandements/app/user_preferences_service.dart';
 import 'package:mes_commandements/main.dart';
 import 'package:mes_commandements/features/auth/domain/entities/auth_user.dart';
 import 'package:mes_commandements/features/auth/domain/repositories/auth_repository.dart';
+import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
+import 'package:mes_commandements/features/commands/domain/entities/command_events_period.dart';
+import 'package:mes_commandements/features/commands/domain/repositories/command_event_repository.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
@@ -50,6 +53,27 @@ class _FakeAuthRepository implements AuthRepository {
   }) async {}
 }
 
+class _FakeCommandEventRepository implements CommandEventRepository {
+  @override
+  Stream<List<CommandEvent>> watchEvents(
+    String commandId, {
+    CommandEventsPeriod? period,
+  }) =>
+      const Stream<List<CommandEvent>>.empty();
+
+  @override
+  void addEventFireAndForget({
+    required String commandId,
+    required CommandEvent event,
+  }) {}
+
+  @override
+  Future<void> deleteAllEvents(String commandId) async {}
+
+  @override
+  Future<DateTime?> firstEventAtUtc(String commandId) async => null;
+}
+
 void main() {
   testWidgets(
     'Smoke test auth gate (skipped)',
@@ -60,6 +84,7 @@ void main() {
       await tester.pumpWidget(
         MyApp(
           authRepository: _FakeAuthRepository(),
+          commandEventRepository: _FakeCommandEventRepository(),
           themeService: themeService,
           userPreferencesService: UserPreferencesService(
             themeService: themeService,
