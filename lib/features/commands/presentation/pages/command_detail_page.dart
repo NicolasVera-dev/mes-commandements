@@ -104,7 +104,7 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
   }
 }
 
-class _DetailContent extends StatelessWidget {
+class _DetailContent extends StatefulWidget {
   final Command command;
   final CommandEventsPeriod period;
   final DateTime anchorUtc;
@@ -120,8 +120,40 @@ class _DetailContent extends StatelessWidget {
   });
 
   @override
+  State<_DetailContent> createState() => _DetailContentState();
+}
+
+class _DetailContentState extends State<_DetailContent> {
+  late Future<DateTime?> _createdAtFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final eventRepository = context.read<CommandEventRepository>();
+    final command = widget.command;
+    _createdAtFuture = command.createdAt == null
+        ? eventRepository.firstEventAtUtc(command.id)
+        : Future<DateTime?>.value(command.createdAt!.toUtc());
+  }
+
+  @override
+  void didUpdateWidget(_DetailContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.command.id != oldWidget.command.id) {
+      final eventRepository = context.read<CommandEventRepository>();
+      final command = widget.command;
+      _createdAtFuture = command.createdAt == null
+          ? eventRepository.firstEventAtUtc(command.id)
+          : Future<DateTime?>.value(command.createdAt!.toUtc());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final eventRepository = context.read<CommandEventRepository>();
+    final command = widget.command;
+    final period = widget.period;
+    final anchorUtc = widget.anchorUtc;
     final nextResetText = _nextResetText(command.frequency, DateTime.now().toUtc());
     final periodLabel = (command.frequency == Frequency.monthly || command.frequency == Frequency.yearly)
         ? '${anchorUtc.year}'
@@ -178,7 +210,7 @@ class _DetailContent extends StatelessWidget {
         Row(
           children: [
             IconButton(
-              onPressed: onPrevious,
+              onPressed: widget.onPrevious,
               icon: const Icon(Icons.chevron_left_rounded),
               tooltip: 'Période précédente',
             ),
@@ -190,7 +222,7 @@ class _DetailContent extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: onNext,
+              onPressed: widget.onNext,
               icon: const Icon(Icons.chevron_right_rounded),
               tooltip: 'Période suivante',
             ),
@@ -198,9 +230,7 @@ class _DetailContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         FutureBuilder<DateTime?>(
-          future: command.createdAt == null
-              ? eventRepository.firstEventAtUtc(command.id)
-              : Future<DateTime?>.value(command.createdAt!.toUtc()),
+          future: _createdAtFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const HistorySkeleton();
