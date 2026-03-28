@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -88,7 +90,18 @@ class MyApp extends StatelessWidget {
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   tz_data.initializeTimeZones();
-  tz.setLocalLocation(tz.UTC);
+  if (kIsWeb) {
+    tz.setLocalLocation(tz.UTC);
+  } else {
+    try {
+      final deviceTz = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(deviceTz.identifier));
+    } catch (e, st) {
+      debugPrint('Fuseau horaire local indisponible, repli UTC: $e');
+      debugPrint('$st');
+      tz.setLocalLocation(tz.UTC);
+    }
+  }
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
