@@ -43,7 +43,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         if (user != null) {
           unawaited(
-            _userPreferencesService?.syncThemeFromRemote(uid: user.uid),
+            _userPreferencesService?.syncUserPreferencesFromRemote(uid: user.uid),
           );
         }
       },
@@ -95,7 +95,7 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.connecte;
       notifyListeners();
       unawaited(
-        _userPreferencesService?.syncThemeFromRemote(uid: user.uid),
+        _userPreferencesService?.syncUserPreferencesFromRemote(uid: user.uid),
       );
     } on AuthFailure catch (e) {
       _errorMessage = e.message;
@@ -117,7 +117,7 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.connecte;
       notifyListeners();
       unawaited(
-        _userPreferencesService?.syncThemeFromRemote(uid: user.uid),
+        _userPreferencesService?.syncUserPreferencesFromRemote(uid: user.uid),
       );
     } on AuthFailure catch (e) {
       _errorMessage = e.message;
