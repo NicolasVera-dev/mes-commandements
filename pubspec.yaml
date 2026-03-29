@@ -89,8 +89,7 @@ flutter_launcher_icons:
     generate: false
 
 flutter_native_splash:
-  # Fond identique clair / sombre : le logo source inclut déjà une planche blanche ;
-  # un fond sombre (#121212) créait un « carré blanc sur noir » disgracieux.
+  # Logo PNG avec transparence : les zones vides laissent voir color / color_dark.
   color: "#FFFFFF"
   color_dark: "#FFFFFF"
   image: assets/images/logo.png
