@@ -1,4 +1,4 @@
-package com.example.mes_commandements
+package com.nvadev.rituel
 
 import io.flutter.embedding.android.FlutterActivity
 

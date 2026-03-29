@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '233539778173',
     projectId: 'mes-commandements-cddb2',
     storageBucket: 'mes-commandements-cddb2.firebasestorage.app',
-    iosBundleId: 'com.example.mesCommandements',
+    iosBundleId: 'com.nvadev.rituel',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '233539778173',
     projectId: 'mes-commandements-cddb2',
     storageBucket: 'mes-commandements-cddb2.firebasestorage.app',
-    iosBundleId: 'com.example.mesCommandements',
+    iosBundleId: 'com.nvadev.rituel',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
