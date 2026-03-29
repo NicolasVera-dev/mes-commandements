@@ -8,6 +8,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:mes_commandements/app/command_card_layout_service.dart';
 import 'package:mes_commandements/app/theme_service.dart';
 import 'package:mes_commandements/app/user_preferences_service.dart';
 import 'package:mes_commandements/main.dart';
@@ -83,13 +84,16 @@ void main() {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final prefs = await SharedPreferences.getInstance();
       final themeService = ThemeService(prefs: prefs);
+      final commandCardLayoutService = CommandCardLayoutService(prefs: prefs);
       await tester.pumpWidget(
         MyApp(
           authRepository: _FakeAuthRepository(),
           commandEventRepository: _FakeCommandEventRepository(),
           themeService: themeService,
+          commandCardLayoutService: commandCardLayoutService,
           userPreferencesService: UserPreferencesService(
             themeService: themeService,
+            commandCardLayoutService: commandCardLayoutService,
           ),
           notificationScheduler: const NoOpNotificationScheduler(),
           notificationPreferencesService: NotificationPreferencesService(prefs),

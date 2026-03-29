@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mes_commandements/app/command_card_layout_service.dart';
 import 'package:mes_commandements/features/auth/domain/entities/auth_user.dart';
 import 'package:mes_commandements/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mes_commandements/features/auth/presentation/state/auth_provider.dart';
@@ -19,6 +20,9 @@ import 'package:mes_commandements/features/commands/presentation/widgets/command
 import 'package:mes_commandements/features/commands/presentation/widgets/command_reset_lifecycle_listener.dart';
 import 'package:mes_commandements/features/commands/presentation/widgets/create_command_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+late final CommandCardLayoutService _testCardLayout;
 
 class _FakeCommandRepository implements CommandRepository {
   final StreamController<List<Command>> controller =
@@ -176,6 +180,9 @@ Widget _wrap({
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<CommandProvider>.value(value: provider),
+      ChangeNotifierProvider<CommandCardLayoutService>.value(
+        value: _testCardLayout,
+      ),
       if (eventRepository != null)
         Provider<CommandEventRepository>.value(value: eventRepository),
       if (authProvider != null)
@@ -186,6 +193,14 @@ Widget _wrap({
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues(<String, Object>{});
+
+  setUpAll(() async {
+    final prefs = await SharedPreferences.getInstance();
+    _testCardLayout = CommandCardLayoutService(prefs: prefs);
+  });
+
   group('CommandCard', () {
     testWidgets('tap incrémente et menu 3 points affiche les options',
         (tester) async {
