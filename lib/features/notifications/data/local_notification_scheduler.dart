@@ -121,7 +121,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
         }
         final count = incomplete.length;
         final body = _messageBody(frequency, count);
-        const title = 'Mes commandements';
+        const title = 'Rituel';
 
         switch (frequency) {
           case Frequency.daily:
