@@ -9,6 +9,8 @@ import '../widgets/command_card.dart';
 import '../widgets/expandable_search_bar.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/filter_chips_bar.dart';
+import '../../../../app/command_card_display_mode.dart';
+import '../../../../app/command_card_layout_service.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/pages/account_settings_page.dart';
@@ -31,6 +33,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final commandProvider = context.watch<CommandProvider>();
     final authProvider = context.watch<AuthProvider>();
+    final cardListGap = context.select<CommandCardLayoutService, double>(
+      (s) => s.displayMode == CommandCardDisplayMode.compact ? 8 : 14,
+    );
     final commands = commandProvider.commandsFilteredSorted(
       frequencies: _selectedFrequencies,
       statuses: _selectedStatuses,
@@ -216,7 +221,7 @@ class _HomePageState extends State<HomePage> {
                         'list-${commands.length}-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_selectedTags.join(",")}-${_sort.name}-q:${commandProvider.searchQuery}-l:${commandProvider.isInitialLoading}-e:${commandProvider.syncErrorMessage ?? ""}',
                       ),
                       child: commandProvider.isInitialLoading
-                          ? const _InitialLoadingList()
+                          ? _InitialLoadingList(gap: cardListGap)
                           : commandProvider.syncErrorMessage != null
                               ? Center(
                                   child: Padding(
@@ -319,7 +324,7 @@ class _HomePageState extends State<HomePage> {
                                         final command = commands[index];
                                         return Padding(
                                           key: ValueKey(command.id),
-                                          padding: const EdgeInsets.only(bottom: 14),
+                                          padding: EdgeInsets.only(bottom: cardListGap),
                                           child: AnimatedOpacity(
                                             duration:
                                                 const Duration(milliseconds: 160),
@@ -336,7 +341,7 @@ class _HomePageState extends State<HomePage> {
                                       padding: const EdgeInsets.only(bottom: 100),
                                       itemCount: commands.length,
                                       separatorBuilder: (context, index) => SizedBox(
-                                        height: 14,
+                                        height: cardListGap,
                                         key: ValueKey(index),
                                       ),
                                       itemBuilder: (context, index) {
@@ -395,14 +400,16 @@ class _ActiveDot extends StatelessWidget {
 }
 
 class _InitialLoadingList extends StatelessWidget {
-  const _InitialLoadingList();
+  const _InitialLoadingList({required this.gap});
+
+  final double gap;
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 100),
       itemCount: 5,
-      separatorBuilder: (context, index) => const SizedBox(height: 14),
+      separatorBuilder: (context, index) => SizedBox(height: gap),
       itemBuilder: (context, index) => const _LoadingCommandCard(),
     );
   }

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/command_card_display_mode.dart';
+import '../../../../app/command_card_layout_service.dart';
 import '../../../../app/theme_service.dart';
 import '../../../../app/user_preferences_service.dart';
 import '../../../notifications/presentation/widgets/notification_settings_card.dart';
@@ -189,8 +191,10 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final themeService = context.watch<ThemeService>();
+    final cardLayoutService = context.watch<CommandCardLayoutService>();
     final userPreferencesService = context.read<UserPreferencesService>();
     final currentThemeMode = themeService.themeMode;
+    final currentCardMode = cardLayoutService.displayMode;
 
     if (auth.isInitialLoading) {
       return Scaffold(
@@ -285,6 +289,67 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                               value: ThemeMode.system,
                               title: Text('Automatique'),
                               secondary: Icon(Icons.sync_rounded),
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Affichage des commandements',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 10),
+                      RadioGroup<CommandCardDisplayMode>(
+                        groupValue: currentCardMode,
+                        onChanged: (next) {
+                          if (_isUpdatingPassword ||
+                              _isDeleting ||
+                              _isSigningOut) {
+                            return;
+                          }
+                          if (next == null) return;
+                          unawaited(cardLayoutService.setDisplayMode(next));
+                          unawaited(
+                            userPreferencesService
+                                .saveCommandCardDisplayToRemoteIfConnected(
+                              uid: auth.user?.uid,
+                              mode: next,
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: const [
+                            RadioListTile<CommandCardDisplayMode>(
+                              value: CommandCardDisplayMode.standard,
+                              title: Text('Standard'),
+                              subtitle: Text(
+                                'Cartes détaillées (comportement par défaut)',
+                              ),
+                              secondary: Icon(Icons.view_agenda_outlined),
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            RadioListTile<CommandCardDisplayMode>(
+                              value: CommandCardDisplayMode.compact,
+                              title: Text('Compact'),
+                              subtitle: Text(
+                                'Vue minimaliste, liste plus dense',
+                              ),
+                              secondary: Icon(Icons.view_headline_rounded),
                               contentPadding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
                             ),

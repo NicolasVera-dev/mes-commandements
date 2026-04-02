@@ -10,6 +10,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'app/app_root.dart';
+import 'app/command_card_layout_service.dart';
 import 'app/theme_service.dart';
 import 'app/user_preferences_service.dart';
 import 'firebase_options.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
   final AuthRepository authRepository;
   final CommandEventRepository commandEventRepository;
   final ThemeService themeService;
+  final CommandCardLayoutService commandCardLayoutService;
   final UserPreferencesService userPreferencesService;
   final NotificationScheduler notificationScheduler;
   final NotificationPreferencesService notificationPreferencesService;
@@ -38,6 +40,7 @@ class MyApp extends StatelessWidget {
     required this.authRepository,
     required this.commandEventRepository,
     required this.themeService,
+    required this.commandCardLayoutService,
     required this.userPreferencesService,
     required this.notificationScheduler,
     required this.notificationPreferencesService,
@@ -57,6 +60,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider<ThemeService>.value(value: themeService),
+        ChangeNotifierProvider<CommandCardLayoutService>.value(
+          value: commandCardLayoutService,
+        ),
         Provider<UserPreferencesService>.value(value: userPreferencesService),
         Provider<NotificationScheduler>.value(value: notificationScheduler),
         Provider<NotificationPreferencesService>.value(
@@ -109,8 +115,10 @@ Future<void> main() async {
   final sharedPrefs = await SharedPreferences.getInstance();
   final themeService = ThemeService(prefs: sharedPrefs);
   await themeService.loadSavedTheme();
+  final commandCardLayoutService = CommandCardLayoutService(prefs: sharedPrefs);
   final userPreferencesService = UserPreferencesService(
     themeService: themeService,
+    commandCardLayoutService: commandCardLayoutService,
   );
   final notificationPreferencesService =
       NotificationPreferencesService(sharedPrefs);
@@ -135,6 +143,7 @@ Future<void> main() async {
       authRepository: authRepository,
       commandEventRepository: commandEventRepository,
       themeService: themeService,
+      commandCardLayoutService: commandCardLayoutService,
       userPreferencesService: userPreferencesService,
       notificationScheduler: notificationScheduler,
       notificationPreferencesService: notificationPreferencesService,

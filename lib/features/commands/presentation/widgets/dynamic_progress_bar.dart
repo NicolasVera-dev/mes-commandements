@@ -7,11 +7,15 @@ class DynamicProgressBar extends StatefulWidget {
   final int target;
   final Color? accentTintColor;
 
+  /// Réduit texte et hauteur de barre (cartes compactes).
+  final bool compact;
+
   const DynamicProgressBar({
     super.key,
     required this.progress,
     required this.target,
     this.accentTintColor,
+    this.compact = false,
   });
 
   @override
@@ -105,15 +109,19 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
   @override
   Widget build(BuildContext context) {
     final color = _progressColor(context);
+    final barH = widget.compact ? 6.0 : 10.0;
+    final ratioStyle = widget.compact
+        ? Theme.of(context).textTheme.labelLarge
+        : Theme.of(context).textTheme.titleMedium;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '${widget.progress} / ${widget.target}',
-          style: Theme.of(context).textTheme.titleMedium,
+          style: ratioStyle,
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: widget.compact ? 4 : 6),
         TweenAnimationBuilder<double>(
           duration: const Duration(milliseconds: 350),
           curve: Curves.easeOutCubic,
@@ -123,7 +131,7 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
           },
           builder: (context, value, _) {
             return SizedBox(
-              height: 10,
+              height: barH,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(999),
                 child: Stack(
@@ -131,7 +139,7 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
                   children: [
                     LinearProgressIndicator(
                       value: value,
-                      minHeight: 10,
+                      minHeight: barH,
                       valueColor: AlwaysStoppedAnimation<Color>(color),
                       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                     ),
