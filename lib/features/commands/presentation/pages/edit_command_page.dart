@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
 import '../utils/command_form_validators.dart';
@@ -103,32 +104,35 @@ class _EditCommandPageState extends State<EditCommandPage> {
     final commandProvider = context.watch<CommandProvider>();
     final command = commandProvider.getById(widget.commandId);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Modifier le commandement',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.titleMedium,
+    return DismissKeyboardOnTap(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Modifier le commandement',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
-      ),
-      body: command == null
-          ? Center(
-              child: Text(
-                'Commandement introuvable.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            )
-          : SafeArea(
-              child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOut,
-                  child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
+        body: command == null
+            ? Center(
+                child: Text(
+                  'Commandement introuvable.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              )
+            : SafeArea(
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      children: [
                     Text(
                       'Détails',
                       style: Theme.of(context).textTheme.titleLarge,
@@ -301,9 +305,10 @@ class _EditCommandPageState extends State<EditCommandPage> {
                     ),
                   ],
                 ),
-                ),
               ),
             ),
+          ),
+        ),
     );
   }
 }
