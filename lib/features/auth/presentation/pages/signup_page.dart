@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../widgets/password_text_field.dart';
@@ -130,9 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
       appBar: AppBar(
         title: const Text('Inscription'),
       ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).unfocus(),
+      body: DismissKeyboardOnTap(
         child: SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
