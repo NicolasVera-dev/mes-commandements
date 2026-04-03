@@ -11,6 +11,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
 - 🧭 **Page détail riche** : historique par période, résumé de cycles réussis/échoués, navigation temporelle
+- 🔥 **Badge de série (streak)** : sur chaque carte et dans le détail, un seul pill (emoji + libellé) sous le titre — série de **cycles passés** consécutifs (succès si au moins un `complete` par cycle, échec si cycle passé sans `complete` dans l’historique Firestore) ; priorité *reprise aujourd’hui* → succès (paliers par fréquence) → échecs (seuil ≥ 3) ; calcul dans `ComputeStreakUseCase`, données via `watchEventsFrom` sur les événements
 - 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `resetAuto`, `resetManual`) pour chaque commandement
 - 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
 - 🔍 **Recherche, filtres et tri** : fréquence, statut, tags, recherche texte en direct
@@ -65,7 +66,7 @@ lib/
 
 - **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases, contrat `NotificationScheduler` et calcul des créneaux de rappel
 - **Data** : implémentations Firebase Auth, Firestore (commandements, événements, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
-- **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles, carte de réglage des rappels)
+- **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles, badges de série, carte de réglage des rappels)
 
 ---
 
@@ -218,13 +219,24 @@ lib/
         │   ├── entities/                                    # command, events, périodes, reset report...
         │   ├── repositories/                                # contrats command / command_event
         │   ├── services/                                    # génération des clés de cycle
-        │   └── usecases/                                    # filtres, cycles, résumés, reset...
+        │   └── usecases/                                    # filtres, cycles, résumés, streak, reset...
         └── presentation/
             ├── pages/                                       # home, détail, édition
             ├── state/command_provider.dart
             ├── utils/                                       # style des visualisations de cycles
-            └── widgets/                                     # cartes, filtres, calendriers, barres, etc.
+            └── widgets/                                     # cartes, filtres, calendriers, barres, streak…
 ```
+
+---
+
+## Série (streak) — résumé
+
+- **Où** : sous le titre sur la **carte** (liste) et dans la **carte d’en-tête** du **détail** ; style pill, couleurs sémantiques (succès / échec) via `AppSemanticColors`.
+- **Règle** : uniquement des cycles **passés** (le cycle courant non terminé n’entre pas dans la série de succès). La série s’appuie sur les **clés présentes** dans les événements groupés par `cycleKey` (pas d’inférence sur les jours sans aucun événement en base).
+- **Priorité d’un seul badge** : 1) reprise (succès ce cycle après échecs passés documentés) ; 2) série de succès ; 3) série d’échecs (affichée si ≥ 3 cycles consécutifs concernés) ; 4) aucun badge.
+- **Seuils succès (ex. quotidien / hebdo)** : paliers à 3 / 6 / 10 / 30 cycles réussis consécutifs (mensuel et annuel : seuils adaptés dans le use case).
+- **Fichiers principaux** : `lib/features/commands/domain/usecases/compute_streak_usecase.dart`, `presentation/widgets/command_streak_badge.dart`, `command_streak_from_repository.dart`, flux `CommandEventRepository.watchEventsFrom` dans `firestore_command_event_repository.dart`.
+- **Données de test** : script optionnel `tool/seed_streak_test_data.dart` (connexion Auth + écriture Firestore) — voir l’en-tête du fichier pour les variables d’environnement `SEED_EMAIL`, `SEED_PASSWORD`, `SEED_CLEAN`.
 
 ---
 

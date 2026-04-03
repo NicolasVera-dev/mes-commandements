@@ -65,6 +65,13 @@ class _FakeCommandEventRepository implements CommandEventRepository {
       const Stream<List<CommandEvent>>.empty();
 
   @override
+  Stream<List<CommandEvent>> watchEventsFrom(
+    String commandId, {
+    required DateTime startUtcInclusive,
+  }) =>
+      const Stream<List<CommandEvent>>.empty();
+
+  @override
   void addEventFireAndForget({
     required String commandId,
     required CommandEvent event,

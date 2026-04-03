@@ -11,6 +11,12 @@ abstract class CommandEventRepository {
     CommandEventsPeriod? period,
   });
 
+  /// Tous les événements depuis [startUtcInclusive] (pour séries globales, ex. badge).
+  Stream<List<CommandEvent>> watchEventsFrom(
+    String commandId, {
+    required DateTime startUtcInclusive,
+  });
+
   /// Ajout non bloquant (fire-and-forget) d'un événement.
   void addEventFireAndForget({
     required String commandId,
