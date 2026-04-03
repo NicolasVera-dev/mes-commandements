@@ -63,8 +63,10 @@ class CommandProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (Object error, StackTrace st) {
-        debugPrint('Erreur de synchronisation Firestore: $error');
-        debugPrint('$st');
+        if (kDebugMode) {
+          debugPrint('Erreur de synchronisation Firestore: $error');
+          debugPrint('$st');
+        }
         // On évite d'afficher de potentielles données obsolètes.
         _commands = <Command>[];
         _isInitialLoading = false;
@@ -82,8 +84,10 @@ class CommandProvider extends ChangeNotifier {
     try {
       return await _repository.applyPendingAutoResets(DateTime.now().toUtc());
     } catch (error, st) {
-      debugPrint('Erreur reset automatique batch: $error');
-      debugPrint('$st');
+      if (kDebugMode) {
+        debugPrint('Erreur reset automatique batch: $error');
+        debugPrint('$st');
+      }
       return const AutoResetReport.empty();
     }
   }
@@ -108,8 +112,10 @@ class CommandProvider extends ChangeNotifier {
     try {
       await mutation();
     } catch (e, st) {
-      debugPrint('Erreur mutation Firestore: $e');
-      debugPrint('$st');
+      if (kDebugMode) {
+        debugPrint('Erreur mutation Firestore: $e');
+        debugPrint('$st');
+      }
       _syncErrorMessage =
           'Une erreur est survenue lors de la modification.';
     } finally {
@@ -130,8 +136,10 @@ class CommandProvider extends ChangeNotifier {
     try {
       await mutation();
     } catch (e, st) {
-      debugPrint('Erreur mutation Firestore: $e');
-      debugPrint('$st');
+      if (kDebugMode) {
+        debugPrint('Erreur mutation Firestore: $e');
+        debugPrint('$st');
+      }
       _syncErrorMessage =
           'Une erreur est survenue lors de la modification.';
     } finally {
@@ -253,8 +261,10 @@ class CommandProvider extends ChangeNotifier {
     try {
       await _repository.updatePositions(updates);
     } catch (e, st) {
-      debugPrint('Erreur reorder Firestore: $e');
-      debugPrint('$st');
+      if (kDebugMode) {
+        debugPrint('Erreur reorder Firestore: $e');
+        debugPrint('$st');
+      }
       _syncErrorMessage =
           'Le nouvel ordre n’a pas pu être synchronisé pour le moment.';
       notifyListeners();
