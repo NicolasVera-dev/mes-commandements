@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../../../../app/command_card_display_mode.dart';
 import '../../../../app/command_card_layout_service.dart';
 import '../../../../app/theme_service.dart';
@@ -222,9 +223,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
       appBar: AppBar(
         title: const Text('Paramètres du compte'),
       ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).unfocus(),
+      body: DismissKeyboardOnTap(
         child: SafeArea(
           child: Padding(
           padding: EdgeInsets.only(

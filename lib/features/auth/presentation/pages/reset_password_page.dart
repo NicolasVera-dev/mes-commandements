@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../state/auth_provider.dart';
 import '../widgets/fade_scale_page_route.dart';
 import 'login_page.dart';
@@ -93,9 +94,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       appBar: AppBar(
         title: const Text('Réinitialisation du mot de passe'),
       ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).unfocus(),
+      body: DismissKeyboardOnTap(
         child: SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
