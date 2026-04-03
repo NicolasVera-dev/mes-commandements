@@ -123,6 +123,45 @@ flutter build linux     # Linux
 
 ---
 
+## Android release (AAB) + obfuscation
+
+Préparez d'abord la signature release Android avec le fichier `android/key.properties` (non versionné) :
+
+```properties
+storeFile=/absolute/path/to/your-upload-keystore.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+Commande recommandée pour une build release durcie (R8 + shrink resources + obfuscation Dart) :
+
+```bash
+flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
+```
+
+Important :
+- Conserver le dossier `build/debug-info/` dans un stockage privé sécurisé (nécessaire pour la symbolication des crashs obfusqués).
+- Ne pas commiter ce dossier dans un dépôt public.
+
+---
+
+## Internal testing (Google Play Console)
+
+1. Construire l'AAB :
+   ```bash
+   flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
+   ```
+2. Ouvrir la Play Console > `Testing` > `Internal testing`.
+3. Créer une nouvelle release (`Create new release`) et uploader le fichier `.aab`.
+4. Ajouter les testeurs (emails individuels ou Google Group).
+5. Publier la release interne.
+6. Installer l'app depuis le lien de test généré par Google Play.
+
+Note : incrémenter `version` dans `pubspec.yaml` (`versionName+versionCode`) à chaque nouvel upload.
+
+---
+
 ## Tests
 
 ```bash
