@@ -3,16 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/entities/command.dart';
-import '../../domain/entities/command_event.dart';
-import '../../domain/repositories/command_event_repository.dart';
-import '../../domain/usecases/compute_streak_usecase.dart';
 import '../../../../app/app_theme.dart';
 import '../../../../app/command_card_display_mode.dart';
 import '../../../../app/command_card_layout_service.dart';
 import '../pages/command_detail_page.dart';
 import '../pages/edit_command_page.dart';
 import '../state/command_provider.dart';
-import 'command_streak_badge.dart';
+import 'command_streak_from_repository.dart';
 import 'dynamic_progress_bar.dart';
 import 'increment_animation_overlay.dart';
 
@@ -390,11 +387,11 @@ class _CommandCardState extends State<CommandCard> {
                     ),
                   ],
                 ),
-                _CommandCardStreakUnderTitle(
-                  command: command,
-                  compact: compact,
-                  titleIndent: emojiBox + 8,
-                ),
+              CommandStreakFromRepository(
+                command: command,
+                compact: compact,
+                titleIndent: emojiBox + 8,
+              ),
                 if (command.description.trim().isNotEmpty) ...[
                   SizedBox(height: compact ? 2 : 4),
                   Text(
@@ -519,91 +516,6 @@ class _CommandCardState extends State<CommandCard> {
       ),
     );
   }
-}
-
-class _CommandCardStreakUnderTitle extends StatefulWidget {
-  const _CommandCardStreakUnderTitle({
-    required this.command,
-    required this.compact,
-    required this.titleIndent,
-  });
-
-  final Command command;
-  final bool compact;
-  final double titleIndent;
-
-  @override
-  State<_CommandCardStreakUnderTitle> createState() =>
-      _CommandCardStreakUnderTitleState();
-}
-
-class _CommandCardStreakUnderTitleState
-    extends State<_CommandCardStreakUnderTitle> {
-  Stream<List<CommandEvent>>? _eventsStream;
-  String? _streamForCommandId;
-  DateTime? _streamForStartUtc;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final start = widget.command.createdAt?.toUtc() ?? DateTime.utc(2000, 1, 1);
-    final id = widget.command.id;
-    if (_eventsStream == null ||
-        _streamForCommandId != id ||
-        _streamForStartUtc != start) {
-      _streamForCommandId = id;
-      _streamForStartUtc = start;
-      _eventsStream = context.read<CommandEventRepository>().watchEventsFrom(
-        id,
-        startUtcInclusive: start,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final stream = _eventsStream;
-    if (stream == null) {
-      return const SizedBox.shrink();
-    }
-    final effectiveCreated =
-        widget.command.createdAt?.toUtc() ?? DateTime.utc(2000, 1, 1);
-
-    return StreamBuilder<List<CommandEvent>>(
-      stream: stream,
-      initialData: const <CommandEvent>[],
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-        final events = snapshot.data ?? const <CommandEvent>[];
-        final grouped = _groupCommandEventsByCycle(events);
-        final result = const ComputeStreakUseCase().execute(
-          command: widget.command,
-          grouped: grouped,
-          createdAtUtc: effectiveCreated,
-        );
-        return Padding(
-          padding: EdgeInsets.only(left: widget.titleIndent),
-          child: CommandStreakBadge(
-            result: result,
-            frequency: widget.command.frequency,
-            compact: widget.compact,
-          ),
-        );
-      },
-    );
-  }
-}
-
-Map<String, List<CommandEvent>> _groupCommandEventsByCycle(
-  List<CommandEvent> events,
-) {
-  final map = <String, List<CommandEvent>>{};
-  for (final event in events) {
-    map.putIfAbsent(event.cycleKey, () => <CommandEvent>[]).add(event);
-  }
-  return map;
 }
 
 enum _CommandCardMenuAction { details, edit, delete }
