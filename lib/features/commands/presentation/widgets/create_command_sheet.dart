@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
 import '../utils/command_form_validators.dart';
@@ -68,23 +69,26 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
   Widget build(BuildContext context) {
     final commandProvider = context.read<CommandProvider>();
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        top: 12,
-      ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOut,
-            child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+    return DismissKeyboardOnTap(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 12,
+        ),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior:
+              ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
               Text(
                 'Créer un commandement',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -236,9 +240,10 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                 ),
               ),
               const SizedBox(height: 8),
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
         ),
       ),
     );

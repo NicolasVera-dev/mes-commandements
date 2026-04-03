@@ -513,6 +513,124 @@ void main() {
       repo.dispose();
     });
 
+    testWidgets('édition: tap hors champ retire le focus', (tester) async {
+      final cmd = _command(id: 'edit', progress: 1, target: 3);
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+      repo.emit([cmd]);
+      final fakeAuthRepo =
+          _FakeAuthRepository(const AuthUser(uid: 'u1', email: 'a@b.c'));
+      final authProvider = AuthProvider(repository: fakeAuthRepo);
+
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          authProvider: authProvider,
+          child: const EditCommandPage(commandId: 'edit'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(find.byType(TextFormField).first);
+      await tester.pump();
+      expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
+
+      await tester.tap(find.text('Modifier le commandement'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      final editable = find.descendant(
+        of: find.byType(TextFormField).first,
+        matching: find.byType(EditableText),
+      );
+      expect(tester.widget<EditableText>(editable).focusNode.hasFocus, isFalse);
+
+      authProvider.dispose();
+      fakeAuthRepo.dispose();
+      provider.dispose();
+      repo.dispose();
+    });
+
+    testWidgets('création: tap hors champ retire le focus', (tester) async {
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          child: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => showCreateCommandSheet(
+                context: context,
+                initialFrequency: Frequency.daily,
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TextFormField).first);
+      await tester.pump();
+      expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
+
+      await tester.tap(find.text('Créer un commandement'));
+      await tester.pump();
+      final editableCreate = find.descendant(
+        of: find.byType(TextFormField).first,
+        matching: find.byType(EditableText),
+      );
+      expect(
+        tester.widget<EditableText>(editableCreate).focusNode.hasFocus,
+        isFalse,
+      );
+
+      provider.dispose();
+      repo.dispose();
+    });
+
+    testWidgets('création: tap hors champ puis Enregistrer soumet toujours',
+        (tester) async {
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          child: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => showCreateCommandSheet(
+                context: context,
+                initialFrequency: Frequency.daily,
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final fields = find.byType(TextFormField);
+      await tester.enterText(fields.at(0), 'Test');
+      await tester.enterText(fields.at(1), '3');
+      await tester.tap(find.text('Créer un commandement'));
+      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.text('Enregistrer'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+      expect(repo.addCalls, 1);
+
+      provider.dispose();
+      repo.dispose();
+    });
+
     testWidgets('édition: soumission + gestion erreur repository',
         (tester) async {
       final cmd = _command(id: 'edit', progress: 1, target: 3);
