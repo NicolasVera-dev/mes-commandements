@@ -104,6 +104,15 @@ class _FakeCommandEventRepository implements CommandEventRepository {
     return controller.stream;
   }
 
+  @override
+  Stream<List<CommandEvent>> watchEventsFrom(
+    String commandId, {
+    required DateTime startUtcInclusive,
+  }) async* {
+    yield <CommandEvent>[];
+    yield* controller.stream;
+  }
+
   void dispose() {
     controller.close();
   }
@@ -183,8 +192,9 @@ Widget _wrap({
       ChangeNotifierProvider<CommandCardLayoutService>.value(
         value: _testCardLayout,
       ),
-      if (eventRepository != null)
-        Provider<CommandEventRepository>.value(value: eventRepository),
+      Provider<CommandEventRepository>.value(
+        value: eventRepository ?? _FakeCommandEventRepository(),
+      ),
       if (authProvider != null)
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
     ],
