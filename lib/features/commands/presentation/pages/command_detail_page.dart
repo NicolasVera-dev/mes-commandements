@@ -13,6 +13,7 @@ import '../widgets/cycle_visualizations/daily_calendar.dart';
 import '../widgets/cycle_visualizations/monthly_grid.dart';
 import '../widgets/cycle_visualizations/weekly_list.dart';
 import '../widgets/cycle_visualizations/yearly_bar.dart';
+import '../widgets/command_streak_from_repository.dart';
 import '../widgets/dynamic_progress_bar.dart';
 import '../widgets/history_skeleton.dart';
 
@@ -191,6 +192,12 @@ class _DetailContentState extends State<_DetailContent> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                CommandStreakFromRepository(
+                  command: command,
+                  compact: false,
+                  titleIndent: 44,
                 ),
                 const SizedBox(height: 12),
                 DynamicProgressBar(
