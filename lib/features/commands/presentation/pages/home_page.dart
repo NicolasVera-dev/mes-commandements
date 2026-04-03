@@ -15,6 +15,22 @@ import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/pages/account_settings_page.dart';
 
+/// Clé stable pour [AnimatedSwitcher] (évite un fade si l’ordre d’itération des Sets change).
+String _listContentKey({
+  required int commandsLength,
+  required int? frequenciesLen,
+  required Set<CommandStatusFilter> statuses,
+  required Set<String> tags,
+  required CommandSort sort,
+  required String searchQuery,
+  required bool isInitialLoading,
+  required String? syncError,
+}) {
+  final statusNames = statuses.map((s) => s.name).toList()..sort();
+  final tagList = tags.toList()..sort();
+  return 'list-$commandsLength-${frequenciesLen ?? "all"}-${statusNames.join(",")}-${tagList.join(",")}-${sort.name}-q:$searchQuery-l:$isInitialLoading-e:${syncError ?? ""}';
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -43,11 +59,13 @@ class _HomePageState extends State<HomePage> {
       sort: _sort,
     );
 
-    final hasActiveFilters = _selectedFrequencies != null ||
+    final hasActiveFilters =
+        _selectedFrequencies != null ||
         _selectedStatuses.isNotEmpty ||
         _selectedTags.isNotEmpty ||
         _sort != CommandSort.alpha;
-    final canReorder = _sort == CommandSort.alpha &&
+    final canReorder =
+        _sort == CommandSort.alpha &&
         _selectedFrequencies == null &&
         _selectedStatuses.isEmpty &&
         _selectedTags.isEmpty &&
@@ -89,11 +107,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 const Icon(Icons.filter_list_rounded),
                 if (hasActiveFilters)
-                  const Positioned(
-                    top: 8,
-                    right: 8,
-                    child: _ActiveDot(),
-                  ),
+                  const Positioned(top: 8, right: 8, child: _ActiveDot()),
               ],
             ),
           ),
@@ -116,9 +130,7 @@ class _HomePageState extends State<HomePage> {
                   );
                 } else {
                   Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const LoginPage(),
-                    ),
+                    MaterialPageRoute<void>(builder: (_) => const LoginPage()),
                   );
                 }
               },
@@ -134,13 +146,9 @@ class _HomePageState extends State<HomePage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
+                    Theme.of(context).colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.2),
-                    Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
+                    Theme.of(context).colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.04),
                   ],
                 ),
@@ -192,7 +200,9 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.info_outline_rounded,
                               size: 18,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -207,148 +217,170 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    transitionBuilder: (child, animation) {
-                      final curved = CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOut,
-                      );
-                      return FadeTransition(opacity: curved, child: child);
-                    },
-                    child: KeyedSubtree(
-                      key: ValueKey<String>(
-                        'list-${commands.length}-${_selectedFrequencies?.length ?? "all"}-${_selectedStatuses.map((s) => s.name).join(",")}-${_selectedTags.join(",")}-${_sort.name}-q:${commandProvider.searchQuery}-l:${commandProvider.isInitialLoading}-e:${commandProvider.syncErrorMessage ?? ""}',
-                      ),
-                      child: commandProvider.isInitialLoading
-                          ? _InitialLoadingList(gap: cardListGap)
-                          : commandProvider.syncErrorMessage != null
-                              ? Center(
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(horizontal: 12),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.error_outline_rounded,
-                                          size: 48,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .errorContainer,
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          commandProvider.syncErrorMessage!,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 12),
-                                        FilledButton.tonal(
-                                          onPressed: () {
-                                            commandProvider.retrySync();
-                                          },
-                                          child: const Text('Réessayer'),
-                                        ),
-                                      ],
+                  child: RepaintBoundary(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) {
+                        final curved = CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOut,
+                        );
+                        return FadeTransition(opacity: curved, child: child);
+                      },
+                      child: KeyedSubtree(
+                        key: ValueKey<String>(
+                          _listContentKey(
+                            commandsLength: commands.length,
+                            frequenciesLen: _selectedFrequencies?.length,
+                            statuses: _selectedStatuses,
+                            tags: _selectedTags,
+                            sort: _sort,
+                            searchQuery: commandProvider.searchQuery,
+                            isInitialLoading: commandProvider.isInitialLoading,
+                            syncError: commandProvider.syncErrorMessage,
+                          ),
+                        ),
+                        child: commandProvider.isInitialLoading
+                            ? _InitialLoadingList(gap: cardListGap)
+                            : commandProvider.syncErrorMessage != null
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error_outline_rounded,
+                                        size: 48,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.errorContainer,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        commandProvider.syncErrorMessage!,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      FilledButton.tonal(
+                                        onPressed: () {
+                                          commandProvider.retrySync();
+                                        },
+                                        child: const Text('Réessayer'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : commands.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      commandProvider.searchQuery.isNotEmpty
+                                          ? Icons.search_off_rounded
+                                          : Icons.hourglass_empty_rounded,
+                                      size: 48,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
-                                  ),
-                                )
-                              : commands.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    commandProvider.searchQuery.isNotEmpty
-                                        ? Icons.search_off_rounded
-                                        : Icons.hourglass_empty_rounded,
-                                    size: 48,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'Aucun commandement trouvé',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            )
-                              : canReorder
-                                  ? ReorderableListView.builder(
-                                      padding: const EdgeInsets.only(bottom: 100),
-                                      itemCount: commands.length,
-                                      buildDefaultDragHandles: false,
-                                      onReorderStart: (_) {
-                                        setState(() => _isDragging = true);
-                                      },
-                                      onReorderEnd: (_) {
-                                        setState(() => _isDragging = false);
-                                      },
-                                      proxyDecorator: (child, index, animation) {
-                                        return AnimatedBuilder(
-                                          animation: animation,
-                                          builder: (context, _) {
-                                            final t = Curves.easeOut.transform(
-                                              animation.value,
-                                            );
-                                            return Transform.scale(
-                                              scale: 1 + (0.03 * t),
-                                              child: Material(
-                                                elevation: 12,
-                                                borderRadius: BorderRadius.circular(16),
-                                                color: Colors.transparent,
-                                                child: child,
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                      onReorder: (oldIndex, newIndex) {
-                                        commandProvider.reorderCommands(
-                                          oldIndex: oldIndex,
-                                          newIndex: newIndex,
-                                          visibleCommands: commands,
-                                        );
-                                      },
-                                      itemBuilder: (context, index) {
-                                        final command = commands[index];
-                                        return Padding(
-                                          key: ValueKey(command.id),
-                                          padding: EdgeInsets.only(bottom: cardListGap),
-                                          child: AnimatedOpacity(
-                                            duration:
-                                                const Duration(milliseconds: 160),
-                                            opacity: _isDragging ? 0.8 : 1,
-                                            child: ReorderableDelayedDragStartListener(
-                                              index: index,
-                                              child: CommandCard(command: command),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Aucun commandement trouvé',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : canReorder
+                            ? ReorderableListView.builder(
+                                padding: const EdgeInsets.only(bottom: 100),
+                                cacheExtent: 800,
+                                itemCount: commands.length,
+                                buildDefaultDragHandles: false,
+                                onReorderStart: (_) {
+                                  setState(() => _isDragging = true);
+                                },
+                                onReorderEnd: (_) {
+                                  setState(() => _isDragging = false);
+                                },
+                                proxyDecorator: (child, index, animation) {
+                                  return AnimatedBuilder(
+                                    animation: animation,
+                                    builder: (context, _) {
+                                      final t = Curves.easeOut.transform(
+                                        animation.value,
+                                      );
+                                      return Transform.scale(
+                                        scale: 1 + (0.03 * t),
+                                        child: Material(
+                                          elevation: 12,
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          color: Colors.transparent,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                onReorder: (oldIndex, newIndex) {
+                                  commandProvider.reorderCommands(
+                                    oldIndex: oldIndex,
+                                    newIndex: newIndex,
+                                    visibleCommands: commands,
+                                  );
+                                },
+                                itemBuilder: (context, index) {
+                                  final command = commands[index];
+                                  return Padding(
+                                    key: ValueKey(command.id),
+                                    padding: EdgeInsets.only(
+                                      bottom: cardListGap,
+                                    ),
+                                    child: AnimatedOpacity(
+                                      duration: const Duration(
+                                        milliseconds: 160,
+                                      ),
+                                      opacity: _isDragging ? 0.8 : 1,
+                                      child:
+                                          ReorderableDelayedDragStartListener(
+                                            index: index,
+                                            child: CommandCard(
+                                              key: ValueKey<String>(command.id),
+                                              command: command,
                                             ),
                                           ),
-                                        );
-                                      },
-                                    )
-                                  : ListView.separated(
-                                      padding: const EdgeInsets.only(bottom: 100),
-                                      itemCount: commands.length,
-                                      separatorBuilder: (context, index) => SizedBox(
-                                        height: cardListGap,
-                                        key: ValueKey(index),
-                                      ),
-                                      itemBuilder: (context, index) {
-                                        final command = commands[index];
-                                        return CommandCard(command: command);
-                                      },
                                     ),
+                                  );
+                                },
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.only(bottom: 100),
+                                cacheExtent: 800,
+                                itemCount: commands.length,
+                                separatorBuilder: (context, index) =>
+                                    SizedBox(height: cardListGap),
+                                itemBuilder: (context, index) {
+                                  final command = commands[index];
+                                  return CommandCard(
+                                    key: ValueKey<String>(command.id),
+                                    command: command,
+                                  );
+                                },
+                              ),
+                      ),
                     ),
                   ),
                 ),
@@ -362,7 +394,8 @@ class _HomePageState extends State<HomePage> {
             ? () {
                 showCreateCommandSheet(
                   context: context,
-                  initialFrequency: _selectedFrequencies != null &&
+                  initialFrequency:
+                      _selectedFrequencies != null &&
                           _selectedFrequencies!.length == 1
                       ? _selectedFrequencies!.first
                       : Frequency.daily,
@@ -370,9 +403,7 @@ class _HomePageState extends State<HomePage> {
               }
             : () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const LoginPage(),
-                  ),
+                  MaterialPageRoute<void>(builder: (_) => const LoginPage()),
                 );
               },
         icon: const Icon(Icons.add),
@@ -408,6 +439,7 @@ class _InitialLoadingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 100),
+      cacheExtent: 800,
       itemCount: 5,
       separatorBuilder: (context, index) => SizedBox(height: gap),
       itemBuilder: (context, index) => const _LoadingCommandCard(),

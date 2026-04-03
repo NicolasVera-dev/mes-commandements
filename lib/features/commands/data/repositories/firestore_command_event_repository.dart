@@ -89,6 +89,59 @@ class FirestoreCommandEventRepository implements CommandEventRepository {
   }
 
   @override
+  Stream<List<CommandEvent>> watchEventsFrom(
+    String commandId, {
+    required DateTime startUtcInclusive,
+  }) {
+    final controller = StreamController<List<CommandEvent>>();
+    final start = startUtcInclusive.toUtc();
+
+    StreamSubscription<AuthUser?>? authSub;
+    StreamSubscription<QuerySnapshot<Map<String, Object?>>>? eventsSub;
+
+    Future<void> startForUser(AuthUser? user) async {
+      await eventsSub?.cancel();
+      eventsSub = null;
+
+      if (controller.isClosed) return;
+      if (user == null) {
+        controller.add(<CommandEvent>[]);
+        return;
+      }
+
+      final query = _eventsCollection(uid: user.uid, commandId: commandId)
+          .where(
+            'actionAtUtc',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .orderBy('actionAtUtc', descending: false);
+
+      eventsSub = query.snapshots().listen(
+        (snapshot) {
+          final events = snapshot.docs.map((doc) {
+            final map = Map<String, Object?>.from(doc.data());
+            return _fromFirestoreMap(map);
+          }).toList(growable: false);
+          controller.add(events);
+        },
+        onError: controller.addError,
+      );
+    }
+
+    authSub = _authRepository.authStateChanges().listen(
+      (user) => startForUser(user),
+      onError: controller.addError,
+    );
+
+    controller.onCancel = () async {
+      await authSub?.cancel();
+      await eventsSub?.cancel();
+    };
+
+    return controller.stream;
+  }
+
+  @override
   void addEventFireAndForget({
     required String commandId,
     required CommandEvent event,
