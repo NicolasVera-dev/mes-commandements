@@ -130,33 +130,33 @@ String _successLabel({
     case Frequency.daily:
       return switch (level) {
         StreakBadge.success1 => '$n jours réussis',
-        StreakBadge.success2 => '$n jours en forme',
-        StreakBadge.success3 => '$n jours incroyable',
-        StreakBadge.success4 => '$n jours légendaire',
+        StreakBadge.success2 => '$n jours au top',
+        StreakBadge.success3 => '$n jours incroyables',
+        StreakBadge.success4 => '$n jours légendaires',
         _ => '$n jours réussis',
       };
     case Frequency.weekly:
       return switch (level) {
         StreakBadge.success1 => '$n semaines réussies',
-        StreakBadge.success2 => '$n semaines en forme',
-        StreakBadge.success3 => '$n semaines incroyable',
-        StreakBadge.success4 => '$n semaines légendaire',
+        StreakBadge.success2 => '$n semaines au top',
+        StreakBadge.success3 => '$n semaines incroyables',
+        StreakBadge.success4 => '$n semaines légendaires',
         _ => '$n semaines réussies',
       };
     case Frequency.monthly:
       return switch (level) {
         StreakBadge.success1 => '$n mois réussis',
-        StreakBadge.success2 => '$n mois en forme',
-        StreakBadge.success3 => '$n mois incroyable',
-        StreakBadge.success4 => '$n mois légendaire',
+        StreakBadge.success2 => '$n mois au top',
+        StreakBadge.success3 => '$n mois incroyables',
+        StreakBadge.success4 => '$n mois légendaires',
         _ => '$n mois réussis',
       };
     case Frequency.yearly:
       return switch (level) {
         StreakBadge.success1 => '$n années réussies',
-        StreakBadge.success2 => '$n années en forme',
-        StreakBadge.success3 => '$n années incroyable',
-        StreakBadge.success4 => '$n années légendaire',
+        StreakBadge.success2 => '$n années au top',
+        StreakBadge.success3 => '$n années incroyables',
+        StreakBadge.success4 => '$n années légendaires',
         _ => '$n années réussies',
       };
   }
