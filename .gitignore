@@ -43,6 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+android/key.properties
+
+# Flutter obfuscation symbol files
+build/debug-info/
 
 # iOS & macOS — CocoaPods, Flutter, Xcode (see also ios/.gitignore, macos/.gitignore)
 ios/Pods/

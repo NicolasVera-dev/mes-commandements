@@ -207,8 +207,10 @@ class LocalNotificationScheduler implements NotificationScheduler {
         }
       }
     } catch (e, st) {
-      debugPrint('Erreur replanification notifications: $e');
-      debugPrint('$st');
+      if (kDebugMode) {
+        debugPrint('Erreur replanification notifications: $e');
+        debugPrint('$st');
+      }
     }
   }
 

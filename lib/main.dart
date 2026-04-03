@@ -103,8 +103,10 @@ Future<void> main() async {
       final deviceTz = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(deviceTz.identifier));
     } catch (e, st) {
-      debugPrint('Fuseau horaire local indisponible, repli UTC: $e');
-      debugPrint('$st');
+      if (kDebugMode) {
+        debugPrint('Fuseau horaire local indisponible, repli UTC: $e');
+        debugPrint('$st');
+      }
       tz.setLocalLocation(tz.UTC);
     }
   }

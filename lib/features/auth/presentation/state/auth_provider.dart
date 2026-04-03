@@ -48,8 +48,10 @@ class AuthProvider extends ChangeNotifier {
         }
       },
       onError: (Object error, StackTrace st) {
-        debugPrint('Erreur auth stream: $error');
-        debugPrint('$st');
+        if (kDebugMode) {
+          debugPrint('Erreur auth stream: $error');
+          debugPrint('$st');
+        }
         _errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
         _hasReceivedFirstAuthEvent = true;
         _isInitialLoading = false;
