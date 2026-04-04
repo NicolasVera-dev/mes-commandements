@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,9 @@ class MyApp extends StatelessWidget {
   final NotificationScheduler notificationScheduler;
   final NotificationPreferencesService notificationPreferencesService;
 
+  /// Tests widget : même instance que [UserPreferencesService] pour éviter le vrai plugin.
+  final FirebaseFirestore? firestoreOverride;
+
   const MyApp({
     super.key,
     required this.authRepository,
@@ -60,6 +64,7 @@ class MyApp extends StatelessWidget {
     required this.userPreferencesService,
     required this.notificationScheduler,
     required this.notificationPreferencesService,
+    this.firestoreOverride,
   });
 
   @override
@@ -99,6 +104,7 @@ class MyApp extends StatelessWidget {
               authRepository: authRepository,
               eventRepository: commandEventRepository,
               cycleNoteRepository: cycleNoteRepository,
+              firestore: firestoreOverride,
             ),
             notificationScheduler: notificationScheduler,
           ),
@@ -106,16 +112,19 @@ class MyApp extends StatelessWidget {
         Provider<ResistanceRepository>(
           create: (_) => FirestoreResistanceRepository(
             authRepository: authRepository,
+            firestore: firestoreOverride,
           ),
         ),
         Provider<ResistanceRelapseRepository>(
           create: (_) => FirestoreResistanceRelapseRepository(
             authRepository: authRepository,
+            firestore: firestoreOverride,
           ),
         ),
         Provider<ResistanceDayNoteRepository>(
           create: (_) => FirestoreResistanceDayNoteRepository(
             authRepository: authRepository,
+            firestore: firestoreOverride,
           ),
         ),
         ChangeNotifierProvider(

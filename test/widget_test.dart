@@ -5,6 +5,9 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,7 +27,7 @@ import 'package:mes_commandements/features/notifications/domain/notification_sch
 
 class _FakeAuthRepository implements AuthRepository {
   @override
-  Stream<AuthUser?> authStateChanges() => const Stream<AuthUser?>.empty();
+  Stream<AuthUser?> authStateChanges() => Stream<AuthUser?>.value(null);
 
   @override
   Future<AuthUser> signUp({
@@ -108,30 +111,35 @@ class _FakeCycleNoteRepository implements CycleNoteRepository {
 }
 
 void main() {
-  testWidgets(
-    'Smoke test auth gate (skipped)',
-    (WidgetTester tester) async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      final prefs = await SharedPreferences.getInstance();
-      final themeService = ThemeService(prefs: prefs);
-      final commandCardLayoutService = CommandCardLayoutService(prefs: prefs);
-      await tester.pumpWidget(
-        MyApp(
-          authRepository: _FakeAuthRepository(),
-          commandEventRepository: _FakeCommandEventRepository(),
-          cycleNoteRepository: _FakeCycleNoteRepository(),
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    setupFirebaseCoreMocks();
+    await Firebase.initializeApp();
+  });
+
+  testWidgets('Smoke test auth gate', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final themeService = ThemeService(prefs: prefs);
+    final commandCardLayoutService = CommandCardLayoutService(prefs: prefs);
+    final fakeFirestore = FakeFirebaseFirestore();
+    await tester.pumpWidget(
+      MyApp(
+        authRepository: _FakeAuthRepository(),
+        commandEventRepository: _FakeCommandEventRepository(),
+        cycleNoteRepository: _FakeCycleNoteRepository(),
+        themeService: themeService,
+        commandCardLayoutService: commandCardLayoutService,
+        userPreferencesService: UserPreferencesService(
+          firestore: fakeFirestore,
           themeService: themeService,
           commandCardLayoutService: commandCardLayoutService,
-          userPreferencesService: UserPreferencesService(
-            themeService: themeService,
-            commandCardLayoutService: commandCardLayoutService,
-          ),
-          notificationScheduler: const NoOpNotificationScheduler(),
-          notificationPreferencesService: NotificationPreferencesService(prefs),
         ),
-      );
-      await tester.pump();
-    },
-    skip: true,
-  );
+        notificationScheduler: const NoOpNotificationScheduler(),
+        notificationPreferencesService: NotificationPreferencesService(prefs),
+        firestoreOverride: fakeFirestore,
+      ),
+    );
+    await tester.pump();
+  });
 }

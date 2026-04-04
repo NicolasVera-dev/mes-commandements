@@ -34,4 +34,22 @@ const List<ResistanceCreationTemplate> kResistanceCreationTemplates =
     description:
         "Les jeux d'argent activent les mêmes circuits dopaminergiques que les drogues dures. Chaque jour sans jouer renforce le contrôle impulsif.",
   ),
+  ResistanceCreationTemplate(
+    emoji: '📱',
+    title: 'Arrêter TikTok',
+    description:
+        "Le scroll infini exploite les mêmes mécanismes que les machines à sous. Chaque jour sans renforce l'attention et réduit l'anxiété.",
+  ),
+  ResistanceCreationTemplate(
+    emoji: '🍔',
+    title: 'Arrêter les fast-foods',
+    description:
+        "Les aliments ultra-transformés sont conçus pour contourner la satiété. Chaque jour sans recalibre progressivement les signaux de faim.",
+  ),
+  ResistanceCreationTemplate(
+    emoji: '🌙',
+    title: 'Arrêter les écrans après 21h',
+    description:
+        "La lumière bleue bloque la mélatonine et retarde l'endormissement de 1 à 3h. Couper les écrans le soir améliore profondément le sommeil.",
+  ),
 ];

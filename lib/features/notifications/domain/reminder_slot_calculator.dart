@@ -8,7 +8,7 @@ class ReminderSlotCalculator {
   DateTime nextDailySlot(DateTime now, int hour, int minute) {
     var candidate = DateTime(now.year, now.month, now.day, hour, minute);
     if (!candidate.isAfter(now)) {
-      candidate = candidate.add(const Duration(days: 1));
+      candidate = DateTime(now.year, now.month, now.day + 1, hour, minute);
     }
     return candidate;
   }
@@ -73,16 +73,20 @@ class ReminderSlotCalculator {
     int hour,
     int minute,
   ) {
-    final todaySlot = DateTime(now.year, now.month, now.day, hour, minute);
+    final y = now.year;
+    final m = now.month;
+    final d = now.day;
+    final todaySlot = DateTime(y, m, d, hour, minute);
     var deltaDays = targetWeekday - now.weekday;
     if (deltaDays < 0) {
       deltaDays += 7;
     }
-    var candidate = todaySlot.add(Duration(days: deltaDays));
     if (deltaDays == 0 && !todaySlot.isAfter(now)) {
-      candidate = todaySlot.add(const Duration(days: 7));
+      deltaDays = 7;
     }
-    return candidate;
+    // Jour calendaire (pas Duration(days: n)) pour garder l’heure locale aux
+    // transitions DST (ex. US : mars).
+    return DateTime(y, m, d + deltaDays, hour, minute);
   }
 
   /// Dernier jour calendaire du mois (date à minuit local).
