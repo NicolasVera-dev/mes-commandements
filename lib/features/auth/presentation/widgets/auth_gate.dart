@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/auth_provider.dart';
-import '../pages/login_page.dart';
+import 'unauthenticated_flow.dart';
 
 class AuthGate extends StatelessWidget {
   final Widget authenticatedChild;
@@ -23,8 +23,8 @@ class AuthGate extends StatelessWidget {
         )
       else if (!auth.isConnected)
         const MaterialPage<void>(
-          key: ValueKey<String>('auth-login'),
-          child: LoginPage(),
+          key: ValueKey<String>('auth-unauthenticated'),
+          child: UnauthenticatedFlow(),
         )
       else
         MaterialPage<void>(
