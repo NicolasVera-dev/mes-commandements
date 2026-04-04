@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -73,6 +74,13 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
       navigator.pop();
     } on ArgumentError catch (e) {
       messenger?.showSnackBar(SnackBar(content: Text('$e')));
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      final msg = e.code == 'permission-denied'
+          ? 'Sauvegarde refusée par Firestore. Déployez les règles du dépôt '
+              '(cycle_notes) : firebase deploy --only firestore:rules'
+          : (e.message?.isNotEmpty == true ? e.message! : e.code);
+      messenger?.showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
@@ -98,13 +106,23 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
     );
     if (confirmed != true || !mounted) return;
 
-    await provider.saveNote(
-      commandId: widget.commandId,
-      cycleKey: widget.cycleKey,
-      content: '',
-    );
-    if (!mounted) return;
-    navigator.pop();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    try {
+      await provider.saveNote(
+        commandId: widget.commandId,
+        cycleKey: widget.cycleKey,
+        content: '',
+      );
+      if (!mounted) return;
+      navigator.pop();
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      final msg = e.code == 'permission-denied'
+          ? 'Suppression refusée par Firestore. Déployez les règles du dépôt '
+              '(cycle_notes) : firebase deploy --only firestore:rules'
+          : (e.message?.isNotEmpty == true ? e.message! : e.code);
+      messenger?.showSnackBar(SnackBar(content: Text(msg)));
+    }
   }
 
   @override
