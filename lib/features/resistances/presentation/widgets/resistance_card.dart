@@ -298,7 +298,7 @@ class ResistanceCard extends StatelessWidget {
                           ),
                     ),
                     Text(
-                      streak == 0 || streak == 1
+                      streak == 1
                           ? 'jour sans craquer'
                           : 'jours sans craquer',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(

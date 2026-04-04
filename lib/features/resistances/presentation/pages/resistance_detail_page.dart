@@ -162,7 +162,7 @@ class _ResistanceDetailBodyState extends State<_ResistanceDetailBody> {
                         ),
                   ),
                   Text(
-                    streak == 0 || streak == 1
+                    streak == 1
                         ? 'jour sans craquer'
                         : 'jours sans craquer',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
