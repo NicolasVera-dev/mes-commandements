@@ -1,10 +1,12 @@
 import '../entities/resistance.dart';
 
-/// Calcule le streak courant en **jours calendaires UTC** depuis la création ou depuis le lendemain du jour de la dernière rechute.
+/// Calcule le streak courant en **jours calendaires UTC** depuis la création
+/// ou depuis le jour de la dernière rechute (même logique que l’après-rechute).
 class ComputeResistanceStreakUseCase {
   const ComputeResistanceStreakUseCase();
 
-  /// Jours de suite sans rechute (0 le jour même d’une rechute).
+  /// Jours écoulés sans rechute : **0** le jour de création ou le jour d’une rechute,
+  /// puis +1 par jour calendaire UTC suivant.
   int execute({
     required Resistance resistance,
     required DateTime nowUtc,
@@ -16,7 +18,7 @@ class ComputeResistanceStreakUseCase {
 
     if (resistance.lastRelapseAtUtc == null) {
       final diff = today.difference(createdDay).inDays;
-      return diff + 1;
+      return diff;
     }
 
     final lr = resistance.lastRelapseAtUtc!.toUtc();
