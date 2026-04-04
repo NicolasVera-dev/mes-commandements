@@ -54,7 +54,8 @@ class _DynamicProgressBarState extends State<DynamicProgressBar>
             : (semanticColors?.progressHigh ??
                 Theme.of(context).colorScheme.primary));
     final accent = widget.accentTintColor;
-    if (accent == null) return base;
+    // Complété (100 %) : même vert sémantique partout, sans mélange d’accent.
+    if (accent == null || _ratio >= 1.0) return base;
     // Teinte subtile en conservant la lisibilité des seuils de progression.
     return Color.alphaBlend(accent.withValues(alpha: 0.22), base);
   }

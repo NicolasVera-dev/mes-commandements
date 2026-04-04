@@ -31,6 +31,25 @@ class FirestoreCommandEventRepository implements CommandEventRepository {
     return user?.uid;
   }
 
+  /// Après suppression du document parent `commands/{id}`, les listeners sur
+  /// `events` peuvent recevoir `permission-denied` côté client : on traite comme
+  /// historique vide pour ne pas bloquer l’UI.
+  void _onEventsSnapshotError(
+    StreamController<List<CommandEvent>> controller,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    if (error is FirebaseException && error.code == 'permission-denied') {
+      if (!controller.isClosed) {
+        controller.add(<CommandEvent>[]);
+      }
+      return;
+    }
+    if (!controller.isClosed) {
+      controller.addError(error, stackTrace);
+    }
+  }
+
   @override
   Stream<List<CommandEvent>> watchEvents(
     String commandId, {
@@ -71,7 +90,8 @@ class FirestoreCommandEventRepository implements CommandEventRepository {
           }).toList(growable: false);
           controller.add(events);
         },
-        onError: controller.addError,
+        onError: (Object e, StackTrace st) =>
+            _onEventsSnapshotError(controller, e, st),
       );
     }
 
@@ -124,7 +144,8 @@ class FirestoreCommandEventRepository implements CommandEventRepository {
           }).toList(growable: false);
           controller.add(events);
         },
-        onError: controller.addError,
+        onError: (Object e, StackTrace st) =>
+            _onEventsSnapshotError(controller, e, st),
       );
     }
 
