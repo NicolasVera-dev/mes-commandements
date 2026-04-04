@@ -148,6 +148,16 @@ class _CommandCardState extends State<CommandCard> {
           )
         : Theme.of(context).colorScheme.surfaceContainerHighest;
     final iconAccent = hasCustomAccent ? accentColor : null;
+    final actionIconColor = isCompleted
+        ? (semanticColors?.completedCardIcon ?? scheme.primary)
+        : iconAccent;
+    final tagChipStyle = _commandTagChipStyle(
+      isCompleted: isCompleted,
+      hasCustomAccent: hasCustomAccent,
+      accentColor: accentColor,
+      scheme: scheme,
+      semanticColors: semanticColors,
+    );
 
     final cardRadius = compact ? 12.0 : 16.0;
     final emojiBox = compact ? 28.0 : 34.0;
@@ -322,7 +332,7 @@ class _CommandCardState extends State<CommandCard> {
                     PopupMenuButton<_CommandCardMenuAction>(
                       tooltip: 'Actions',
                       icon: const Icon(Icons.more_vert_rounded),
-                      iconColor: iconAccent,
+                      iconColor: actionIconColor,
                       constraints: const BoxConstraints(minWidth: 190),
                       style: IconButton.styleFrom(
                         minimumSize: Size(compact ? 40 : 44, compact ? 40 : 44),
@@ -438,18 +448,21 @@ class _CommandCardState extends State<CommandCard> {
                       children: command.tags
                           .map(
                             (tag) => Chip(
-                              label: Text('#$tag'),
+                              label: Text(
+                                '#$tag',
+                                style: tagChipStyle.labelColor != null
+                                    ? Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: tagChipStyle.labelColor,
+                                          fontWeight: FontWeight.w500,
+                                        )
+                                    : null,
+                              ),
                               visualDensity: VisualDensity.compact,
-                              side: hasCustomAccent
-                                  ? BorderSide(
-                                      color: accentColor.withValues(
-                                        alpha: 0.55,
-                                      ),
-                                    )
-                                  : null,
-                              backgroundColor: hasCustomAccent
-                                  ? accentColor.withValues(alpha: 0.16)
-                                  : null,
+                              side: tagChipStyle.side,
+                              backgroundColor: tagChipStyle.backgroundColor,
                             ),
                           )
                           .toList(growable: false),
@@ -460,7 +473,7 @@ class _CommandCardState extends State<CommandCard> {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       tooltip: 'Réinitialiser',
-                      color: iconAccent,
+                      color: actionIconColor,
                       onPressed: () =>
                           commandProvider.resetProgress(command.id),
                       icon: const Icon(Icons.refresh),
@@ -487,7 +500,7 @@ class _CommandCardState extends State<CommandCard> {
                       ),
                       IconButton(
                         tooltip: 'Réinitialiser',
-                        color: iconAccent,
+                        color: actionIconColor,
                         visualDensity: VisualDensity.compact,
                         style: IconButton.styleFrom(
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -504,8 +517,7 @@ class _CommandCardState extends State<CommandCard> {
                     const SizedBox(height: 4),
                     _CompactTagsRow(
                       tags: command.tags,
-                      accentColor: accentColor,
-                      hasCustomAccent: hasCustomAccent,
+                      tagChipStyle: tagChipStyle,
                     ),
                   ],
                 ],
@@ -516,6 +528,44 @@ class _CommandCardState extends State<CommandCard> {
       ),
     );
   }
+}
+
+/// Couleurs des chips « #tag » alignées sur l’accent ou l’état complété.
+class _CommandTagChipStyle {
+  const _CommandTagChipStyle({
+    this.backgroundColor,
+    this.side,
+    this.labelColor,
+  });
+
+  final Color? backgroundColor;
+  final BorderSide? side;
+  final Color? labelColor;
+}
+
+_CommandTagChipStyle _commandTagChipStyle({
+  required bool isCompleted,
+  required bool hasCustomAccent,
+  required Color accentColor,
+  required ColorScheme scheme,
+  AppSemanticColors? semanticColors,
+}) {
+  if (isCompleted) {
+    final border = semanticColors?.completedCardBorder ?? scheme.primary;
+    return _CommandTagChipStyle(
+      backgroundColor: border.withValues(alpha: 0.14),
+      side: BorderSide(color: border.withValues(alpha: 0.55)),
+      labelColor: semanticColors?.completedCardIcon ?? scheme.primary,
+    );
+  }
+  if (hasCustomAccent) {
+    return _CommandTagChipStyle(
+      backgroundColor: accentColor.withValues(alpha: 0.16),
+      side: BorderSide(color: accentColor.withValues(alpha: 0.55)),
+      labelColor: null,
+    );
+  }
+  return const _CommandTagChipStyle();
 }
 
 enum _CommandCardMenuAction { details, edit, delete }
@@ -537,13 +587,11 @@ String _frequencyLabelCompact(Frequency frequency) {
 class _CompactTagsRow extends StatelessWidget {
   const _CompactTagsRow({
     required this.tags,
-    required this.accentColor,
-    required this.hasCustomAccent,
+    required this.tagChipStyle,
   });
 
   final List<String> tags;
-  final Color accentColor;
-  final bool hasCustomAccent;
+  final _CommandTagChipStyle tagChipStyle;
 
   static const int _maxVisible = 2;
 
@@ -558,28 +606,39 @@ class _CompactTagsRow extends StatelessWidget {
       children: [
         ...visible.map(
           (tag) => Chip(
-            label: Text('#$tag', style: Theme.of(context).textTheme.labelSmall),
+            label: Text(
+              '#$tag',
+              style: tagChipStyle.labelColor != null
+                  ? Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: tagChipStyle.labelColor,
+                        fontWeight: FontWeight.w500,
+                      )
+                  : Theme.of(context).textTheme.labelSmall,
+            ),
             visualDensity: VisualDensity.compact,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             padding: const EdgeInsets.symmetric(horizontal: 6),
             labelPadding: EdgeInsets.zero,
-            side: hasCustomAccent
-                ? BorderSide(color: accentColor.withValues(alpha: 0.55))
-                : null,
-            backgroundColor: hasCustomAccent
-                ? accentColor.withValues(alpha: 0.16)
-                : null,
+            side: tagChipStyle.side,
+            backgroundColor: tagChipStyle.backgroundColor,
           ),
         ),
         if (extra > 0)
           Chip(
             label: Text(
               '+$extra',
-              style: Theme.of(context).textTheme.labelSmall,
+              style: tagChipStyle.labelColor != null
+                  ? Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: tagChipStyle.labelColor,
+                        fontWeight: FontWeight.w500,
+                      )
+                  : Theme.of(context).textTheme.labelSmall,
             ),
             visualDensity: VisualDensity.compact,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             padding: const EdgeInsets.symmetric(horizontal: 6),
+            side: tagChipStyle.side,
+            backgroundColor: tagChipStyle.backgroundColor,
           ),
       ],
     );
