@@ -2,18 +2,30 @@ import 'package:flutter/material.dart';
 
 typedef EmojiChanged = void Function(String emoji);
 
+/// Jeu d’emojis proposés dans la feuille (commandements vs résistances / addictions).
+enum EmojiPickerPreset {
+  commands,
+  resistanceAddictions,
+}
+
 class EmojiPickerField extends StatelessWidget {
   final String selectedEmoji;
   final EmojiChanged onChanged;
+  final EmojiPickerPreset preset;
 
   const EmojiPickerField({
     super.key,
     required this.selectedEmoji,
     required this.onChanged,
+    this.preset = EmojiPickerPreset.commands,
   });
 
   @override
   Widget build(BuildContext context) {
+    final subtitle = preset == EmojiPickerPreset.resistanceAddictions
+        ? 'Icônes fréquentes pour les habitudes à arrêter'
+        : 'Personnaliser l’icône du commandement';
+
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
@@ -23,14 +35,17 @@ class EmojiPickerField extends StatelessWidget {
         ),
       ),
       title: const Text('Emoji'),
-      subtitle: const Text('Personnaliser l’icône du commandement'),
+      subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () async {
         final selected = await showModalBottomSheet<String>(
           context: context,
           isScrollControlled: true,
           showDragHandle: true,
-          builder: (_) => _EmojiPickerSheet(initialEmoji: selectedEmoji),
+          builder: (_) => _EmojiPickerSheet(
+            initialEmoji: selectedEmoji,
+            preset: preset,
+          ),
         );
         if (selected == null) return;
         onChanged(selected);
@@ -41,9 +56,11 @@ class EmojiPickerField extends StatelessWidget {
 
 class _EmojiPickerSheet extends StatefulWidget {
   final String initialEmoji;
+  final EmojiPickerPreset preset;
 
   const _EmojiPickerSheet({
     required this.initialEmoji,
+    required this.preset,
   });
 
   @override
@@ -54,7 +71,8 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
   late String _selectedEmoji;
   String _query = '';
 
-  static const Map<String, List<String>> _categories = <String, List<String>>{
+  static const Map<String, List<String>> _commandCategories =
+      <String, List<String>>{
     'Sport': <String>['🏃', '🏋️', '🚴', '⚽', '🏀', '🥇', '🧘', '🎾'],
     'Santé': <String>['💧', '🥗', '💊', '😴', '🫀', '🧠', '🚶', '🩺'],
     'Travail': <String>['💼', '🗂️', '🧑‍💻', '📚', '📝', '📈', '✅', '🧾'],
@@ -62,6 +80,28 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
     'Social': <String>['👨‍👩‍👧', '🤝', '☎️', '💬', '🎉', '❤️', '🙏', '☕'],
     'Autres': <String>['🎯', '⭐', '🔥', '🌱', '🚀', '⏱️', '📌', '💡'],
   };
+
+  /// Tabac, alcool, contenu adulte, écrans, jeux, nourriture, etc.
+  static const Map<String, List<String>> _addictionCategories =
+      <String, List<String>>{
+    'Tabac & vape': <String>['🚬', '🚭', '🫁', '💨'],
+    'Alcool': <String>['🍺', '🍷', '🥃', '🍸', '🍾', '🤢'],
+    'Contenu sensible': <String>['🔞', '⚠️', '🔒'],
+    'Écrans & web': <String>['📱', '💻', '📺', '🌐', '📲', '👁️'],
+    'Jeux & paris': <String>['🎰', '🎲', '🃏', '🎮', '🕹️'],
+    'Nourriture': <String>['🍔', '🍟', '🍕', '🍫', '🧁', '🍩', '🥤'],
+    'Substances': <String>['💊', '💉', '🧪'],
+    'Autres': <String>['🛡️', '⛔', '🧠', '💪', '😤', '🧘'],
+  };
+
+  Map<String, List<String>> get _categories {
+    switch (widget.preset) {
+      case EmojiPickerPreset.commands:
+        return _commandCategories;
+      case EmojiPickerPreset.resistanceAddictions:
+        return _addictionCategories;
+    }
+  }
 
   @override
   void initState() {
@@ -93,6 +133,7 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
               const SizedBox(height: 12),
               TextField(
                 onChanged: (value) => setState(() => _query = value),
+                textCapitalization: TextCapitalization.none,
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.search),
                   hintText: 'Rechercher un emoji...',

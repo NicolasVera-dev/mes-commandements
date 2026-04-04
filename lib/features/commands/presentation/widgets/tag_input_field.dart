@@ -110,6 +110,7 @@ class _TagInputFieldState extends State<TagInputField> {
             return TextField(
               controller: textEditingController,
               focusNode: focusNode,
+              textCapitalization: TextCapitalization.none,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) {
                 onFieldSubmitted();

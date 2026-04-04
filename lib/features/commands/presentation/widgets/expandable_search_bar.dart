@@ -1,16 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../state/command_provider.dart';
-
+/// Barre de recherche repliable (titres [collapsedTitle] + champ étendu).
+/// La requête est pilotée par le parent ([searchQuery] / [onSearchQueryChanged]).
 class ExpandableSearchBar extends StatefulWidget {
   final String collapsedTitle;
+  final String searchQuery;
+  final ValueChanged<String> onSearchQueryChanged;
+  final String hintText;
 
   const ExpandableSearchBar({
     super.key,
     required this.collapsedTitle,
+    required this.searchQuery,
+    required this.onSearchQueryChanged,
+    this.hintText = 'Rechercher…',
   });
 
   @override
@@ -18,24 +23,25 @@ class ExpandableSearchBar extends StatefulWidget {
 }
 
 class _ExpandableSearchBarState extends State<ExpandableSearchBar> {
-  final TextEditingController _controller = TextEditingController();
+  late final TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
   Timer? _debounce;
 
   bool _expanded = false;
-  String _lastSyncedQuery = '';
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.searchQuery);
+  }
 
-    final provider = context.read<CommandProvider>();
-    final query = provider.searchQuery;
-
-    // Synchronise une seule fois pour éviter d'écraser la saisie utilisateur.
-    if (_lastSyncedQuery == '' && _controller.text != query) {
-      _controller.text = query;
-      _lastSyncedQuery = query;
+  @override
+  void didUpdateWidget(covariant ExpandableSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery &&
+        widget.searchQuery != _controller.text &&
+        !_focusNode.hasFocus) {
+      _controller.text = widget.searchQuery;
     }
   }
 
@@ -69,7 +75,7 @@ class _ExpandableSearchBarState extends State<ExpandableSearchBar> {
   }
 
   void _commitQuery(String value) {
-    context.read<CommandProvider>().setSearchQuery(value);
+    widget.onSearchQueryChanged(value.trim());
   }
 
   void _onChanged(String value) {
@@ -83,7 +89,6 @@ class _ExpandableSearchBarState extends State<ExpandableSearchBar> {
   void _clearAndClose() {
     _debounce?.cancel();
     _controller.clear();
-    _lastSyncedQuery = '';
     _commitQuery('');
     _close(unfocusKeyboard: true);
   }
@@ -95,7 +100,6 @@ class _ExpandableSearchBarState extends State<ExpandableSearchBar> {
     return PopScope(
       canPop: !_expanded,
       onPopInvokedWithResult: (didPop, _) {
-        // Bloque le pop si la recherche est ouverte, puis la ferme.
         if (!didPop && _expanded) {
           _close(unfocusKeyboard: true);
         }
@@ -122,12 +126,10 @@ class _ExpandableSearchBarState extends State<ExpandableSearchBar> {
                 colorScheme: colorScheme,
                 controller: _controller,
                 focusNode: _focusNode,
+                hintText: widget.hintText,
                 onChanged: _onChanged,
                 onClear: _clearAndClose,
-                onClose: () {
-                  // Ferme même si aucun texte n'est saisi.
-                  _close(unfocusKeyboard: true);
-                },
+                onClose: () => _close(unfocusKeyboard: true),
               )
             : _CollapsedTitle(
                 key: const ValueKey('searchCollapsed'),
@@ -183,6 +185,7 @@ class _SearchField extends StatelessWidget {
   final VoidCallback onClear;
   final VoidCallback onClose;
   final ColorScheme colorScheme;
+  final String hintText;
 
   const _SearchField({
     super.key,
@@ -192,6 +195,7 @@ class _SearchField extends StatelessWidget {
     required this.onClear,
     required this.onClose,
     required this.colorScheme,
+    required this.hintText,
   });
 
   @override
@@ -214,13 +218,14 @@ class _SearchField extends StatelessWidget {
             focusNode: focusNode,
             autofocus: true,
             onChanged: onChanged,
+            textCapitalization: TextCapitalization.sentences,
             textInputAction: TextInputAction.search,
             maxLines: 1,
             minLines: 1,
             keyboardType: TextInputType.text,
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
-              hintText: 'Rechercher un commandement...',
+              hintText: hintText,
               hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -254,4 +259,3 @@ class _SearchField extends StatelessWidget {
     );
   }
 }
-

@@ -308,7 +308,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Affichage des commandements',
+                        'Affichage des cartes',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
@@ -336,7 +336,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                               value: CommandCardDisplayMode.standard,
                               title: Text('Standard'),
                               subtitle: Text(
-                                'Cartes détaillées (comportement par défaut)',
+                                'Commandements et résistances — détail par défaut',
                               ),
                               secondary: Icon(Icons.view_agenda_outlined),
                               contentPadding: EdgeInsets.zero,
@@ -346,7 +346,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                               value: CommandCardDisplayMode.compact,
                               title: Text('Compact'),
                               subtitle: Text(
-                                'Vue minimaliste, liste plus dense',
+                                'Commandements et résistances — liste plus dense',
                               ),
                               secondary: Icon(Icons.view_headline_rounded),
                               contentPadding: EdgeInsets.zero,
