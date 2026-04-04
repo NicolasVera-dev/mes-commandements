@@ -94,7 +94,7 @@ void main() {
         id: 'r2',
         map: <String, Object?>{
           'title': 'x' * 80,
-          'description': 'y' * 200,
+          'description': 'y' * (Resistance.maxDescriptionLength + 1),
           'createdAtUtc': '2026-03-01T10:00:00.000Z',
           'tags': List<String>.generate(
             10,
