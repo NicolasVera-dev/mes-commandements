@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../features/auth/presentation/widgets/auth_gate.dart';
-import '../features/commands/presentation/pages/home_page.dart';
 import '../features/commands/presentation/widgets/command_reset_lifecycle_listener.dart';
+import 'main_shell.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -11,7 +11,7 @@ class AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return const CommandResetLifecycleListener(
       child: AuthGate(
-        authenticatedChild: HomePage(),
+        authenticatedChild: MainShell(),
       ),
     );
   }

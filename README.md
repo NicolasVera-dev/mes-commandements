@@ -1,6 +1,6 @@
 # Mes Commandements
 
-Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une expérience mobile fluide. Créez vos « commandements », suivez vos cycles (jour/semaine/mois/année), personnalisez vos cartes et consultez l'historique détaillé de progression.
+Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une expérience mobile fluide. Créez vos **commandements** (objectifs à répéter par cycle), vos **résistances** (habitudes à ne plus céder), personnalisez vos cartes et consultez l’historique (progression ou rechutes).
 
 ---
 
@@ -16,9 +16,14 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `resetAuto`, `resetManual`) pour chaque commandement
 - 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
 - 🔍 **Recherche, filtres et tri** : fréquence, statut, tags, recherche texte en direct
+- 🛡️ **Résistances** : liste dédiée pour ce que vous voulez arrêter ; **série en jours sans craquer** (compteur à **0** le jour de création, +1 par jour calendaire UTC ; le **record** suit la même règle au moment d’une rechute), action **« J’ai craqué »** bien visible (rouge d’erreur, **même teinte** en thème clair et sombre), rechute avec **note optionnelle**, fiche détail, historique, **notes par jour** sur le calendrier ; création / édition avec emoji (grille **orientée addictions** : tabac, alcool, écrans, jeux, etc.), couleur d’accent et tags
+- 🔎 **Résistances — recherche & filtres** : même logique que l’accueil commandements (barre repliable, filtres par tags, tri manuel ou par série) ; **réordonnancement par glisser-déposer** uniquement en tri manuel, sans filtre ni recherche active
+- 📐 **Affichage des cartes** (paramètres compte) : mode **Standard** ou **Compact** appliqué **aux commandements et aux résistances** (liste plus dense, cartes plus petites)
+- ⌨️ **Saisie texte** : sur les formulaires commandements / résistances (titres, descriptions, notes associées aux rechutes ou aux jours), le clavier propose une **capitalisation type phrase** (première lettre) ; les **tags** restent en saisie libre (minuscules par défaut) ; les écrans **connexion / inscription / mot de passe** ne forcent pas ce comportement
 - ☁️ **Synchronisation Firestore en temps réel** par utilisateur connecté
 - 🔔 **Rappels locaux** (optionnels) : notifications intelligentes par fréquence pour les commandements non terminés du cycle en cours ; réglage dans **Paramètres du compte** (activation, heure globale) ; préférences en local (`SharedPreferences`), pas dans Firestore ; **désactivés par défaut**
 - 🌙 **UI Material 3 dark** et support multi-plateformes (Android, iOS, Web, Windows, macOS, Linux)
+- ↔️ **Navigation principale** : bascule **Commandements / Résistances** par la barre du bas ou par **glissement horizontal** entre les deux vues
 
 ---
 
@@ -59,6 +64,10 @@ lib/
     │   ├── data/
     │   ├── domain/
     │   └── presentation/
+    ├── resistances/
+    │   ├── data/
+    │   ├── domain/
+    │   └── presentation/
     └── notifications/
         ├── data/
         ├── domain/
@@ -66,8 +75,8 @@ lib/
 ```
 
 - **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases, contrat `NotificationScheduler` et calcul des créneaux de rappel
-- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, notes par cycle, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
-- **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles, badges de série, carte de réglage des rappels)
+- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, notes par cycle, **résistances**, rechutes, notes au jour, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
+- **Presentation** : providers d'état, pages et widgets UI (auth, navigation accueil commandements / résistances, listes, détail, édition, visualisations de cycles, badges de série, carte de réglage des rappels)
 
 ---
 
@@ -186,7 +195,8 @@ lib/
 ├── main.dart                                                # Firebase, fuseau tz, notifications, MultiProvider
 ├── firebase_options.dart                                    # Configuration Firebase générée
 ├── app/
-│   ├── app_root.dart                                        # Listener reset auto → AuthGate → HomePage
+│   ├── app_root.dart                                        # Listener reset auto → AuthGate → MainShell
+│   ├── main_shell.dart                                      # PageView + NavigationBar (commandements / résistances)
 │   ├── app_theme.dart
 │   ├── theme_service.dart
 │   └── user_preferences_service.dart
@@ -212,21 +222,28 @@ lib/
     │   │   └── local_notification_ids.dart
     │   └── presentation/
     │       └── widgets/                                 # notification_settings_card (compte)
-    └── commands/
-        ├── data/repositories/
-        │   ├── firestore_command_repository.dart
-        │   ├── firestore_command_event_repository.dart
-        │   └── firestore_cycle_note_repository.dart
-        ├── domain/
-        │   ├── entities/                                    # command, events, périodes, reset report...
-        │   ├── repositories/                                # contrats command / command_event
-        │   ├── services/                                    # génération des clés de cycle
-        │   └── usecases/                                    # filtres, cycles, résumés, streak, reset...
+    ├── commands/
+    │   ├── data/repositories/
+    │   │   ├── firestore_command_repository.dart
+    │   │   ├── firestore_command_event_repository.dart
+    │   │   └── firestore_cycle_note_repository.dart
+    │   ├── domain/
+    │   │   ├── entities/                                    # command, events, périodes, reset report...
+    │   │   ├── repositories/                                # contrats command / command_event / cycle_note
+    │   │   ├── services/                                    # génération des clés de cycle
+    │   │   └── usecases/                                    # filtres, cycles, résumés, streak, reset...
+    │   └── presentation/
+    │       ├── pages/                                       # home, détail, édition
+    │       ├── state/command_provider.dart
+    │       ├── utils/                                       # style des visualisations de cycles
+    │       └── widgets/                                     # cartes, filtres, calendriers, barres, streak…
+    └── resistances/
+        ├── data/repositories/                               # Firestore résistance, rechute, note du jour
+        ├── domain/                                          # entités, use cases (série, filtre/tri, rechute…)
         └── presentation/
-            ├── pages/                                       # home, détail, édition
-            ├── state/command_provider.dart
-            ├── utils/                                       # style des visualisations de cycles
-            └── widgets/                                     # cartes, filtres, calendriers, barres, streak…
+            ├── pages/                                       # accueil, détail, édition
+            ├── state/                                       # resistance_provider, day_note_provider
+            └── widgets/                                     # carte, formulaires, filtres, dialogue rechute…
 ```
 
 ---
@@ -272,6 +289,26 @@ class CommandEvent {
 
 enum CommandEventType { increment, resetAuto, resetManual, complete }
 ```
+
+### Résistance (aperçu)
+
+```dart
+class Resistance {
+  final String id;
+  final String title;
+  final String description;
+  final DateTime createdAtUtc;
+  final String emoji;
+  final int? accentColorValue;
+  final int position;
+  final List<String> tags;
+  final DateTime? lastRelapseAtUtc;
+  final int bestStreakDays;
+  // … sérialisation Firestore dans le code source
+}
+```
+
+Les **rechutes** et les **notes par jour** sont stockées dans des collections dédiées (voir `firestore.rules` et les repositories sous `features/resistances/data/`).
 
 ---
 

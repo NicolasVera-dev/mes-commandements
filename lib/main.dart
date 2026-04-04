@@ -26,6 +26,16 @@ import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/state/auth_provider.dart';
 import 'features/commands/domain/repositories/command_event_repository.dart';
 import 'features/commands/presentation/state/command_provider.dart';
+import 'features/resistances/data/repositories/firestore_resistance_day_note_repository.dart';
+import 'features/resistances/data/repositories/firestore_resistance_relapse_repository.dart';
+import 'features/resistances/data/repositories/firestore_resistance_repository.dart';
+import 'features/resistances/domain/repositories/resistance_day_note_repository.dart';
+import 'features/resistances/domain/repositories/resistance_relapse_repository.dart';
+import 'features/resistances/domain/repositories/resistance_repository.dart';
+import 'features/resistances/domain/usecases/record_resistance_relapse_usecase.dart';
+import 'features/resistances/domain/usecases/save_resistance_day_note_usecase.dart';
+import 'features/resistances/presentation/state/resistance_day_note_provider.dart';
+import 'features/resistances/presentation/state/resistance_provider.dart';
 import 'features/notifications/data/local_notification_scheduler.dart';
 import 'features/notifications/data/notification_preferences_service.dart';
 import 'features/notifications/domain/notification_scheduler.dart';
@@ -92,6 +102,39 @@ class MyApp extends StatelessWidget {
             ),
             notificationScheduler: notificationScheduler,
           ),
+        ),
+        Provider<ResistanceRepository>(
+          create: (_) => FirestoreResistanceRepository(
+            authRepository: authRepository,
+          ),
+        ),
+        Provider<ResistanceRelapseRepository>(
+          create: (_) => FirestoreResistanceRelapseRepository(
+            authRepository: authRepository,
+          ),
+        ),
+        Provider<ResistanceDayNoteRepository>(
+          create: (_) => FirestoreResistanceDayNoteRepository(
+            authRepository: authRepository,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) {
+            final repo = ctx.read<ResistanceRepository>();
+            return ResistanceProvider(
+              repository: repo,
+              recordRelapseUseCase: RecordResistanceRelapseUseCase(repo),
+            );
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) {
+            final repo = ctx.read<ResistanceDayNoteRepository>();
+            return ResistanceDayNoteProvider(
+              repository: repo,
+              saveUseCase: SaveResistanceDayNoteUseCase(repo),
+            );
+          },
         ),
       ],
       child: Consumer<ThemeService>(
