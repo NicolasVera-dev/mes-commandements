@@ -3,10 +3,17 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static const Color seedColor = Color(0xFF7C4DFF);
 
+  /// Rouge d’erreur / CTA identique en clair et sombre (le seed M3 diverge sinon).
+  static const Color unifiedError = Color(0xFFB3261E);
+  static const Color unifiedOnError = Color(0xFFFFFFFF);
+
   static ThemeData lightTheme() {
     final scheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.light,
+    ).copyWith(
+      error: unifiedError,
+      onError: unifiedOnError,
     );
     return ThemeData(
       useMaterial3: true,
@@ -21,6 +28,9 @@ class AppTheme {
     final scheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.dark,
+    ).copyWith(
+      error: unifiedError,
+      onError: unifiedOnError,
     );
     return ThemeData(
       useMaterial3: true,

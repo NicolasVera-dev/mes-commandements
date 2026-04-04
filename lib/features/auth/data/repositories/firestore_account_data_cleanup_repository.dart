@@ -28,18 +28,32 @@ class FirestoreAccountDataCleanupRepository
     }
   }
 
+  /// Supprime relapses + day_notes puis le document résistance.
+  Future<void> _deleteResistanceDoc(
+    DocumentReference<Map<String, Object?>> resistanceRef,
+  ) async {
+    await _purgeSubcollection(resistanceRef.collection('relapses'));
+    await _purgeSubcollection(resistanceRef.collection('day_notes'));
+    await resistanceRef.delete();
+  }
+
   @override
   Future<void> deleteAllUserData({
     required String uid,
   }) async {
     final commandsCollection = _firestore.collection('users/$uid/commands');
     final commandsSnapshot = await commandsCollection.get();
-    if (commandsSnapshot.docs.isEmpty) return;
 
     for (final commandDoc in commandsSnapshot.docs) {
       await _purgeSubcollection(commandDoc.reference.collection('events'));
       await _purgeSubcollection(commandDoc.reference.collection('cycle_notes'));
       await commandDoc.reference.delete();
+    }
+
+    final resistancesCollection = _firestore.collection('users/$uid/resistances');
+    final resistancesSnapshot = await resistancesCollection.get();
+    for (final doc in resistancesSnapshot.docs) {
+      await _deleteResistanceDoc(doc.reference);
     }
   }
 }
