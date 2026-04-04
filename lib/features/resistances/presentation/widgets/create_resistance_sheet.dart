@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/widgets/creation_template_picker.dart';
+import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../../../commands/presentation/widgets/accent_color_picker_field.dart';
 import '../../../commands/presentation/widgets/emoji_picker_field.dart';
 import '../../../commands/presentation/widgets/tag_input_field.dart';
@@ -77,62 +78,66 @@ class _CreateResistanceSheetState extends State<_CreateResistanceSheet> {
   Widget build(BuildContext context) {
     final provider = context.watch<ResistanceProvider>();
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        top: 12,
-      ),
-      child: SingleChildScrollView(
-        child: _ResistanceFormBody(
-          formKey: _formKey,
-          titleController: _titleController,
-          descriptionController: _descriptionController,
-          emoji: _emoji,
-          onEmojiChanged: (e) {
-            _onManualEdit();
-            setState(() => _emoji = e);
-          },
-          accentColorValue: _accentColorValue,
-          onAccentChanged: (c) {
-            _onManualEdit();
-            setState(() => _accentColorValue = c);
-          },
-          tags: _tags,
-          onTagsChanged: (t) {
-            _onManualEdit();
-            setState(() => _tags = t);
-          },
-          availableTags: provider.availableTags,
-          suggestionChips: SuggestionTemplateChips(
-            labels: _suggestionLabels,
-            selectedIndex: _selectedSuggestionIndex,
-            onChipSelection: (i, selected) {
-              if (selected) {
-                _applySuggestion(i);
-              } else {
-                setState(() => _selectedSuggestionIndex = null);
-              }
+    return DismissKeyboardOnTap(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 12,
+        ),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior:
+              ScrollViewKeyboardDismissBehavior.onDrag,
+          child: _ResistanceFormBody(
+            formKey: _formKey,
+            titleController: _titleController,
+            descriptionController: _descriptionController,
+            emoji: _emoji,
+            onEmojiChanged: (e) {
+              _onManualEdit();
+              setState(() => _emoji = e);
             },
+            accentColorValue: _accentColorValue,
+            onAccentChanged: (c) {
+              _onManualEdit();
+              setState(() => _accentColorValue = c);
+            },
+            tags: _tags,
+            onTagsChanged: (t) {
+              _onManualEdit();
+              setState(() => _tags = t);
+            },
+            availableTags: provider.availableTags,
+            suggestionChips: SuggestionTemplateChips(
+              labels: _suggestionLabels,
+              selectedIndex: _selectedSuggestionIndex,
+              onChipSelection: (i, selected) {
+                if (selected) {
+                  _applySuggestion(i);
+                } else {
+                  setState(() => _selectedSuggestionIndex = null);
+                }
+              },
+            ),
+            onManualTextEdit: _onManualEdit,
+            onSubmit: () {
+              final ok = _formKey.currentState?.validate() ?? false;
+              if (!ok) return;
+              final r = Resistance(
+                id: 'res-${DateTime.now().microsecondsSinceEpoch}',
+                title: _titleController.text.trim(),
+                description: _descriptionController.text.trim(),
+                createdAtUtc: DateTime.now().toUtc(),
+                emoji: _emoji,
+                accentColorValue: _accentColorValue,
+                tags: _tags,
+              );
+              provider.addResistance(r);
+              Navigator.of(context).pop();
+            },
+            onCancel: () => Navigator.of(context).pop(),
           ),
-          onManualTextEdit: _onManualEdit,
-          onSubmit: () {
-            final ok = _formKey.currentState?.validate() ?? false;
-            if (!ok) return;
-            final r = Resistance(
-              id: 'res-${DateTime.now().microsecondsSinceEpoch}',
-              title: _titleController.text.trim(),
-              description: _descriptionController.text.trim(),
-              createdAtUtc: DateTime.now().toUtc(),
-              emoji: _emoji,
-              accentColorValue: _accentColorValue,
-              tags: _tags,
-            );
-            provider.addResistance(r);
-            Navigator.of(context).pop();
-          },
-          onCancel: () => Navigator.of(context).pop(),
         ),
       ),
     );
