@@ -75,7 +75,12 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         toolbarHeight: 68,
         titleSpacing: 8,
-        title: const ExpandableSearchBar(collapsedTitle: 'Mes commandements'),
+        title: ExpandableSearchBar(
+          collapsedTitle: 'Mes commandements',
+          searchQuery: commandProvider.searchQuery,
+          onSearchQueryChanged: commandProvider.setSearchQuery,
+          hintText: 'Rechercher un commandement…',
+        ),
         actions: [
           IconButton(
             tooltip: 'Filtres',

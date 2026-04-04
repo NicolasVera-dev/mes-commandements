@@ -146,6 +146,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                     TextFormField(
                       controller: _titleController,
                       maxLength: Command.maxTitleLength,
+                      textCapitalization: TextCapitalization.sentences,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         labelText: 'Titre',
@@ -223,6 +224,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                       maxLines: 3,
                       minLines: 2,
                       maxLength: Command.maxDescriptionLength,
+                      textCapitalization: TextCapitalization.sentences,
                       textInputAction: TextInputAction.newline,
                       decoration: const InputDecoration(
                         labelText: 'Description',
