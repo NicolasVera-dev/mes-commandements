@@ -6,7 +6,7 @@ import 'command_event.dart';
 @immutable
 class Command {
   static const int maxTitleLength = 60;
-  static const int maxDescriptionLength = 150;
+  static const int maxDescriptionLength = 160;
   static const String defaultEmoji = '🎯';
   static const int maxTagsCount = 5;
   static const int maxTagLength = 20;
