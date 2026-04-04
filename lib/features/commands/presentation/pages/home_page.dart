@@ -15,23 +15,6 @@ import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/pages/account_settings_page.dart';
 
-/// Clé pour [AnimatedSwitcher] : filtres / tri / état sync — **sans** le nombre de
-/// commandements, sinon chaque suppression change la clé et recrée la [ListView]
-/// (scroll remis en haut).
-String _listContentKey({
-  required int? frequenciesLen,
-  required Set<CommandStatusFilter> statuses,
-  required Set<String> tags,
-  required CommandSort sort,
-  required String searchQuery,
-  required bool isInitialLoading,
-  required String? syncError,
-}) {
-  final statusNames = statuses.map((s) => s.name).toList()..sort();
-  final tagList = tags.toList()..sort();
-  return 'list-${frequenciesLen ?? "all"}-${statusNames.join(",")}-${tagList.join(",")}-${sort.name}-q:$searchQuery-l:$isInitialLoading-e:${syncError ?? ""}';
-}
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -46,6 +29,40 @@ class _HomePageState extends State<HomePage> {
   CommandSort _sort = CommandSort.alpha;
   bool _isDragging = false;
 
+  final ScrollController _listScrollController = ScrollController();
+
+  /// Longueur filtrée au dernier rendu « liste » (hors chargement / erreur).
+  int _previousFilteredCommandCount = -1;
+
+  @override
+  void dispose() {
+    _listScrollController.dispose();
+    super.dispose();
+  }
+
+  void _scheduleClampScrollAfterListShrink({required int newFilteredCount}) {
+    final commandProvider = context.read<CommandProvider>();
+    if (commandProvider.isInitialLoading || commandProvider.syncErrorMessage != null) {
+      _previousFilteredCommandCount = -1;
+      return;
+    }
+
+    final prev = _previousFilteredCommandCount;
+    _previousFilteredCommandCount = newFilteredCount;
+
+    if (prev < 0 || newFilteredCount >= prev) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!_listScrollController.hasClients) return;
+      final position = _listScrollController.position;
+      final maxExtent = position.maxScrollExtent;
+      if (position.pixels > maxExtent) {
+        position.jumpTo(maxExtent);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final commandProvider = context.watch<CommandProvider>();
@@ -59,6 +76,8 @@ class _HomePageState extends State<HomePage> {
       tags: _selectedTags,
       sort: _sort,
     );
+
+    _scheduleClampScrollAfterListShrink(newFilteredCount: commands.length);
 
     final hasActiveFilters =
         _selectedFrequencies != null ||
@@ -224,30 +243,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                 Expanded(
                   child: RepaintBoundary(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) {
-                        final curved = CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOut,
-                        );
-                        return FadeTransition(opacity: curved, child: child);
-                      },
-                      child: KeyedSubtree(
-                        key: ValueKey<String>(
-                          _listContentKey(
-                            frequenciesLen: _selectedFrequencies?.length,
-                            statuses: _selectedStatuses,
-                            tags: _selectedTags,
-                            sort: _sort,
-                            searchQuery: commandProvider.searchQuery,
-                            isInitialLoading: commandProvider.isInitialLoading,
-                            syncError: commandProvider.syncErrorMessage,
-                          ),
-                        ),
-                        child: commandProvider.isInitialLoading
-                            ? _InitialLoadingList(gap: cardListGap)
-                            : commandProvider.syncErrorMessage != null
+                    child: commandProvider.isInitialLoading
+                        ? _InitialLoadingList(gap: cardListGap)
+                        : commandProvider.syncErrorMessage != null
                             ? Center(
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -312,6 +310,7 @@ class _HomePageState extends State<HomePage> {
                                 key: const PageStorageKey<String>(
                                   'home_commands_reorder',
                                 ),
+                                scrollController: _listScrollController,
                                 padding: const EdgeInsets.only(bottom: 100),
                                 cacheExtent: 800,
                                 itemCount: commands.length,
@@ -378,6 +377,7 @@ class _HomePageState extends State<HomePage> {
                                 key: const PageStorageKey<String>(
                                   'home_commands_list',
                                 ),
+                                controller: _listScrollController,
                                 padding: const EdgeInsets.only(bottom: 100),
                                 cacheExtent: 800,
                                 itemCount: commands.length,
@@ -391,8 +391,6 @@ class _HomePageState extends State<HomePage> {
                                   );
                                 },
                               ),
-                      ),
-                    ),
                   ),
                 ),
               ],

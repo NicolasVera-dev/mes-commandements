@@ -159,6 +159,14 @@ class _CommandCardState extends State<CommandCard> {
       semanticColors: semanticColors,
     );
 
+    final emojiCircleColor = isCompleted
+        ? (semanticColors?.completedCardBorder ?? scheme.primary).withValues(
+            alpha: 0.28,
+          )
+        : hasCustomAccent
+            ? accentColor.withValues(alpha: 0.2)
+            : Theme.of(context).colorScheme.surfaceContainerHigh;
+
     final cardRadius = compact ? 12.0 : 16.0;
     final emojiBox = compact ? 28.0 : 34.0;
     final emojiFontSize = compact ? 14.0 : 18.0;
@@ -212,11 +220,7 @@ class _CommandCardState extends State<CommandCard> {
                                   width: emojiBox,
                                   height: emojiBox,
                                   decoration: BoxDecoration(
-                                    color: hasCustomAccent
-                                        ? accentColor.withValues(alpha: 0.2)
-                                        : Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainerHigh,
+                                    color: emojiCircleColor,
                                     shape: BoxShape.circle,
                                   ),
                                   alignment: Alignment.center,
@@ -268,11 +272,7 @@ class _CommandCardState extends State<CommandCard> {
                                 width: emojiBox,
                                 height: emojiBox,
                                 decoration: BoxDecoration(
-                                  color: hasCustomAccent
-                                      ? accentColor.withValues(alpha: 0.2)
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHigh,
+                                  color: emojiCircleColor,
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,
