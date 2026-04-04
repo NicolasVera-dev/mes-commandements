@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/command.dart';
 import '../../../domain/entities/command_event.dart';
+import '../../../domain/entities/cycle_note.dart';
 import '../../utils/cycle_visual_style.dart';
+import '../cycle_note_bottom_sheet.dart';
+import '../cycle_note_indicator.dart';
 
 class MonthlyGrid extends StatelessWidget {
   final int year;
   final Map<String, List<CommandEvent>> grouped;
   final String currentKey;
   final DateTime createdAtUtc;
+  final String commandId;
+  final Map<String, CycleNote> notes;
 
   const MonthlyGrid({
     super.key,
@@ -16,7 +21,17 @@ class MonthlyGrid extends StatelessWidget {
     required this.grouped,
     required this.currentKey,
     required this.createdAtUtc,
+    required this.commandId,
+    this.notes = const <String, CycleNote>{},
   });
+
+  void _openNote(BuildContext context, String cycleKey) {
+    showCycleNoteEditorSheet(
+      context,
+      commandId: commandId,
+      cycleKey: cycleKey,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +58,8 @@ class MonthlyGrid extends StatelessWidget {
         final key = '$year-${month.toString().padLeft(2, '0')}';
         final success = hasComplete(grouped[key] ?? const <CommandEvent>[]);
         final isCurrent = key == currentKey;
-        final isPast = DateTime.utc(year, month, 1).isBefore(DateTime.utc(now.year, now.month, 1));
+        final isPast =
+            DateTime.utc(year, month, 1).isBefore(DateTime.utc(now.year, now.month, 1));
         final status = statusForCycle(
           isSuccess: success,
           isCurrent: isCurrent,
@@ -54,28 +70,57 @@ class MonthlyGrid extends StatelessWidget {
           backgroundColor: style.backgroundColor,
           context: context,
         );
+        final hasNote = notes.containsKey(key);
+        final semanticsNote = hasNote ? ', note enregistrée' : '';
+
         return Semantics(
-          label: '${monthLabel(month)} $year : ${statusSemantics(status)}',
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: style.backgroundColor,
-              border: Border.all(color: style.indicatorColor.withValues(alpha: 0.55)),
+          label:
+              '${monthLabel(month)} $year : ${statusSemantics(status)}$semanticsNote. Appuyez pour ajouter ou modifier une note.',
+          button: true,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
               borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(style.stateIcon, size: 12, color: textColor),
-                const SizedBox(width: 4),
-                Text(
-                  month.toString().padLeft(2, '0'),
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
+              onTap: () => _openNote(context, key),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: style.backgroundColor,
+                        border: Border.all(
+                          color: style.indicatorColor.withValues(alpha: 0.55),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                ),
-              ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(style.stateIcon, size: 12, color: textColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            month.toString().padLeft(2, '0'),
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: CycleNoteIndicator(
+                      hasNote: hasNote,
+                      onPressed: () => _openNote(context, key),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

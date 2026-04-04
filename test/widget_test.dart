@@ -16,7 +16,9 @@ import 'package:mes_commandements/features/auth/domain/entities/auth_user.dart';
 import 'package:mes_commandements/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
 import 'package:mes_commandements/features/commands/domain/entities/command_events_period.dart';
+import 'package:mes_commandements/features/commands/domain/entities/cycle_note.dart';
 import 'package:mes_commandements/features/commands/domain/repositories/command_event_repository.dart';
+import 'package:mes_commandements/features/commands/domain/repositories/cycle_note_repository.dart';
 import 'package:mes_commandements/features/notifications/data/notification_preferences_service.dart';
 import 'package:mes_commandements/features/notifications/domain/notification_scheduler.dart';
 
@@ -84,6 +86,27 @@ class _FakeCommandEventRepository implements CommandEventRepository {
   Future<DateTime?> firstEventAtUtc(String commandId) async => null;
 }
 
+class _FakeCycleNoteRepository implements CycleNoteRepository {
+  @override
+  Stream<Map<String, CycleNote>> watchNotes(
+    String commandId, {
+    required Set<String> cycleKeys,
+  }) =>
+      Stream<Map<String, CycleNote>>.value(<String, CycleNote>{});
+
+  @override
+  Future<void> deleteAllNotes(String commandId) async {}
+
+  @override
+  Future<void> deleteNote({
+    required String commandId,
+    required String cycleKey,
+  }) async {}
+
+  @override
+  Future<void> saveNote(CycleNote note) async {}
+}
+
 void main() {
   testWidgets(
     'Smoke test auth gate (skipped)',
@@ -96,6 +119,7 @@ void main() {
         MyApp(
           authRepository: _FakeAuthRepository(),
           commandEventRepository: _FakeCommandEventRepository(),
+          cycleNoteRepository: _FakeCycleNoteRepository(),
           themeService: themeService,
           commandCardLayoutService: commandCardLayoutService,
           userPreferencesService: UserPreferencesService(

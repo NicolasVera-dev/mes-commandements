@@ -9,6 +9,7 @@ import '../../domain/entities/command_event.dart';
 import '../../domain/entities/command_position_update.dart';
 import '../../domain/repositories/command_event_repository.dart';
 import '../../domain/repositories/command_repository.dart';
+import '../../domain/repositories/cycle_note_repository.dart';
 import '../../domain/usecases/plan_edit_cycle_event_cleanup_usecase.dart';
 import '../../../auth/domain/entities/auth_user.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
@@ -17,14 +18,17 @@ class FirestoreCommandRepository implements CommandRepository {
   final FirebaseFirestore _firestore;
   final AuthRepository _authRepository;
   final CommandEventRepository? _eventRepository;
+  final CycleNoteRepository? _cycleNoteRepository;
 
   FirestoreCommandRepository({
     required AuthRepository authRepository,
     CommandEventRepository? eventRepository,
+    CycleNoteRepository? cycleNoteRepository,
     FirebaseFirestore? firestore,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _authRepository = authRepository,
-        _eventRepository = eventRepository;
+        _eventRepository = eventRepository,
+        _cycleNoteRepository = cycleNoteRepository;
 
   CollectionReference<Map<String, Object?>> _collectionForUser(String uid) {
     return _firestore.collection('users/$uid/commands');
@@ -294,6 +298,8 @@ class FirestoreCommandRepository implements CommandRepository {
   Future<void> delete(String commandId) async {
     final uid = await _currentUserId();
     if (uid == null) return;
+
+    await _cycleNoteRepository?.deleteAllNotes(commandId);
 
     final commandRef = _collectionForUser(uid).doc(commandId);
     final eventsCollection = commandRef.collection('events');

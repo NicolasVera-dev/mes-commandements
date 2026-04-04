@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/command.dart';
 import '../../../domain/entities/command_event.dart';
+import '../../../domain/entities/cycle_note.dart';
 import '../../../domain/services/cycle_key_generator.dart';
 import '../../utils/cycle_visual_style.dart';
+import '../cycle_note_bottom_sheet.dart';
+import '../cycle_note_indicator.dart';
 
 class WeeklyList extends StatelessWidget {
   final DateTime anchorUtc;
@@ -11,6 +14,8 @@ class WeeklyList extends StatelessWidget {
   final String currentKey;
   final int target;
   final DateTime createdAtUtc;
+  final String commandId;
+  final Map<String, CycleNote> notes;
 
   const WeeklyList({
     super.key,
@@ -19,7 +24,17 @@ class WeeklyList extends StatelessWidget {
     required this.currentKey,
     required this.target,
     required this.createdAtUtc,
+    required this.commandId,
+    this.notes = const <String, CycleNote>{},
   });
+
+  void _openNote(BuildContext context, String cycleKey) {
+    showCycleNoteEditorSheet(
+      context,
+      commandId: commandId,
+      cycleKey: cycleKey,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +46,7 @@ class WeeklyList extends StatelessWidget {
     final currentWeekStart =
         CycleKeyGenerator.cycleStartUtc(Frequency.weekly, DateTime.now().toUtc());
 
-    DateTime cursor = monthStart;
+    var cursor = monthStart;
     while (cursor.isBefore(monthEnd)) {
       final weekKey = CycleKeyGenerator.forFrequency(
         frequency: Frequency.weekly,
@@ -69,9 +84,13 @@ class WeeklyList extends StatelessWidget {
           context: context,
         );
         final weekNumber = _weekNumberFromCycleKey(weekKey);
+        final hasNote = notes.containsKey(weekKey);
+        final semanticsNote = hasNote ? ', note enregistrée' : '';
 
         return Semantics(
-          label: 'Semaine $weekNumber : ${statusSemantics(status)}',
+          label:
+              'Semaine $weekNumber : ${statusSemantics(status)}$semanticsNote. Appuyez pour ajouter ou modifier une note.',
+          button: true,
           child: Card(
             margin: const EdgeInsets.only(bottom: 8),
             color: style.backgroundColor,
@@ -79,56 +98,73 @@ class WeeklyList extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: style.indicatorColor.withValues(alpha: 0.55)),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => _openNote(context, weekKey),
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Text(
-                    weekKey,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: textColor,
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          weekKey,
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: textColor,
+                              ),
                         ),
-                  ),
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(
-                    value: progressRatio,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      progressColorForRatio(context, progressRatio),
-                    ),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Text(
-                        '$progress/$target',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      const SizedBox(width: 12),
-                      Wrap(
-                        spacing: 4,
-                        children: List.generate(
-                          increments.clamp(0, 20),
-                          (_) => Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(
+                          value: progressRatio,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            progressColorForRatio(context, progressRatio),
                           ),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surfaceContainerHigh,
                         ),
-                      ),
-                      const Spacer(),
-                      Icon(Icons.circle, size: 12, color: style.indicatorColor),
-                      const SizedBox(width: 4),
-                      Icon(style.stateIcon, size: 14, color: textColor),
-                    ],
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Text(
+                              '$progress/$target',
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(width: 12),
+                            Wrap(
+                              spacing: 4,
+                              children: List.generate(
+                                increments.clamp(0, 20),
+                                (_) => Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(Icons.circle, size: 12, color: style.indicatorColor),
+                            const SizedBox(width: 4),
+                            Icon(style.stateIcon, size: 14, color: textColor),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: CycleNoteIndicator(
+                      hasNote: hasNote,
+                      onPressed: () => _openNote(context, weekKey),
+                    ),
                   ),
                 ],
               ),

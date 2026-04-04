@@ -11,8 +11,12 @@ import 'package:mes_commandements/features/commands/domain/entities/command.dart
 import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
 import 'package:mes_commandements/features/commands/domain/entities/command_events_period.dart';
 import 'package:mes_commandements/features/commands/domain/entities/command_position_update.dart';
+import 'package:mes_commandements/features/commands/domain/entities/cycle_note.dart';
 import 'package:mes_commandements/features/commands/domain/repositories/command_event_repository.dart';
 import 'package:mes_commandements/features/commands/domain/repositories/command_repository.dart';
+import 'package:mes_commandements/features/commands/domain/repositories/cycle_note_repository.dart';
+import 'package:mes_commandements/features/commands/domain/usecases/save_cycle_note_usecase.dart';
+import 'package:mes_commandements/features/commands/presentation/state/cycle_note_provider.dart';
 import 'package:mes_commandements/features/commands/presentation/pages/command_detail_page.dart';
 import 'package:mes_commandements/features/commands/presentation/pages/edit_command_page.dart';
 import 'package:mes_commandements/features/commands/presentation/state/command_provider.dart';
@@ -72,6 +76,27 @@ class _FakeCommandRepository implements CommandRepository {
   void dispose() {
     controller.close();
   }
+}
+
+class _FakeCycleNoteRepository implements CycleNoteRepository {
+  @override
+  Stream<Map<String, CycleNote>> watchNotes(
+    String commandId, {
+    required Set<String> cycleKeys,
+  }) =>
+      Stream<Map<String, CycleNote>>.value(<String, CycleNote>{});
+
+  @override
+  Future<void> deleteAllNotes(String commandId) async {}
+
+  @override
+  Future<void> deleteNote({
+    required String commandId,
+    required String cycleKey,
+  }) async {}
+
+  @override
+  Future<void> saveNote(CycleNote note) async {}
 }
 
 class _FakeCommandEventRepository implements CommandEventRepository {
@@ -186,6 +211,7 @@ Widget _wrap({
   AuthProvider? authProvider,
   required Widget child,
 }) {
+  final cycleNoteRepo = _FakeCycleNoteRepository();
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<CommandProvider>.value(value: provider),
@@ -194,6 +220,13 @@ Widget _wrap({
       ),
       Provider<CommandEventRepository>.value(
         value: eventRepository ?? _FakeCommandEventRepository(),
+      ),
+      Provider<CycleNoteRepository>.value(value: cycleNoteRepo),
+      ChangeNotifierProvider(
+        create: (_) => CycleNoteProvider(
+          repository: cycleNoteRepo,
+          saveUseCase: SaveCycleNoteUseCase(cycleNoteRepo),
+        ),
       ),
       if (authProvider != null)
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
