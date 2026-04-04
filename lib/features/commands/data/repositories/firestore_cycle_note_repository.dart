@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -93,7 +94,17 @@ class FirestoreCycleNoteRepository implements CycleNoteRepository {
             }
             emitMerged();
           },
-          onError: controller.addError,
+          onError: (Object error, StackTrace st) {
+            if (error is FirebaseException &&
+                error.code == 'permission-denied') {
+              perChunk[chunkIndex].clear();
+              emitMerged();
+              return;
+            }
+            if (!controller.isClosed) {
+              controller.addError(error, st);
+            }
+          },
         );
         chunkSubs.add(sub);
       }
@@ -147,17 +158,35 @@ class FirestoreCycleNoteRepository implements CycleNoteRepository {
     final collection = _notesCollection(uid: uid, commandId: commandId);
     const batchSize = 500;
 
-    while (true) {
-      final snapshot = await collection.limit(batchSize).get();
-      if (snapshot.docs.isEmpty) break;
+    try {
+      while (true) {
+        final snapshot = await collection.limit(batchSize).get();
+        if (snapshot.docs.isEmpty) break;
 
-      final batch = _firestore.batch();
-      for (final doc in snapshot.docs) {
-        batch.delete(doc.reference);
+        final batch = _firestore.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+
+        if (snapshot.docs.length < batchSize) break;
       }
-      await batch.commit();
-
-      if (snapshot.docs.length < batchSize) break;
+    } on FirebaseException catch (e, st) {
+      // Souvent : règles distantes sans `cycle_notes` (non déployées). On laisse
+      // la suppression du commandement se poursuivre ; les notes restent orphelines
+      // jusqu’à un déploiement `firebase deploy --only firestore:rules`.
+      if (e.code == 'permission-denied') {
+        developer.log(
+          'deleteAllNotes ignoré (permission-denied). '
+          'Vérifier le déploiement de firestore.rules pour cycle_notes. '
+          'commandId=$commandId',
+          name: 'FirestoreCycleNoteRepository',
+          error: e,
+          stackTrace: st,
+        );
+        return;
+      }
+      rethrow;
     }
   }
 

@@ -15,9 +15,10 @@ import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/pages/account_settings_page.dart';
 
-/// Clé stable pour [AnimatedSwitcher] (évite un fade si l’ordre d’itération des Sets change).
+/// Clé pour [AnimatedSwitcher] : filtres / tri / état sync — **sans** le nombre de
+/// commandements, sinon chaque suppression change la clé et recrée la [ListView]
+/// (scroll remis en haut).
 String _listContentKey({
-  required int commandsLength,
   required int? frequenciesLen,
   required Set<CommandStatusFilter> statuses,
   required Set<String> tags,
@@ -28,7 +29,7 @@ String _listContentKey({
 }) {
   final statusNames = statuses.map((s) => s.name).toList()..sort();
   final tagList = tags.toList()..sort();
-  return 'list-$commandsLength-${frequenciesLen ?? "all"}-${statusNames.join(",")}-${tagList.join(",")}-${sort.name}-q:$searchQuery-l:$isInitialLoading-e:${syncError ?? ""}';
+  return 'list-${frequenciesLen ?? "all"}-${statusNames.join(",")}-${tagList.join(",")}-${sort.name}-q:$searchQuery-l:$isInitialLoading-e:${syncError ?? ""}';
 }
 
 class HomePage extends StatefulWidget {
@@ -235,7 +236,6 @@ class _HomePageState extends State<HomePage> {
                       child: KeyedSubtree(
                         key: ValueKey<String>(
                           _listContentKey(
-                            commandsLength: commands.length,
                             frequenciesLen: _selectedFrequencies?.length,
                             statuses: _selectedStatuses,
                             tags: _selectedTags,
@@ -309,6 +309,9 @@ class _HomePageState extends State<HomePage> {
                               )
                             : canReorder
                             ? ReorderableListView.builder(
+                                key: const PageStorageKey<String>(
+                                  'home_commands_reorder',
+                                ),
                                 padding: const EdgeInsets.only(bottom: 100),
                                 cacheExtent: 800,
                                 itemCount: commands.length,
@@ -372,6 +375,9 @@ class _HomePageState extends State<HomePage> {
                                 },
                               )
                             : ListView.separated(
+                                key: const PageStorageKey<String>(
+                                  'home_commands_list',
+                                ),
                                 padding: const EdgeInsets.only(bottom: 100),
                                 cacheExtent: 800,
                                 itemCount: commands.length,
