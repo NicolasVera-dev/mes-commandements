@@ -35,6 +35,12 @@ const List<ResistanceCreationTemplate> kResistanceCreationTemplates =
         "Les jeux d'argent activent les mêmes circuits dopaminergiques que les drogues dures. Chaque jour sans jouer renforce le contrôle impulsif.",
   ),
   ResistanceCreationTemplate(
+    emoji: '🔞',
+    title: 'Arrêter la pornographie',
+    description:
+        "La pornographie active les mêmes circuits de récompense que les drogues. Une consommation régulière altère la sensibilité à la dopamine, impacte les relations réelles et l'estime de soi. Chaque jour sans renforce le recâblage neuronal.",
+  ),
+  ResistanceCreationTemplate(
     emoji: '📱',
     title: 'Arrêter TikTok',
     description:
