@@ -16,6 +16,10 @@ import 'app/user_preferences_service.dart';
 import 'firebase_options.dart';
 import 'features/commands/data/repositories/firestore_command_event_repository.dart';
 import 'features/commands/data/repositories/firestore_command_repository.dart';
+import 'features/commands/data/repositories/firestore_cycle_note_repository.dart';
+import 'features/commands/domain/repositories/cycle_note_repository.dart';
+import 'features/commands/domain/usecases/save_cycle_note_usecase.dart';
+import 'features/commands/presentation/state/cycle_note_provider.dart';
 import 'features/auth/data/repositories/firebase_auth_repository.dart';
 import 'features/auth/data/repositories/firestore_account_data_cleanup_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -29,6 +33,7 @@ import 'features/notifications/domain/notification_scheduler.dart';
 class MyApp extends StatelessWidget {
   final AuthRepository authRepository;
   final CommandEventRepository commandEventRepository;
+  final CycleNoteRepository cycleNoteRepository;
   final ThemeService themeService;
   final CommandCardLayoutService commandCardLayoutService;
   final UserPreferencesService userPreferencesService;
@@ -39,6 +44,7 @@ class MyApp extends StatelessWidget {
     super.key,
     required this.authRepository,
     required this.commandEventRepository,
+    required this.cycleNoteRepository,
     required this.themeService,
     required this.commandCardLayoutService,
     required this.userPreferencesService,
@@ -52,6 +58,15 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<CommandEventRepository>.value(
           value: commandEventRepository,
+        ),
+        Provider<CycleNoteRepository>.value(
+          value: cycleNoteRepository,
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CycleNoteProvider(
+            repository: cycleNoteRepository,
+            saveUseCase: SaveCycleNoteUseCase(cycleNoteRepository),
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(
@@ -73,6 +88,7 @@ class MyApp extends StatelessWidget {
             repository: FirestoreCommandRepository(
               authRepository: authRepository,
               eventRepository: commandEventRepository,
+              cycleNoteRepository: cycleNoteRepository,
             ),
             notificationScheduler: notificationScheduler,
           ),
@@ -139,11 +155,15 @@ Future<void> main() async {
   final commandEventRepository = FirestoreCommandEventRepository(
     authRepository: authRepository,
   );
+  final cycleNoteRepository = FirestoreCycleNoteRepository(
+    authRepository: authRepository,
+  );
   FlutterNativeSplash.remove();
   runApp(
     MyApp(
       authRepository: authRepository,
       commandEventRepository: commandEventRepository,
+      cycleNoteRepository: cycleNoteRepository,
       themeService: themeService,
       commandCardLayoutService: commandCardLayoutService,
       userPreferencesService: userPreferencesService,

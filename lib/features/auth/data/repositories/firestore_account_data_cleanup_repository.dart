@@ -10,6 +10,24 @@ class FirestoreAccountDataCleanupRepository
     FirebaseFirestore? firestore,
   }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  Future<void> _purgeSubcollection(
+    CollectionReference<Map<String, Object?>> collection,
+  ) async {
+    const batchSize = 500;
+    while (true) {
+      final snapshot = await collection.limit(batchSize).get();
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+
+      if (snapshot.docs.length < batchSize) return;
+    }
+  }
+
   @override
   Future<void> deleteAllUserData({
     required String uid,
@@ -18,33 +36,10 @@ class FirestoreAccountDataCleanupRepository
     final commandsSnapshot = await commandsCollection.get();
     if (commandsSnapshot.docs.isEmpty) return;
 
-    const maxBatchOps = 500;
-    const eventsLimitPerBatch = maxBatchOps - 1;
-
     for (final commandDoc in commandsSnapshot.docs) {
-      while (true) {
-        final eventsSnapshot = await commandDoc.reference
-            .collection('events')
-            .limit(eventsLimitPerBatch)
-            .get();
-        final eventDocs = eventsSnapshot.docs;
-
-        if (eventDocs.isEmpty) {
-          await commandDoc.reference.delete();
-          break;
-        }
-        final batch = _firestore.batch();
-        for (final eventDoc in eventDocs) {
-          batch.delete(eventDoc.reference);
-        }
-        if (eventDocs.length < eventsLimitPerBatch) {
-          batch.delete(commandDoc.reference);
-        }
-        await batch.commit();
-        if (eventDocs.length < eventsLimitPerBatch) {
-          break;
-        }
-      }
+      await _purgeSubcollection(commandDoc.reference.collection('events'));
+      await _purgeSubcollection(commandDoc.reference.collection('cycle_notes'));
+      await commandDoc.reference.delete();
     }
   }
 }

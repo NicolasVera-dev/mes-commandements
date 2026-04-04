@@ -11,6 +11,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
 - 🧭 **Page détail riche** : historique par période, résumé de cycles réussis/échoués, navigation temporelle
+- 📝 **Notes de cycle** : dans le détail, une note optionnelle par période de l’historique (jour, semaine, mois ou année) ; une icône discrète marque les périodes qui en ont une ; ouvrez-la en touchant la case ou la ligne ; tout est synchronisé avec le compte et supprimé avec le commandement
 - 🔥 **Badge de série (streak)** : sur chaque carte et dans le détail, un seul pill (emoji + libellé) sous le titre — série de **cycles passés** consécutifs (succès si au moins un `complete` par cycle, échec si cycle passé sans `complete` dans l’historique Firestore) ; priorité *reprise aujourd’hui* → succès (paliers par fréquence) → échecs (seuil ≥ 3) ; calcul dans `ComputeStreakUseCase`, données via `watchEventsFrom` sur les événements
 - 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `resetAuto`, `resetManual`) pour chaque commandement
 - 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
@@ -65,7 +66,7 @@ lib/
 ```
 
 - **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases, contrat `NotificationScheduler` et calcul des créneaux de rappel
-- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
+- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, notes par cycle, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
 - **Presentation** : providers d'état, pages et widgets UI (auth, liste, détail, édition, visualisations de cycles, badges de série, carte de réglage des rappels)
 
 ---
@@ -214,7 +215,8 @@ lib/
     └── commands/
         ├── data/repositories/
         │   ├── firestore_command_repository.dart
-        │   └── firestore_command_event_repository.dart
+        │   ├── firestore_command_event_repository.dart
+        │   └── firestore_cycle_note_repository.dart
         ├── domain/
         │   ├── entities/                                    # command, events, périodes, reset report...
         │   ├── repositories/                                # contrats command / command_event
