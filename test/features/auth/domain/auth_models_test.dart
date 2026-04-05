@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/auth/domain/entities/auth_user.dart';
-import 'package:mes_commandements/features/auth/domain/errors/auth_failure.dart';
+import 'package:rituel/features/auth/domain/entities/auth_user.dart';
+import 'package:rituel/features/auth/domain/errors/auth_failure.dart';
 
 void main() {
   group('AuthUser', () {

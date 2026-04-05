@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/resistances/domain/entities/resistance.dart';
-import 'package:mes_commandements/features/resistances/presentation/widgets/resistance_creation_templates.dart';
+import 'package:rituel/features/resistances/domain/entities/resistance.dart';
+import 'package:rituel/features/resistances/presentation/widgets/resistance_creation_templates.dart';
 
 void main() {
   final createdAtUtc = DateTime.utc(2026, 1, 1);

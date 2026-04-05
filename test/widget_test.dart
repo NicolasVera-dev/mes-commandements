@@ -11,19 +11,19 @@ import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:mes_commandements/app/command_card_layout_service.dart';
-import 'package:mes_commandements/app/theme_service.dart';
-import 'package:mes_commandements/app/user_preferences_service.dart';
-import 'package:mes_commandements/main.dart';
-import 'package:mes_commandements/features/auth/domain/entities/auth_user.dart';
-import 'package:mes_commandements/features/auth/domain/repositories/auth_repository.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_events_period.dart';
-import 'package:mes_commandements/features/commands/domain/entities/cycle_note.dart';
-import 'package:mes_commandements/features/commands/domain/repositories/command_event_repository.dart';
-import 'package:mes_commandements/features/commands/domain/repositories/cycle_note_repository.dart';
-import 'package:mes_commandements/features/notifications/data/notification_preferences_service.dart';
-import 'package:mes_commandements/features/notifications/domain/notification_scheduler.dart';
+import 'package:rituel/app/command_card_layout_service.dart';
+import 'package:rituel/app/theme_service.dart';
+import 'package:rituel/app/user_preferences_service.dart';
+import 'package:rituel/main.dart';
+import 'package:rituel/features/auth/domain/entities/auth_user.dart';
+import 'package:rituel/features/auth/domain/repositories/auth_repository.dart';
+import 'package:rituel/features/commands/domain/entities/command_event.dart';
+import 'package:rituel/features/commands/domain/entities/command_events_period.dart';
+import 'package:rituel/features/commands/domain/entities/cycle_note.dart';
+import 'package:rituel/features/commands/domain/repositories/command_event_repository.dart';
+import 'package:rituel/features/commands/domain/repositories/cycle_note_repository.dart';
+import 'package:rituel/features/notifications/data/notification_preferences_service.dart';
+import 'package:rituel/features/notifications/domain/notification_scheduler.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override

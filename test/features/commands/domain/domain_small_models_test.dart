@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/commands/domain/entities/auto_reset_report.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_position_update.dart';
+import 'package:rituel/features/commands/domain/entities/auto_reset_report.dart';
+import 'package:rituel/features/commands/domain/entities/command.dart';
+import 'package:rituel/features/commands/domain/entities/command_position_update.dart';
 
 void main() {
   group('AutoResetReport', () {

@@ -83,7 +83,7 @@ lib/
 ## Prérequis
 
 - [Flutter](https://flutter.dev/docs/get-started/install) avec **Dart SDK ^3.11.3** (contrainte `environment` du `pubspec.yaml`)
-- Compte / projet **Firebase** (Auth + Firestore) — le dépôt inclut `lib/firebase_options.dart` pour la config courante ; pour un nouveau projet, régénérez ce fichier avec la [CLI FlutterFire](https://firebase.google.com/docs/flutter/setup)
+- Compte / projet **Firebase** (Auth + Firestore) — les fichiers sensibles ne sont pas versionnés : copiez `lib/firebase_options.example.dart` vers `lib/firebase_options.dart`, `android/app/google-services.json.example` vers `android/app/google-services.json`, puis exécutez `flutterfire configure` (ou collez les fichiers fournis par la console Firebase). Voir les commentaires en tête de `firebase_options.example.dart`.
 - Pour Android : Android Studio / SDK (le build active le *core library desugaring* requis par les notifications locales)
 - Pour iOS / macOS : Xcode
 - Pour Windows : Visual Studio avec les workloads C++
@@ -96,6 +96,11 @@ lib/
 # Cloner le dépôt
 git clone https://github.com/NicolasVera-dev/mes-commandements.git
 cd mes-commandements
+
+# Fichiers Firebase locaux (non suivis par Git)
+cp lib/firebase_options.example.dart lib/firebase_options.dart
+cp android/app/google-services.json.example android/app/google-services.json
+# Puis : flutterfire configure — ou remplir les fichiers avec votre projet Firebase
 
 # Installer les dépendances
 flutter pub get
@@ -193,7 +198,8 @@ flutter analyze
 ```
 lib/
 ├── main.dart                                                # Firebase, fuseau tz, notifications, MultiProvider
-├── firebase_options.dart                                    # Configuration Firebase générée
+├── firebase_options.example.dart                            # Modèle sans secrets → copier en firebase_options.dart
+├── firebase_options.dart                                    # Local uniquement (.gitignore), généré par FlutterFire
 ├── app/
 │   ├── app_root.dart                                        # Listener reset auto → AuthGate → MainShell
 │   ├── main_shell.dart                                      # PageView + NavigationBar (commandements / résistances)

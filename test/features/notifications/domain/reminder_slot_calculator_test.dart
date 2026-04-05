@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/notifications/domain/reminder_slot_calculator.dart';
+import 'package:rituel/features/notifications/domain/reminder_slot_calculator.dart';
 
 void main() {
   const calc = ReminderSlotCalculator();

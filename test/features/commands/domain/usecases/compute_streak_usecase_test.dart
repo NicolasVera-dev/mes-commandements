@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
-import 'package:mes_commandements/features/commands/domain/usecases/compute_streak_usecase.dart';
+import 'package:rituel/features/commands/domain/entities/command.dart';
+import 'package:rituel/features/commands/domain/entities/command_event.dart';
+import 'package:rituel/features/commands/domain/usecases/compute_streak_usecase.dart';
 
 CommandEvent _complete({
   required String cycleKey,

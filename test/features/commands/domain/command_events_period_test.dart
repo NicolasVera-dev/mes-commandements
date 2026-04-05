@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_events_period.dart';
+import 'package:rituel/features/commands/domain/entities/command_events_period.dart';
 
 void main() {
   group('CommandEventsPeriod.currentMonth', () {

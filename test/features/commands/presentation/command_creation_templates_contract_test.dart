@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command.dart';
-import 'package:mes_commandements/features/commands/presentation/widgets/command_creation_templates.dart';
+import 'package:rituel/features/commands/domain/entities/command.dart';
+import 'package:rituel/features/commands/presentation/widgets/command_creation_templates.dart';
 
 /// Garantit que chaque modèle UI reste compatible avec les assertions du domaine.
 void main() {

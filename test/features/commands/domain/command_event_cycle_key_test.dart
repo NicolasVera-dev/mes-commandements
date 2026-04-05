@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
-import 'package:mes_commandements/features/commands/domain/services/cycle_key_generator.dart';
+import 'package:rituel/features/commands/domain/entities/command.dart';
+import 'package:rituel/features/commands/domain/entities/command_event.dart';
+import 'package:rituel/features/commands/domain/services/cycle_key_generator.dart';
 
 void main() {
   group('CycleKeyGenerator', () {

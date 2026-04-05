@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command.dart';
-import 'package:mes_commandements/features/commands/domain/entities/command_event.dart';
-import 'package:mes_commandements/features/commands/domain/services/cycle_key_generator.dart';
-import 'package:mes_commandements/features/commands/domain/usecases/build_cycle_summary_usecase.dart';
+import 'package:rituel/features/commands/domain/entities/command.dart';
+import 'package:rituel/features/commands/domain/entities/command_event.dart';
+import 'package:rituel/features/commands/domain/services/cycle_key_generator.dart';
+import 'package:rituel/features/commands/domain/usecases/build_cycle_summary_usecase.dart';
 
 void main() {
   group('BuildCycleSummaryUseCase', () {

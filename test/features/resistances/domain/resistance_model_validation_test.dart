@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mes_commandements/features/resistances/domain/entities/resistance.dart';
+import 'package:rituel/features/resistances/domain/entities/resistance.dart';
 
 class _FakeTimestamp {
   final DateTime value;
