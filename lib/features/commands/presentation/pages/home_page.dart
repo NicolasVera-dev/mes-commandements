@@ -12,7 +12,6 @@ import '../widgets/filter_chips_bar.dart';
 import '../../../../app/command_card_display_mode.dart';
 import '../../../../app/command_card_layout_service.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
-import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/pages/account_settings_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -93,6 +92,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         toolbarHeight: 68,
         titleSpacing: 8,
         title: ExpandableSearchBar(
@@ -136,28 +136,16 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          if (!authProvider.isInitialLoading)
+          if (!authProvider.isInitialLoading && authProvider.isConnected)
             IconButton(
-              tooltip: authProvider.isConnected
-                  ? 'Paramètres du compte'
-                  : 'Connexion',
-              icon: Icon(
-                authProvider.isConnected
-                    ? Icons.settings_outlined
-                    : Icons.login_rounded,
-              ),
+              tooltip: 'Paramètres du compte',
+              icon: const Icon(Icons.settings_outlined),
               onPressed: () {
-                if (authProvider.isConnected) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AccountSettingsPage(),
-                    ),
-                  );
-                } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const LoginPage()),
-                  );
-                }
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AccountSettingsPage(),
+                  ),
+                );
               },
             ),
         ],
@@ -410,11 +398,7 @@ class _HomePageState extends State<HomePage> {
                       : Frequency.daily,
                 );
               }
-            : () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const LoginPage()),
-                );
-              },
+            : null,
         icon: const Icon(Icons.add),
         label: const Text('Nouveau commandement'),
       ),

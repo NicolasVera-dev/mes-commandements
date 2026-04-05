@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../features/commands/presentation/pages/home_page.dart';
 import '../features/resistances/presentation/pages/resistances_home_page.dart';
@@ -38,30 +40,38 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (i) => setState(() => _index = i),
-        children: const [
-          _KeepAliveTab(child: HomePage()),
-          _KeepAliveTab(child: ResistancesHomePage()),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _goToPage,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.track_changes_outlined),
-            selectedIcon: Icon(Icons.track_changes_rounded),
-            label: 'Commandements',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield_rounded),
-            label: 'Résistances',
-          ),
-        ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (kIsWeb) return;
+        SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (i) => setState(() => _index = i),
+          children: const [
+            _KeepAliveTab(child: HomePage()),
+            _KeepAliveTab(child: ResistancesHomePage()),
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: _goToPage,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.track_changes_outlined),
+              selectedIcon: Icon(Icons.track_changes_rounded),
+              label: 'Commandements',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.shield_outlined),
+              selectedIcon: Icon(Icons.shield_rounded),
+              label: 'Résistances',
+            ),
+          ],
+        ),
       ),
     );
   }
