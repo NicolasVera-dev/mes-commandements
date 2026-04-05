@@ -43,9 +43,15 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
         _selectedTags.isEmpty &&
         provider.searchQuery.isEmpty;
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         toolbarHeight: 68,
         titleSpacing: 8,
         title: ExpandableSearchBar(
