@@ -91,7 +91,7 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
     'Jeux & paris': <String>['🎰', '🎲', '🃏', '🎮', '🕹️'],
     'Nourriture': <String>['🍔', '🍟', '🍕', '🍫', '🧁', '🍩', '🥤'],
     'Substances': <String>['💊', '💉', '🧪'],
-    'Autres': <String>['🛡️', '⛔', '🧠', '💪', '😤', '🧘'],
+    'Autres': <String>['🛡️', '⛔', '🧠', '💪', '😤', '🧘', '💅', '🤚', '✋', '🦷', '🦶'],
   };
 
   Map<String, List<String>> get _categories {
