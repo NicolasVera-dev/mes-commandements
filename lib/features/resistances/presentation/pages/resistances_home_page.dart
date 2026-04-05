@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../auth/presentation/pages/account_settings_page.dart';
-import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../commands/presentation/widgets/expandable_search_bar.dart';
 import '../../domain/usecases/filter_and_sort_resistances_usecase.dart';
@@ -46,6 +45,7 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         toolbarHeight: 68,
         titleSpacing: 8,
         title: ExpandableSearchBar(
@@ -86,30 +86,16 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
               ],
             ),
           ),
-          if (!auth.isInitialLoading)
+          if (!auth.isInitialLoading && auth.isConnected)
             IconButton(
-              tooltip: auth.isConnected
-                  ? 'Paramètres du compte'
-                  : 'Connexion',
-              icon: Icon(
-                auth.isConnected
-                    ? Icons.settings_outlined
-                    : Icons.login_rounded,
-              ),
+              tooltip: 'Paramètres du compte',
+              icon: const Icon(Icons.settings_outlined),
               onPressed: () {
-                if (auth.isConnected) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AccountSettingsPage(),
-                    ),
-                  );
-                } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const LoginPage(),
-                    ),
-                  );
-                }
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AccountSettingsPage(),
+                  ),
+                );
               },
             ),
         ],
@@ -374,13 +360,7 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: auth.isConnected
             ? () => showCreateResistanceSheet(context: context)
-            : () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const LoginPage(),
-                  ),
-                );
-              },
+            : null,
         icon: const Icon(Icons.add),
         label: const Text('Nouvelle résistance'),
       ),

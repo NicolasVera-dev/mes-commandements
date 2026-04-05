@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Accueil hors-ligne pour utilisateurs non connectés (aucune persistance « déjà vu »).
 class OnboardingWelcomePage extends StatefulWidget {
@@ -68,80 +70,88 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              scheme.surfaceContainerHighest.withValues(alpha: 0.35),
-              scheme.surface,
-            ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (kIsWeb) return;
+        SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                scheme.surface,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (i) => setState(() => _pageIndex = i),
-                  physics: const BouncingScrollPhysics(),
-                  children: [
-                    for (var i = 0; i < _slides.length; i++)
-                      _OnboardingSlide(
-                        data: _slides[i],
-                        semanticPageLabel: _semanticLabelForSlide(
-                          _slides[i],
-                          page: i + 1,
-                          total: _slides.length,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (i) => setState(() => _pageIndex = i),
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      for (var i = 0; i < _slides.length; i++)
+                        _OnboardingSlide(
+                          data: _slides[i],
+                          semanticPageLabel: _semanticLabelForSlide(
+                            _slides[i],
+                            page: i + 1,
+                            total: _slides.length,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              _PageDots(
-                count: _slides.length,
-                index: _pageIndex,
-                scheme: scheme,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-                child: Semantics(
-                  button: true,
-                  label: 'Commencer dès maintenant',
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 52),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      backgroundColor: scheme.primary,
-                      foregroundColor: scheme.onPrimary,
-                      disabledBackgroundColor:
-                          scheme.onSurface.withValues(alpha: 0.12),
-                      disabledForegroundColor:
-                          scheme.onSurface.withValues(alpha: 0.38),
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                      surfaceTintColor: Colors.transparent,
-                    ),
-                    onPressed: widget.onCommencer,
-                    child: Text(
-                      'Commencer dès maintenant',
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      style: textTheme.titleSmall?.copyWith(
-                        color: scheme.onPrimary,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.15,
-                        height: 1.25,
+                const SizedBox(height: 8),
+                _PageDots(
+                  count: _slides.length,
+                  index: _pageIndex,
+                  scheme: scheme,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+                  child: Semantics(
+                    button: true,
+                    label: 'Commencer dès maintenant',
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 52),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        backgroundColor: scheme.primary,
+                        foregroundColor: scheme.onPrimary,
+                        disabledBackgroundColor:
+                            scheme.onSurface.withValues(alpha: 0.12),
+                        disabledForegroundColor:
+                            scheme.onSurface.withValues(alpha: 0.38),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
+                      ),
+                      onPressed: widget.onCommencer,
+                      child: Text(
+                        'Commencer dès maintenant',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        style: textTheme.titleSmall?.copyWith(
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.15,
+                          height: 1.25,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

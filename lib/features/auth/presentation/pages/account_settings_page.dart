@@ -10,10 +10,8 @@ import '../../../../app/theme_service.dart';
 import '../../../../app/user_preferences_service.dart';
 import '../../../notifications/presentation/widgets/notification_settings_card.dart';
 import '../state/auth_provider.dart';
-import '../widgets/fade_scale_page_route.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../widgets/password_text_field.dart';
-import 'login_page.dart';
 import '../../domain/validators/password_validator.dart';
 
 class AccountSettingsPage extends StatefulWidget {
@@ -148,12 +146,6 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
 
     try {
       await auth.deleteAccount(currentPassword: _deletePasswordController.text);
-
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        FadeScalePageRoute<void>(pageBuilder: (_) => const LoginPage()),
-        (_) => false,
-      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _deleteError = auth.errorMessage);
@@ -173,11 +165,6 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
 
     try {
       await auth.signOut();
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        FadeScalePageRoute<void>(pageBuilder: (_) => const LoginPage()),
-        (_) => false,
-      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _signOutError = auth.errorMessage);
@@ -216,7 +203,10 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     }
 
     if (!auth.isConnected) {
-      return const LoginPage();
+      // AuthGate bascule sur UnauthenticatedFlow ; pas de LoginPage ici.
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Scaffold(
