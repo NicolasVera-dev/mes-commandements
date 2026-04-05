@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/resistance.dart';
 import '../../domain/entities/resistance_position_update.dart';
 import '../../domain/repositories/resistance_repository.dart';
+import '../../domain/usecases/compute_resistance_streak_usecase.dart';
 import '../../domain/usecases/filter_and_sort_resistances_usecase.dart';
 import '../../domain/usecases/record_resistance_relapse_usecase.dart';
 
@@ -19,6 +20,7 @@ class ResistanceProvider extends ChangeNotifier {
   bool _isMutating = false;
   final Set<String> _mutatingIds = <String>{};
   String? _syncErrorMessage;
+  static const _streakUseCase = ComputeResistanceStreakUseCase();
 
   ResistanceProvider({
     required ResistanceRepository repository,
@@ -44,6 +46,7 @@ class ResistanceProvider extends ChangeNotifier {
         _isInitialLoading = false;
         _syncErrorMessage = null;
         notifyListeners();
+        unawaited(_syncBestStreaksIfNeeded(list));
       },
       onError: (Object error, StackTrace st) {
         if (kDebugMode) {
@@ -57,6 +60,25 @@ class ResistanceProvider extends ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  /// Met à jour `bestStreakDays` côté serveur lorsque le streak courant le dépasse
+  /// (sans attendre une rechute).
+  Future<void> _syncBestStreaksIfNeeded(List<Resistance> list) async {
+    final now = DateTime.now().toUtc();
+    for (final r in list) {
+      if (_mutatingIds.contains(r.id)) continue;
+      final streak = _streakUseCase.execute(resistance: r, nowUtc: now);
+      if (streak <= r.bestStreakDays) continue;
+      try {
+        await _repository.update(r.copyWith(bestStreakDays: streak));
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('Sync bestStreakDays (${r.id}): $e');
+          debugPrint('$st');
+        }
+      }
+    }
   }
 
   Future<void> retrySync() async {
