@@ -23,36 +23,6 @@ const List<ResistanceCreationTemplate> kResistanceCreationTemplates =
         "Après 72h sans fumer, les bronches commencent à se régénérer. Après 1 an, le risque d'infarctus est divisé par deux.",
   ),
   ResistanceCreationTemplate(
-    emoji: '🍺',
-    title: 'Arrêter l\'alcool',
-    description:
-        "L'OMS ne définit aucun seuil sans risque. Chaque jour sans alcool réduit la pression artérielle et améliore la qualité du sommeil.",
-  ),
-  ResistanceCreationTemplate(
-    emoji: '🎰',
-    title: "Arrêter les jeux d'argent",
-    description:
-        "Les jeux d'argent activent les mêmes circuits dopaminergiques que les drogues dures. Chaque jour sans jouer renforce le contrôle impulsif.",
-  ),
-  ResistanceCreationTemplate(
-    emoji: '🔞',
-    title: 'Arrêter la pornographie',
-    description:
-        "La pornographie active les mêmes circuits de récompense que les drogues. Une consommation régulière altère la sensibilité à la dopamine, impacte les relations réelles et l'estime de soi. Chaque jour sans renforce le recâblage neuronal.",
-  ),
-  ResistanceCreationTemplate(
-    emoji: '📱',
-    title: 'Arrêter TikTok',
-    description:
-        "Le scroll infini exploite les mêmes mécanismes que les machines à sous. Chaque jour sans renforce l'attention et réduit l'anxiété.",
-  ),
-  ResistanceCreationTemplate(
-    emoji: '🍔',
-    title: 'Arrêter les fast-foods',
-    description:
-        "Les aliments ultra-transformés sont conçus pour contourner la satiété. Chaque jour sans recalibre progressivement les signaux de faim.",
-  ),
-  ResistanceCreationTemplate(
     emoji: '🌙',
     title: 'Arrêter les écrans après 21h',
     description:
