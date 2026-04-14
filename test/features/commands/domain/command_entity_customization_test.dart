@@ -18,6 +18,7 @@ void main() {
       expect(command.accentColorValue, isNull);
       expect(command.position, 0);
       expect(command.tags, isEmpty);
+      expect(command.activeWeekdays, isEmpty);
     });
 
     test('désérialise emoji, couleur, position et tags', () {
@@ -32,6 +33,7 @@ void main() {
           'accentColorValue': 4280391411,
           'position': 7,
           'tags': <Object?>['santé', 'routine'],
+          'activeWeekdays': <Object?>[1, 2, 3, 4, 5],
         },
       );
 
@@ -39,6 +41,7 @@ void main() {
       expect(command.accentColorValue, 4280391411);
       expect(command.position, 7);
       expect(command.tags, <String>['santé', 'routine']);
+      expect(command.activeWeekdays, <int>[1, 2, 3, 4, 5]);
     });
 
     test('toMap inclut les champs de personnalisation', () {
@@ -52,6 +55,7 @@ void main() {
         accentColorValue: 4278190335,
         position: 4,
         tags: const <String>['pro', 'focus'],
+        activeWeekdays: const <int>[1, 2, 3, 4, 5],
       );
 
       final map = command.toMap();
@@ -60,6 +64,7 @@ void main() {
       expect(map['accentColorValue'], 4278190335);
       expect(map['position'], 4);
       expect(map['tags'], <String>['pro', 'focus']);
+      expect(map['activeWeekdays'], <int>[1, 2, 3, 4, 5]);
     });
   });
 }

@@ -381,6 +381,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      activeWeekdays: command.activeWeekdays,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -424,6 +425,7 @@ class _DetailContentState extends State<_DetailContent> {
                     grouped: grouped,
                     currentKey: currentKey,
                     createdAtUtc: effectiveCreatedAtUtc,
+                    activeWeekdays: command.activeWeekdays,
                   );
 
                   return Column(

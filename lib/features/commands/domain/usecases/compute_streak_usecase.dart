@@ -38,7 +38,7 @@ class ComputeStreakUseCase {
   }) {
     final now = (nowUtc ?? DateTime.now()).toUtc();
     final pastKeys = _pastCycleKeysNewestFirst(
-      frequency: command.frequency,
+      command: command,
       createdAtUtc: createdAtUtc.toUtc(),
       nowUtc: now,
     );
@@ -117,10 +117,11 @@ class ComputeStreakUseCase {
   }
 
   List<String> _pastCycleKeysNewestFirst({
-    required Frequency frequency,
+    required Command command,
     required DateTime createdAtUtc,
     required DateTime nowUtc,
   }) {
+    final frequency = command.frequency;
     final firstVisibleStart = CycleKeyGenerator.cycleStartUtc(
       frequency,
       createdAtUtc.toUtc(),
@@ -136,12 +137,14 @@ class ComputeStreakUseCase {
         var d = currentDayStart.subtract(const Duration(days: 1));
         final keys = <String>[];
         while (!d.isBefore(firstVisibleStart)) {
-          keys.add(
-            CycleKeyGenerator.forFrequency(
-              frequency: Frequency.daily,
-              atUtc: d,
-            ),
-          );
+          if (command.isActiveOnDayUtc(d)) {
+            keys.add(
+              CycleKeyGenerator.forFrequency(
+                frequency: Frequency.daily,
+                atUtc: d,
+              ),
+            );
+          }
           d = d.subtract(const Duration(days: 1));
         }
         return keys;

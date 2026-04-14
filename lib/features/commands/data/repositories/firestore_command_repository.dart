@@ -59,6 +59,7 @@ class FirestoreCommandRepository implements CommandRepository {
       'accentColorValue': command.accentColorValue,
       'position': command.position,
       'tags': command.tags,
+      'activeWeekdays': command.activeWeekdays,
     };
   }
 

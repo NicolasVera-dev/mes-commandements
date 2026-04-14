@@ -96,6 +96,35 @@ void main() {
       },
     );
 
+    test('série ignore les jours inactifs sur un quotidien', () {
+      final command = Command(
+        id: 'c1',
+        title: 't',
+        target: 3,
+        progress: 0,
+        frequency: Frequency.daily,
+        createdAt: DateTime.utc(2026, 4, 3), // vendredi
+        activeWeekdays: const <int>[
+          DateTime.monday,
+          DateTime.tuesday,
+          DateTime.wednesday,
+          DateTime.thursday,
+          DateTime.friday,
+        ],
+      );
+
+      final r = const ComputeStreakUseCase().execute(
+        command: command,
+        grouped: const <String, List<CommandEvent>>{},
+        createdAtUtc: DateTime.utc(2026, 4, 3),
+        nowUtc: DateTime.utc(2026, 4, 7, 12), // mardi
+      );
+
+      // Cycles actifs passés : vendredi + lundi = 2 (samedi/dimanche ignorés)
+      expect(r.badge, StreakBadge.none);
+      expect(r.count, 0);
+    });
+
     test('reprise : succès sur le cycle courant après échecs passés', () {
       final createdForRecovery = DateTime.utc(2026, 4, 1);
       final command = Command(
