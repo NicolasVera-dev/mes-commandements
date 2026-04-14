@@ -60,71 +60,80 @@ void main() {
     });
 
     group('cas limites progressAfterAction sur événements (sans type complete)', () {
-      test('progressAfterAction == 0 et targetAtAction > 0 : jour passé sans complete compte en échec', () {
-        final summary = useCase.execute(
-          frequency: Frequency.daily,
-          anchorUtc: DateTime.utc(2026, 3, 1),
-          grouped: {
-            '2026-03-11': [
-              event(
-                type: CommandEventType.increment,
-                cycleKey: '2026-03-11',
-                progressAfterAction: 0,
-                targetAtAction: 5,
-              ),
-            ],
-          },
-          currentKey: '2026-03-15',
-          createdAtUtc: DateTime.utc(2026, 3, 10),
-          nowUtc: DateTime.utc(2026, 3, 15, 12),
-        );
-        expect(summary.success, 0);
-        expect(summary.failed, greaterThanOrEqualTo(1));
-      });
+      test(
+        'progressAfterAction == 0 et targetAtAction > 0 : jour passé sans complete compte en échec',
+        () {
+          final summary = useCase.execute(
+            frequency: Frequency.daily,
+            anchorUtc: DateTime.utc(2026, 3, 1),
+            grouped: {
+              '2026-03-11': [
+                event(
+                  type: CommandEventType.increment,
+                  cycleKey: '2026-03-11',
+                  progressAfterAction: 0,
+                  targetAtAction: 5,
+                ),
+              ],
+            },
+            currentKey: '2026-03-15',
+            createdAtUtc: DateTime.utc(2026, 3, 10),
+            nowUtc: DateTime.utc(2026, 3, 15, 12),
+          );
+          expect(summary.success, 0);
+          expect(summary.failed, greaterThanOrEqualTo(1));
+        },
+      );
 
-      test('progressAfterAction == target - 1 : pas de complete → échec si jour passé', () {
-        final summary = useCase.execute(
-          frequency: Frequency.daily,
-          anchorUtc: DateTime.utc(2026, 3, 1),
-          grouped: {
-            '2026-03-11': [
-              event(
-                type: CommandEventType.increment,
-                cycleKey: '2026-03-11',
-                progressAfterAction: 4,
-                targetAtAction: 5,
-              ),
-            ],
-          },
-          currentKey: '2026-03-15',
-          createdAtUtc: DateTime.utc(2026, 3, 10),
-          nowUtc: DateTime.utc(2026, 3, 15, 12),
-        );
-        expect(summary.success, 0);
-        expect(summary.failed, greaterThanOrEqualTo(1));
-      });
+      test(
+        'progressAfterAction == target - 1 : pas de complete → échec si jour passé',
+        () {
+          final summary = useCase.execute(
+            frequency: Frequency.daily,
+            anchorUtc: DateTime.utc(2026, 3, 1),
+            grouped: {
+              '2026-03-11': [
+                event(
+                  type: CommandEventType.increment,
+                  cycleKey: '2026-03-11',
+                  progressAfterAction: 4,
+                  targetAtAction: 5,
+                ),
+              ],
+            },
+            currentKey: '2026-03-15',
+            createdAtUtc: DateTime.utc(2026, 3, 10),
+            nowUtc: DateTime.utc(2026, 3, 15, 12),
+          );
+          expect(summary.success, 0);
+          expect(summary.failed, greaterThanOrEqualTo(1));
+        },
+      );
 
-      test('progressAfterAction == target mais type increment : pas succès, jour passé → échec', () {
-        final summary = useCase.execute(
-          frequency: Frequency.daily,
-          anchorUtc: DateTime.utc(2026, 3, 1),
-          grouped: {
-            '2026-03-11': [
-              event(
-                type: CommandEventType.increment,
-                cycleKey: '2026-03-11',
-                progressAfterAction: 5,
-                targetAtAction: 5,
-              ),
-            ],
-          },
-          currentKey: '2026-03-15',
-          createdAtUtc: DateTime.utc(2026, 3, 10),
-          nowUtc: DateTime.utc(2026, 3, 15, 12),
-        );
-        expect(summary.success, 0);
-        expect(summary.failed, greaterThanOrEqualTo(1));
-      });
+      test(
+        'progressAfterAction == target mais type increment : pas succès, jour passé → échec',
+        () {
+          final summary = useCase.execute(
+            frequency: Frequency.daily,
+            anchorUtc: DateTime.utc(2026, 3, 1),
+            grouped: {
+              '2026-03-11': [
+                event(
+                  type: CommandEventType.increment,
+                  cycleKey: '2026-03-11',
+                  progressAfterAction: 5,
+                  targetAtAction: 5,
+                ),
+              ],
+            },
+            currentKey: '2026-03-15',
+            createdAtUtc: DateTime.utc(2026, 3, 10),
+            nowUtc: DateTime.utc(2026, 3, 15, 12),
+          );
+          expect(summary.success, 0);
+          expect(summary.failed, greaterThanOrEqualTo(1));
+        },
+      );
 
       test('type complete avec progressAfterAction == target → succès', () {
         final summary = useCase.execute(
@@ -162,6 +171,28 @@ void main() {
         expect(summary.failed, 30);
         expect(summary.success, 0);
       });
+
+      test('exclut les jours inactifs du total quotidien', () {
+        final summary = useCase.execute(
+          frequency: Frequency.daily,
+          anchorUtc: DateTime.utc(2026, 3, 1),
+          grouped: const {},
+          currentKey: '2026-03-09', // lundi
+          createdAtUtc: DateTime.utc(2026, 3, 5), // jeudi
+          activeWeekdays: const <int>[
+            DateTime.monday,
+            DateTime.tuesday,
+            DateTime.wednesday,
+            DateTime.thursday,
+            DateTime.friday,
+          ],
+          nowUtc: DateTime.utc(2026, 3, 9, 12),
+        );
+        // Jours passés visibles: 5 (jeudi), 6 (vendredi), 7-8 (week-end inactif).
+        expect(summary.success, 0);
+        expect(summary.failed, 2);
+        expect(summary.total, 2);
+      });
     });
 
     group('Frequency.weekly', () {
@@ -198,19 +229,22 @@ void main() {
     });
 
     group('Frequency.monthly', () {
-      test('année 2026 : mois avant createdAt exclus, passés sans complete en échec', () {
-        final summary = useCase.execute(
-          frequency: Frequency.monthly,
-          anchorUtc: DateTime.utc(2026, 1, 1),
-          grouped: const {},
-          currentKey: '2026-06',
-          createdAtUtc: DateTime.utc(2026, 4, 10),
-          nowUtc: DateTime.utc(2026, 6, 15),
-        );
-        expect(summary.success, 0);
-        // Mois visibles : avril, mai ; juin courant non « passé » pour failed.
-        expect(summary.failed, 2);
-      });
+      test(
+        'année 2026 : mois avant createdAt exclus, passés sans complete en échec',
+        () {
+          final summary = useCase.execute(
+            frequency: Frequency.monthly,
+            anchorUtc: DateTime.utc(2026, 1, 1),
+            grouped: const {},
+            currentKey: '2026-06',
+            createdAtUtc: DateTime.utc(2026, 4, 10),
+            nowUtc: DateTime.utc(2026, 6, 15),
+          );
+          expect(summary.success, 0);
+          // Mois visibles : avril, mai ; juin courant non « passé » pour failed.
+          expect(summary.failed, 2);
+        },
+      );
 
       test('un mois avec complete → 1 succès', () {
         final summary = useCase.execute(
@@ -230,19 +264,22 @@ void main() {
     });
 
     group('Frequency.yearly', () {
-      test('année visible seule sans événement et année passée vs now → 0 succès 0 failed si année courante', () {
-        final summary = useCase.execute(
-          frequency: Frequency.yearly,
-          anchorUtc: DateTime.utc(2026, 1, 1),
-          grouped: const {},
-          currentKey: '2026',
-          createdAtUtc: DateTime.utc(2026, 1, 1),
-          nowUtc: DateTime.utc(2026, 6, 1),
-        );
-        expect(summary.success, 0);
-        expect(summary.failed, 0);
-        expect(summary.total, 0);
-      });
+      test(
+        'année visible seule sans événement et année passée vs now → 0 succès 0 failed si année courante',
+        () {
+          final summary = useCase.execute(
+            frequency: Frequency.yearly,
+            anchorUtc: DateTime.utc(2026, 1, 1),
+            grouped: const {},
+            currentKey: '2026',
+            createdAtUtc: DateTime.utc(2026, 1, 1),
+            nowUtc: DateTime.utc(2026, 6, 1),
+          );
+          expect(summary.success, 0);
+          expect(summary.failed, 0);
+          expect(summary.total, 0);
+        },
+      );
 
       test('année précédente sans complete → failed', () {
         final summary = useCase.execute(

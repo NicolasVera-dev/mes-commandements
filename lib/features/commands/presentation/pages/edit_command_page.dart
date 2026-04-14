@@ -15,10 +15,7 @@ import '../../../auth/presentation/pages/login_page.dart';
 class EditCommandPage extends StatefulWidget {
   final String commandId;
 
-  const EditCommandPage({
-    super.key,
-    required this.commandId,
-  });
+  const EditCommandPage({super.key, required this.commandId});
 
   @override
   State<EditCommandPage> createState() => _EditCommandPageState();
@@ -36,6 +33,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
   String _emoji = Command.defaultEmoji;
   int? _accentColorValue;
   List<String> _tags = <String>[];
+  Set<int> _selectedActiveWeekdays = Command.allWeekdays.toSet();
   bool _initialized = false;
 
   @override
@@ -72,6 +70,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
     _emoji = command.emoji;
     _accentColorValue = command.accentColorValue;
     _tags = List<String>.from(command.tags);
+    _selectedActiveWeekdays = command.activeWeekdays.isEmpty
+        ? Command.allWeekdays.toSet()
+        : command.activeWeekdays.toSet();
 
     _initialized = true;
   }
@@ -133,184 +134,211 @@ class _EditCommandPageState extends State<EditCommandPage> {
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
                       children: [
-                    Text(
-                      'Détails',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Essentiel',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _titleController,
-                      maxLength: Command.maxTitleLength,
-                      textCapitalization: TextCapitalization.sentences,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Titre',
-                        prefixIcon: Icon(Icons.title),
-                      ),
-                      validator: (value) {
-                        final v = value?.trim() ?? '';
-                        if (v.length < 2) {
-                          return 'Veuillez entrer un titre (min. 2)';
-                        }
-                        if (v.length > Command.maxTitleLength) {
-                          return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<Frequency>(
-                      initialValue: _frequency,
-                      decoration: const InputDecoration(
-                        labelText: 'Fréquence',
-                        prefixIcon: Icon(Icons.schedule),
-                      ),
-                      items: Frequency.values.map((frequency) {
-                        return DropdownMenuItem<Frequency>(
-                          value: frequency,
-                          child: Text(_frequencyLabel(frequency)),
-                        );
-                      }).toList(growable: false),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _frequency = value);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _targetController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Objectif',
-                        prefixIcon: Icon(Icons.flag),
-                      ),
-                      validator: validateRequiredPositiveInt,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _progressController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Progression',
-                        prefixIcon: Icon(Icons.timeline),
-                      ),
-                      validator: (value) {
-                        final p = parseNonNegativeInt(value ?? '');
-                        if (p == null) return 'Veuillez entrer un nombre valide';
-
-                        final t = parsePositiveInt(_targetController.text);
-                        if (t != null && p > t) {
-                          return 'La progression ne peut pas dépasser l’objectif';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 3,
-                      minLines: 2,
-                      maxLength: Command.maxDescriptionLength,
-                      textCapitalization: TextCapitalization.sentences,
-                      textInputAction: TextInputAction.newline,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Description (optionnelle)',
-                        alignLabelWithHint: true,
-                        prefixIcon: Icon(Icons.notes_rounded),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Personnalisation visuelle',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    EmojiPickerField(
-                      selectedEmoji: _emoji,
-                      onChanged: (emoji) => setState(() => _emoji = emoji),
-                    ),
-                    AccentColorPickerField(
-                      selectedColorValue: _accentColorValue,
-                      emojiPreview: _emoji,
-                      onChanged: (colorValue) =>
-                          setState(() => _accentColorValue = colorValue),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Organisation',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    TagInputField(
-                      initialTags: _tags,
-                      suggestions: commandProvider.availableTags,
-                      accentColorValue: _accentColorValue,
-                      onChanged: (tags) => setState(() => _tags = tags),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () {
-                        final isValid =
-                            _formKey.currentState?.validate() ?? false;
-                        if (!isValid) return;
-
-                        final title = _titleController.text.trim();
-                        final description = _descriptionController.text.trim();
-                        final target = parsePositiveInt(_targetController.text);
-                        final progress =
-                            parseNonNegativeInt(_progressController.text);
-                        if (title.isEmpty ||
-                            target == null ||
-                            progress == null) {
-                          return;
-                        }
-
-                        final clampedProgress =
-                            progress > target ? target : progress;
-
-                        commandProvider.updateCommand(
-                          command.copyWith(
-                            title: title,
-                            description: description,
-                            target: target,
-                            progress: clampedProgress,
-                            frequency: _frequency,
-                            emoji: _emoji,
-                            accentColorValue: _accentColorValue,
-                            clearAccentColorValue: _accentColorValue == null,
-                            tags: _tags,
+                        Text(
+                          'Détails',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Essentiel',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _titleController,
+                          maxLength: Command.maxTitleLength,
+                          textCapitalization: TextCapitalization.sentences,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Titre',
+                            prefixIcon: Icon(Icons.title),
                           ),
-                        );
+                          validator: (value) {
+                            final v = value?.trim() ?? '';
+                            if (v.length < 2) {
+                              return 'Veuillez entrer un titre (min. 2)';
+                            }
+                            if (v.length > Command.maxTitleLength) {
+                              return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<Frequency>(
+                          initialValue: _frequency,
+                          decoration: const InputDecoration(
+                            labelText: 'Fréquence',
+                            prefixIcon: Icon(Icons.schedule),
+                          ),
+                          items: Frequency.values
+                              .map((frequency) {
+                                return DropdownMenuItem<Frequency>(
+                                  value: frequency,
+                                  child: Text(_frequencyLabel(frequency)),
+                                );
+                              })
+                              .toList(growable: false),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => _frequency = value);
+                          },
+                        ),
+                        if (_frequency == Frequency.daily) ...[
+                          const SizedBox(height: 12),
+                          _DailyActiveWeekdaysField(
+                            selectedWeekdays: _selectedActiveWeekdays,
+                            onChanged: (weekdays) => setState(
+                              () => _selectedActiveWeekdays = weekdays,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _targetController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Objectif',
+                            prefixIcon: Icon(Icons.flag),
+                          ),
+                          validator: validateRequiredPositiveInt,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _progressController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Progression',
+                            prefixIcon: Icon(Icons.timeline),
+                          ),
+                          validator: (value) {
+                            final p = parseNonNegativeInt(value ?? '');
+                            if (p == null)
+                              return 'Veuillez entrer un nombre valide';
 
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Enregistrer'),
+                            final t = parsePositiveInt(_targetController.text);
+                            if (t != null && p > t) {
+                              return 'La progression ne peut pas dépasser l’objectif';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 3,
+                          minLines: 2,
+                          maxLength: Command.maxDescriptionLength,
+                          textCapitalization: TextCapitalization.sentences,
+                          textInputAction: TextInputAction.newline,
+                          decoration: const InputDecoration(
+                            labelText: 'Description',
+                            hintText: 'Description (optionnelle)',
+                            alignLabelWithHint: true,
+                            prefixIcon: Icon(Icons.notes_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Personnalisation visuelle',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        EmojiPickerField(
+                          selectedEmoji: _emoji,
+                          onChanged: (emoji) => setState(() => _emoji = emoji),
+                        ),
+                        AccentColorPickerField(
+                          selectedColorValue: _accentColorValue,
+                          emojiPreview: _emoji,
+                          onChanged: (colorValue) =>
+                              setState(() => _accentColorValue = colorValue),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Organisation',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        TagInputField(
+                          initialTags: _tags,
+                          suggestions: commandProvider.availableTags,
+                          accentColorValue: _accentColorValue,
+                          onChanged: (tags) => setState(() => _tags = tags),
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton(
+                          onPressed: () {
+                            final isValid =
+                                _formKey.currentState?.validate() ?? false;
+                            if (!isValid) return;
+
+                            final title = _titleController.text.trim();
+                            final description = _descriptionController.text
+                                .trim();
+                            final target = parsePositiveInt(
+                              _targetController.text,
+                            );
+                            final progress = parseNonNegativeInt(
+                              _progressController.text,
+                            );
+                            if (title.isEmpty ||
+                                target == null ||
+                                progress == null) {
+                              return;
+                            }
+
+                            final clampedProgress = progress > target
+                                ? target
+                                : progress;
+                            final activeWeekdays =
+                                _frequency == Frequency.daily &&
+                                    _selectedActiveWeekdays.length <
+                                        Command.allWeekdays.length
+                                ? (_selectedActiveWeekdays.toList(
+                                    growable: false,
+                                  )..sort())
+                                : const <int>[];
+
+                            commandProvider.updateCommand(
+                              command.copyWith(
+                                title: title,
+                                description: description,
+                                target: target,
+                                progress: clampedProgress,
+                                frequency: _frequency,
+                                emoji: _emoji,
+                                accentColorValue: _accentColorValue,
+                                clearAccentColorValue:
+                                    _accentColorValue == null,
+                                tags: _tags,
+                                activeWeekdays: activeWeekdays,
+                              ),
+                            );
+
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Enregistrer'),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Annuler'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Annuler'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ),
+      ),
     );
   }
 }
@@ -328,3 +356,69 @@ String _frequencyLabel(Frequency frequency) {
   }
 }
 
+class _DailyActiveWeekdaysField extends StatelessWidget {
+  final Set<int> selectedWeekdays;
+  final ValueChanged<Set<int>> onChanged;
+
+  const _DailyActiveWeekdaysField({
+    required this.selectedWeekdays,
+    required this.onChanged,
+  });
+
+  static const _labels = <int, String>{
+    DateTime.monday: 'L',
+    DateTime.tuesday: 'Ma',
+    DateTime.wednesday: 'Me',
+    DateTime.thursday: 'J',
+    DateTime.friday: 'V',
+    DateTime.saturday: 'S',
+    DateTime.sunday: 'D',
+  };
+
+  static const _tooltips = <int, String>{
+    DateTime.monday: 'Lundi',
+    DateTime.tuesday: 'Mardi',
+    DateTime.wednesday: 'Mercredi',
+    DateTime.thursday: 'Jeudi',
+    DateTime.friday: 'Vendredi',
+    DateTime.saturday: 'Samedi',
+    DateTime.sunday: 'Dimanche',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Jours actifs', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: Command.allWeekdays
+              .map((weekday) {
+                final selected = selectedWeekdays.contains(weekday);
+                return Tooltip(
+                  message: _tooltips[weekday]!,
+                  child: FilterChip(
+                    selected: selected,
+                    label: Text(_labels[weekday]!),
+                    onSelected: (isSelected) {
+                      final next = Set<int>.from(selectedWeekdays);
+                      if (isSelected) {
+                        next.add(weekday);
+                      } else {
+                        next.remove(weekday);
+                      }
+                      if (next.isEmpty) return;
+                      onChanged(next);
+                    },
+                  ),
+                );
+              })
+              .toList(growable: false),
+        ),
+      ],
+    );
+  }
+}

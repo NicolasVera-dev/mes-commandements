@@ -787,12 +787,15 @@ void main() {
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(1), '3');
       await tester.enterText(fields.at(2), '2');
+      final submitButton = find.widgetWithText(FilledButton, 'Enregistrer');
       await tester.scrollUntilVisible(
-        find.text('Enregistrer'),
+        submitButton,
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.text('Enregistrer'));
+      await tester.ensureVisible(submitButton);
+      await tester.pump();
+      await tester.tap(submitButton);
       await tester.pumpAndSettle();
       expect(repo.updateCalls, 1);
       expect(provider.syncErrorMessage, isNotNull);

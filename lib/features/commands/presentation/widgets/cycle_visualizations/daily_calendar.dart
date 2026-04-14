@@ -13,6 +13,7 @@ class DailyCalendar extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final List<int> activeWeekdays;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -32,6 +33,7 @@ class DailyCalendar extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.activeWeekdays = const <int>[],
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -133,14 +135,23 @@ class DailyCalendar extends StatelessWidget {
         final success = hasComplete(events);
         final isCurrent = key == currentKey;
         final isPast = day.isBefore(DateTime.utc(now.year, now.month, now.day));
+        final isActive =
+            activeWeekdays.isEmpty || activeWeekdays.contains(day.weekday);
         final status = statusForCycle(
           isSuccess: success,
           isCurrent: isCurrent,
           isPast: isPast,
+          isInactive: !isActive,
         );
         final style = styleForStatus(status, context);
-        final canCompletePastCycle = !success && !isCurrent && isPast;
-        final canUncompletePastCycle = success && !isCurrent && isPast;
+        final dayNumberColor = accessibleForegroundColor(
+          backgroundColor: style.backgroundColor,
+          context: context,
+        );
+        final canCompletePastCycle =
+            isActive && !success && !isCurrent && isPast;
+        final canUncompletePastCycle =
+            isActive && success && !isCurrent && isPast;
         final hasNote = notes.containsKey(key);
         final semanticsNote = hasNote ? ', note enregistrée' : '';
         final dayLabel = 'le ${day.day} ${monthLabel(day.month)} ${day.year}';
@@ -175,15 +186,28 @@ class DailyCalendar extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Center(
-                        child: Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: style.indicatorColor,
-                            shape: BoxShape.circle,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${day.day}',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                              color: dayNumberColor,
+                              fontWeight: FontWeight.w700,
+                              height: 1,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: style.indicatorColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

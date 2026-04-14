@@ -7,17 +7,15 @@ import '../../domain/entities/command.dart';
 import '../../domain/entities/command_event.dart';
 import '../../domain/services/cycle_key_generator.dart';
 
-enum CycleVisualStatus {
-  success,
-  failed,
-  current,
-}
+enum CycleVisualStatus { success, failed, current, inactive }
 
 CycleVisualStatus statusForCycle({
   required bool isSuccess,
   required bool isCurrent,
   required bool isPast,
+  bool isInactive = false,
 }) {
+  if (isInactive) return CycleVisualStatus.inactive;
   if (isSuccess) return CycleVisualStatus.success;
   if (isCurrent) return CycleVisualStatus.current;
   if (isPast) return CycleVisualStatus.failed;
@@ -42,7 +40,8 @@ CycleStyle styleForStatus(CycleVisualStatus status, BuildContext context) {
   switch (status) {
     case CycleVisualStatus.success:
       return CycleStyle(
-        backgroundColor: semanticColors?.successBackground ??
+        backgroundColor:
+            semanticColors?.successBackground ??
             Color.alphaBlend(
               scheme.primary.withValues(alpha: 0.12),
               scheme.surface,
@@ -52,7 +51,8 @@ CycleStyle styleForStatus(CycleVisualStatus status, BuildContext context) {
       );
     case CycleVisualStatus.failed:
       return CycleStyle(
-        backgroundColor: semanticColors?.failedBackground ??
+        backgroundColor:
+            semanticColors?.failedBackground ??
             Color.alphaBlend(
               scheme.error.withValues(alpha: 0.12),
               scheme.surface,
@@ -62,13 +62,23 @@ CycleStyle styleForStatus(CycleVisualStatus status, BuildContext context) {
       );
     case CycleVisualStatus.current:
       return CycleStyle(
-        backgroundColor: semanticColors?.currentBackground ??
+        backgroundColor:
+            semanticColors?.currentBackground ??
             Color.alphaBlend(
               scheme.surfaceContainerHighest.withValues(alpha: 0.45),
               scheme.surface,
             ),
         indicatorColor: semanticColors?.currentIndicator ?? scheme.outline,
         stateIcon: Icons.schedule_rounded,
+      );
+    case CycleVisualStatus.inactive:
+      return CycleStyle(
+        backgroundColor: Color.alphaBlend(
+          scheme.surfaceContainerLow.withValues(alpha: 0.6),
+          scheme.surface,
+        ),
+        indicatorColor: scheme.outlineVariant,
+        stateIcon: Icons.remove_rounded,
       );
   }
 }
@@ -81,6 +91,8 @@ String statusSemantics(CycleVisualStatus status) {
       return 'objectif non atteint';
     case CycleVisualStatus.current:
       return 'en cours';
+    case CycleVisualStatus.inactive:
+      return 'jour inactif';
   }
 }
 
@@ -90,7 +102,8 @@ Color progressColorForRatio(BuildContext context, double ratio) {
     return semanticColors?.progressLow ?? Theme.of(context).colorScheme.error;
   }
   if (ratio < 0.8) {
-    return semanticColors?.progressMedium ?? Theme.of(context).colorScheme.tertiary;
+    return semanticColors?.progressMedium ??
+        Theme.of(context).colorScheme.tertiary;
   }
   return semanticColors?.progressHigh ?? Theme.of(context).colorScheme.primary;
 }
@@ -130,7 +143,9 @@ double _contrastRatio(Color foreground, Color background) {
 double _relativeLuminance(Color color) {
   double channel(double value) {
     final c = value / 255.0;
-    return c <= 0.03928 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
+    return c <= 0.03928
+        ? c / 12.92
+        : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
   }
 
   final r = channel(color.r);
@@ -179,7 +194,9 @@ bool isCycleVisible({
   required DateTime cycleStartUtc,
   required DateTime createdAtUtc,
 }) {
-  final firstVisibleCycleStart =
-      CycleKeyGenerator.cycleStartUtc(frequency, createdAtUtc.toUtc());
+  final firstVisibleCycleStart = CycleKeyGenerator.cycleStartUtc(
+    frequency,
+    createdAtUtc.toUtc(),
+  );
   return !cycleStartUtc.toUtc().isBefore(firstVisibleCycleStart);
 }

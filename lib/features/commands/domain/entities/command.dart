@@ -10,6 +10,15 @@ class Command {
   static const String defaultEmoji = '🎯';
   static const int maxTagsCount = 5;
   static const int maxTagLength = 20;
+  static const List<int> allWeekdays = <int>[
+    DateTime.monday,
+    DateTime.tuesday,
+    DateTime.wednesday,
+    DateTime.thursday,
+    DateTime.friday,
+    DateTime.saturday,
+    DateTime.sunday,
+  ];
 
   final String id;
   final String title;
@@ -23,6 +32,7 @@ class Command {
   final int? accentColorValue;
   final int position;
   final List<String> tags;
+  final List<int> activeWeekdays;
 
   Command({
     required this.id,
@@ -37,26 +47,34 @@ class Command {
     this.accentColorValue,
     this.position = 0,
     this.tags = const <String>[],
-  }) : assert(
-          title.trim().isNotEmpty,
-          'Le titre ne doit pas être vide.',
-        ),
-        assert(
-          title.trim().length <= maxTitleLength,
-          'Le titre ne doit pas dépasser $maxTitleLength caractères.',
-        ),
-        assert(
-          description.length <= maxDescriptionLength,
-          'La description ne doit pas dépasser $maxDescriptionLength caractères.',
-        ),
-        assert(
-          tags.length <= maxTagsCount,
-          'Le nombre de tags ne doit pas dépasser $maxTagsCount.',
-        ),
-        assert(
-          tags.every((t) => t.trim().length <= maxTagLength),
-          'Chaque tag ne doit pas dépasser $maxTagLength caractères.',
-        );
+    this.activeWeekdays = const <int>[],
+  }) : assert(title.trim().isNotEmpty, 'Le titre ne doit pas être vide.'),
+       assert(
+         title.trim().length <= maxTitleLength,
+         'Le titre ne doit pas dépasser $maxTitleLength caractères.',
+       ),
+       assert(
+         description.length <= maxDescriptionLength,
+         'La description ne doit pas dépasser $maxDescriptionLength caractères.',
+       ),
+       assert(
+         tags.length <= maxTagsCount,
+         'Le nombre de tags ne doit pas dépasser $maxTagsCount.',
+       ),
+       assert(
+         tags.every((t) => t.trim().length <= maxTagLength),
+         'Chaque tag ne doit pas dépasser $maxTagLength caractères.',
+       ),
+       assert(
+         activeWeekdays.every(
+           (d) => d >= DateTime.monday && d <= DateTime.sunday,
+         ),
+         'Les jours actifs doivent être compris entre 1 (lundi) et 7 (dimanche).',
+       ),
+       assert(
+         activeWeekdays.toSet().length == activeWeekdays.length,
+         'Les jours actifs ne doivent pas contenir de doublons.',
+       );
 
   /// `true` si la progression a atteint (ou dépassé) la cible.
   bool isCompleted() => progress >= target;
@@ -77,6 +95,7 @@ class Command {
     int? accentColorValue,
     int? position,
     List<String>? tags,
+    List<int>? activeWeekdays,
     bool clearLastResetAt = false,
     bool clearAccentColorValue = false,
   }) {
@@ -87,9 +106,7 @@ class Command {
       target: target ?? this.target,
       progress: progress ?? this.progress,
       frequency: frequency ?? this.frequency,
-      lastResetAt: clearLastResetAt
-          ? null
-          : (lastResetAt ?? this.lastResetAt),
+      lastResetAt: clearLastResetAt ? null : (lastResetAt ?? this.lastResetAt),
       createdAt: createdAt ?? this.createdAt,
       emoji: emoji ?? this.emoji,
       accentColorValue: clearAccentColorValue
@@ -97,6 +114,7 @@ class Command {
           : (accentColorValue ?? this.accentColorValue),
       position: position ?? this.position,
       tags: tags ?? this.tags,
+      activeWeekdays: activeWeekdays ?? this.activeWeekdays,
     );
   }
 
@@ -134,6 +152,13 @@ class Command {
     );
   }
 
+  bool isActiveOnDayUtc(DateTime dayUtc) {
+    if (frequency != Frequency.daily) return true;
+    if (activeWeekdays.isEmpty) return true;
+    final weekday = dayUtc.toUtc().weekday;
+    return activeWeekdays.contains(weekday);
+  }
+
   /// Construit un événement domain à partir de l'état courant.
   CommandEvent toEvent({
     required CommandEventType type,
@@ -164,25 +189,26 @@ class Command {
         other.emoji == emoji &&
         other.accentColorValue == accentColorValue &&
         other.position == position &&
-        _listEquals(other.tags, tags);
+        _listEquals(other.tags, tags) &&
+        _listEquals(other.activeWeekdays, activeWeekdays);
   }
 
   @override
-  int get hashCode =>
-      Object.hash(
-        id,
-        title,
-        description,
-        target,
-        progress,
-        frequency,
-        lastResetAt,
-        createdAt,
-        emoji,
-        accentColorValue,
-        position,
-        Object.hashAll(tags),
-      );
+  int get hashCode => Object.hash(
+    id,
+    title,
+    description,
+    target,
+    progress,
+    frequency,
+    lastResetAt,
+    createdAt,
+    emoji,
+    accentColorValue,
+    position,
+    Object.hashAll(tags),
+    Object.hashAll(activeWeekdays),
+  );
 
   Map<String, Object?> toMap() {
     return <String, Object?>{
@@ -197,6 +223,7 @@ class Command {
       'accentColorValue': accentColorValue,
       'position': position,
       'tags': tags,
+      'activeWeekdays': activeWeekdays,
     };
   }
 
@@ -244,12 +271,16 @@ class Command {
     final rawTags = map['tags'];
     final tags = rawTags is List
         ? rawTags
-            .map((e) => e.toString().trim())
-            .where((t) => t.isNotEmpty)
-            .take(maxTagsCount)
-            .map((t) => t.length > maxTagLength ? t.substring(0, maxTagLength) : t)
-            .toList(growable: false)
+              .map((e) => e.toString().trim())
+              .where((t) => t.isNotEmpty)
+              .take(maxTagsCount)
+              .map(
+                (t) =>
+                    t.length > maxTagLength ? t.substring(0, maxTagLength) : t,
+              )
+              .toList(growable: false)
         : const <String>[];
+    final activeWeekdays = _parseActiveWeekdays(map['activeWeekdays']);
     final rawEmoji = (map['emoji'] ?? '').toString().trim();
     final emoji = rawEmoji.isEmpty ? defaultEmoji : rawEmoji;
 
@@ -266,6 +297,7 @@ class Command {
       accentColorValue: accentColorValue,
       position: position,
       tags: tags,
+      activeWeekdays: activeWeekdays,
     );
   }
 
@@ -291,7 +323,25 @@ class Command {
     }
     return true;
   }
+
+  static List<int> _parseActiveWeekdays(Object? raw) {
+    if (raw is! List) return const <int>[];
+    final parsed =
+        raw
+            .map((e) {
+              if (e is num) return e.toInt();
+              return int.tryParse(e.toString());
+            })
+            .whereType<int>()
+            .where((d) => d >= DateTime.monday && d <= DateTime.sunday)
+            .toSet()
+            .toList(growable: false)
+          ..sort();
+    if (parsed.length == allWeekdays.length) {
+      return const <int>[];
+    }
+    return parsed;
+  }
 }
 
 enum Frequency { daily, weekly, monthly, yearly }
-
