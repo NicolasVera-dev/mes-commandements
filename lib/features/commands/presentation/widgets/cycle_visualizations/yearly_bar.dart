@@ -14,6 +14,16 @@ class YearlyBar extends StatelessWidget {
   final DateTime createdAtUtc;
   final String commandId;
   final Map<String, CycleNote> notes;
+  final Future<void> Function({
+    required String cycleKey,
+    required String cycleLabel,
+  })?
+  onCompletePastCycle;
+  final Future<void> Function({
+    required String cycleKey,
+    required String cycleLabel,
+  })?
+  onUncompletePastCycle;
 
   const YearlyBar({
     super.key,
@@ -23,13 +33,70 @@ class YearlyBar extends StatelessWidget {
     required this.createdAtUtc,
     required this.commandId,
     this.notes = const <String, CycleNote>{},
+    this.onCompletePastCycle,
+    this.onUncompletePastCycle,
   });
 
   void _openNote(BuildContext context, String cycleKey) {
-    showCycleNoteEditorSheet(
-      context,
-      commandId: commandId,
-      cycleKey: cycleKey,
+    showCycleNoteEditorSheet(context, commandId: commandId, cycleKey: cycleKey);
+  }
+
+  Future<void> _onCycleTap({
+    required BuildContext context,
+    required String cycleKey,
+    required String cycleLabel,
+    required bool canCompletePastCycle,
+    required bool canUncompletePastCycle,
+  }) async {
+    if (!canCompletePastCycle && !canUncompletePastCycle) {
+      _openNote(context, cycleKey);
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  canCompletePastCycle
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.remove_circle_outline_rounded,
+                ),
+                title: Text(
+                  canCompletePastCycle
+                      ? 'Marquer comme complété'
+                      : 'Retirer la complétion',
+                ),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  if (canCompletePastCycle) {
+                    await onCompletePastCycle?.call(
+                      cycleKey: cycleKey,
+                      cycleLabel: cycleLabel,
+                    );
+                  } else {
+                    await onUncompletePastCycle?.call(
+                      cycleKey: cycleKey,
+                      cycleLabel: cycleLabel,
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.sticky_note_2_outlined),
+                title: const Text('Ajouter/modifier une note'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _openNote(context, cycleKey);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -50,6 +117,10 @@ class YearlyBar extends StatelessWidget {
       isCurrent: key == currentKey,
       isPast: year < nowYear,
     );
+    final canCompletePastCycle =
+        !success && key != currentKey && year < nowYear;
+    final canUncompletePastCycle =
+        success && key != currentKey && year < nowYear;
     final style = styleForStatus(status, context);
     final textColor = accessibleForegroundColor(
       backgroundColor: style.backgroundColor,
@@ -57,16 +128,25 @@ class YearlyBar extends StatelessWidget {
     );
     final hasNote = notes.containsKey(key);
     final semanticsNote = hasNote ? ', note enregistrée' : '';
+    final semanticsAction = (canCompletePastCycle || canUncompletePastCycle)
+        ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
+        : 'Appuyez pour ajouter ou modifier une note.';
 
     return Semantics(
       label:
-          'Année $year : ${statusSemantics(status)}$semanticsNote. Appuyez pour ajouter ou modifier une note.',
+          'Année $year : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
       button: true,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(999),
-          onTap: () => _openNote(context, key),
+          onTap: () => _onCycleTap(
+            context: context,
+            cycleKey: key,
+            cycleLabel: 'l’année $year',
+            canCompletePastCycle: canCompletePastCycle,
+            canUncompletePastCycle: canUncompletePastCycle,
+          ),
           child: SizedBox(
             height: 44,
             child: Stack(
@@ -88,13 +168,18 @@ class YearlyBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.circle, size: 10, color: style.indicatorColor),
+                        Icon(
+                          Icons.circle,
+                          size: 10,
+                          color: style.indicatorColor,
+                        ),
                         const SizedBox(width: 4),
                         Icon(style.stateIcon, size: 12, color: textColor),
                         const SizedBox(width: 6),
                         Text(
                           '$year',
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
                                 color: textColor,
                                 fontWeight: FontWeight.w600,
                               ),

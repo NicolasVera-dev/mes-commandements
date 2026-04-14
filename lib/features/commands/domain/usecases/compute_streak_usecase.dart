@@ -5,13 +5,16 @@ import '../services/cycle_key_generator.dart';
 enum StreakBadge {
   none,
   recoveredToday,
+
   /// Succès palier 1 (seuils selon fréquence, ex. ≥3 jours).
   success1,
   success2,
   success3,
   success4,
+
   /// Échecs consécutifs — quotidien (libellés « jours »).
   failDaily,
+
   /// Échecs consécutifs — hebdo / mensuel / annuel (libellés adaptés).
   failOther,
 }
@@ -20,10 +23,7 @@ class StreakResult {
   final StreakBadge badge;
   final int count;
 
-  const StreakResult({
-    required this.badge,
-    required this.count,
-  });
+  const StreakResult({required this.badge, required this.count});
 }
 
 /// Calcule le badge de série (cycles passés uniquement, hors cycle courant non terminé).
@@ -65,9 +65,6 @@ class ComputeStreakUseCase {
 
     var badRun = 0;
     for (final key in pastKeys) {
-      if (!grouped.containsKey(key)) {
-        break;
-      }
       if (!hasComplete(grouped[key])) {
         badRun++;
       } else {
@@ -124,13 +121,18 @@ class ComputeStreakUseCase {
     required DateTime createdAtUtc,
     required DateTime nowUtc,
   }) {
-    final firstVisibleStart =
-        CycleKeyGenerator.cycleStartUtc(frequency, createdAtUtc.toUtc());
+    final firstVisibleStart = CycleKeyGenerator.cycleStartUtc(
+      frequency,
+      createdAtUtc.toUtc(),
+    );
 
     switch (frequency) {
       case Frequency.daily:
-        final currentDayStart =
-            DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day);
+        final currentDayStart = DateTime.utc(
+          nowUtc.year,
+          nowUtc.month,
+          nowUtc.day,
+        );
         var d = currentDayStart.subtract(const Duration(days: 1));
         final keys = <String>[];
         while (!d.isBefore(firstVisibleStart)) {
@@ -144,8 +146,10 @@ class ComputeStreakUseCase {
         }
         return keys;
       case Frequency.weekly:
-        final currentWeekStart =
-            CycleKeyGenerator.cycleStartUtc(Frequency.weekly, nowUtc);
+        final currentWeekStart = CycleKeyGenerator.cycleStartUtc(
+          Frequency.weekly,
+          nowUtc,
+        );
         var w = currentWeekStart.subtract(const Duration(days: 7));
         final keys = <String>[];
         while (!w.isBefore(firstVisibleStart)) {

@@ -22,10 +22,7 @@ import '../widgets/history_skeleton.dart';
 class CommandDetailPage extends StatefulWidget {
   final String commandId;
 
-  const CommandDetailPage({
-    super.key,
-    required this.commandId,
-  });
+  const CommandDetailPage({super.key, required this.commandId});
 
   @override
   State<CommandDetailPage> createState() => _CommandDetailPageState();
@@ -58,7 +55,9 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
       if (frequency == Frequency.monthly || frequency == Frequency.yearly) {
         _anchorUtc = DateTime.utc(_anchorUtc.year + 1, 1, 1);
       } else {
-        final y = _anchorUtc.month == 12 ? _anchorUtc.year + 1 : _anchorUtc.year;
+        final y = _anchorUtc.month == 12
+            ? _anchorUtc.year + 1
+            : _anchorUtc.year;
         final m = _anchorUtc.month == 12 ? 1 : _anchorUtc.month + 1;
         _anchorUtc = DateTime.utc(y, m, 1);
       }
@@ -86,9 +85,7 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
     final command = provider.getById(widget.commandId);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Détail du commandement'),
-      ),
+      appBar: AppBar(title: const Text('Détail du commandement')),
       body: command == null
           ? Center(
               child: Text(
@@ -129,6 +126,85 @@ class _DetailContent extends StatefulWidget {
 class _DetailContentState extends State<_DetailContent> {
   late Future<DateTime?> _createdAtFuture;
 
+  Future<void> _confirmPastCycleCompletion({
+    required String cycleKey,
+    required String cycleLabel,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmation'),
+        content: Text('Marquer $cycleLabel comme complété ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    context.read<CommandProvider>().completePastCycle(
+      commandId: widget.command.id,
+      cycleKey: cycleKey,
+    );
+  }
+
+  Future<void> _confirmPastCycleUncompletion({
+    required String cycleKey,
+    required String cycleLabel,
+  }) async {
+    final cycleLabelWithPreposition = _withDePrefix(cycleLabel);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmation'),
+        content: Text('Retirer la complétion $cycleLabelWithPreposition ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    context.read<CommandProvider>().uncompletePastCycle(
+      commandId: widget.command.id,
+      cycleKey: cycleKey,
+    );
+  }
+
+  String _withDePrefix(String label) {
+    final trimmed = label.trimLeft();
+    if (trimmed.startsWith('le ')) {
+      return 'du ${trimmed.substring(3)}';
+    }
+    if (trimmed.startsWith('les ')) {
+      return 'des ${trimmed.substring(4)}';
+    }
+    if (trimmed.startsWith('la ')) {
+      return 'de la ${trimmed.substring(3)}';
+    }
+    if (trimmed.startsWith("l'") || trimmed.startsWith('l’')) {
+      return 'de $trimmed';
+    }
+    const vowelsAndMuteH = 'aàâäeéèêëiîïoôöuùûüyÿh';
+    final first = trimmed.isEmpty ? '' : trimmed[0].toLowerCase();
+    if (vowelsAndMuteH.contains(first)) {
+      return "d'$trimmed";
+    }
+    return 'de $trimmed';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -157,8 +233,13 @@ class _DetailContentState extends State<_DetailContent> {
     final command = widget.command;
     final period = widget.period;
     final anchorUtc = widget.anchorUtc;
-    final nextResetText = _nextResetText(command.frequency, DateTime.now().toUtc());
-    final periodLabel = (command.frequency == Frequency.monthly || command.frequency == Frequency.yearly)
+    final nextResetText = _nextResetText(
+      command.frequency,
+      DateTime.now().toUtc(),
+    );
+    final periodLabel =
+        (command.frequency == Frequency.monthly ||
+            command.frequency == Frequency.yearly)
         ? '${anchorUtc.year}'
         : '${monthLabel(anchorUtc.month)} ${anchorUtc.year}';
 
@@ -177,7 +258,10 @@ class _DetailContentState extends State<_DetailContent> {
                       tag: 'command-emoji-${command.id}',
                       child: Material(
                         color: Colors.transparent,
-                        child: Text(command.emoji, style: const TextStyle(fontSize: 34)),
+                        child: Text(
+                          command.emoji,
+                          style: const TextStyle(fontSize: 34),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -185,7 +269,10 @@ class _DetailContentState extends State<_DetailContent> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(command.title, style: Theme.of(context).textTheme.titleLarge),
+                          Text(
+                            command.title,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                           Text(
                             '${frequencyLabel(command.frequency)} · objectif ${command.target}',
                             style: Theme.of(context).textTheme.bodySmall,
@@ -210,7 +297,10 @@ class _DetailContentState extends State<_DetailContent> {
                       : Color(command.accentColorValue!),
                 ),
                 const SizedBox(height: 8),
-                Text(nextResetText, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  nextResetText,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -267,7 +357,8 @@ class _DetailContentState extends State<_DetailContent> {
               child: StreamBuilder<List<CommandEvent>>(
                 stream: eventRepository.watchEvents(command.id, period: period),
                 builder: (context, eventsSnapshot) {
-                  if (eventsSnapshot.connectionState == ConnectionState.waiting) {
+                  if (eventsSnapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return const HistorySkeleton();
                   }
                   if (eventsSnapshot.hasError) {
@@ -285,38 +376,46 @@ class _DetailContentState extends State<_DetailContent> {
 
                   final visualization = switch (command.frequency) {
                     Frequency.daily => DailyCalendar(
-                        anchorUtc: anchorUtc,
-                        grouped: grouped,
-                        currentKey: currentKey,
-                        createdAtUtc: effectiveCreatedAtUtc,
-                        commandId: command.id,
-                        notes: cycleNotes,
-                      ),
+                      anchorUtc: anchorUtc,
+                      grouped: grouped,
+                      currentKey: currentKey,
+                      createdAtUtc: effectiveCreatedAtUtc,
+                      commandId: command.id,
+                      notes: cycleNotes,
+                      onCompletePastCycle: _confirmPastCycleCompletion,
+                      onUncompletePastCycle: _confirmPastCycleUncompletion,
+                    ),
                     Frequency.weekly => WeeklyList(
-                        anchorUtc: anchorUtc,
-                        grouped: grouped,
-                        currentKey: currentKey,
-                        target: command.target,
-                        createdAtUtc: effectiveCreatedAtUtc,
-                        commandId: command.id,
-                        notes: cycleNotes,
-                      ),
+                      anchorUtc: anchorUtc,
+                      grouped: grouped,
+                      currentKey: currentKey,
+                      target: command.target,
+                      createdAtUtc: effectiveCreatedAtUtc,
+                      commandId: command.id,
+                      notes: cycleNotes,
+                      onCompletePastCycle: _confirmPastCycleCompletion,
+                      onUncompletePastCycle: _confirmPastCycleUncompletion,
+                    ),
                     Frequency.monthly => MonthlyGrid(
-                        year: anchorUtc.year,
-                        grouped: grouped,
-                        currentKey: currentKey,
-                        createdAtUtc: effectiveCreatedAtUtc,
-                        commandId: command.id,
-                        notes: cycleNotes,
-                      ),
+                      year: anchorUtc.year,
+                      grouped: grouped,
+                      currentKey: currentKey,
+                      createdAtUtc: effectiveCreatedAtUtc,
+                      commandId: command.id,
+                      notes: cycleNotes,
+                      onCompletePastCycle: _confirmPastCycleCompletion,
+                      onUncompletePastCycle: _confirmPastCycleUncompletion,
+                    ),
                     Frequency.yearly => YearlyBar(
-                        year: anchorUtc.year,
-                        grouped: grouped,
-                        currentKey: currentKey,
-                        createdAtUtc: effectiveCreatedAtUtc,
-                        commandId: command.id,
-                        notes: cycleNotes,
-                      ),
+                      year: anchorUtc.year,
+                      grouped: grouped,
+                      currentKey: currentKey,
+                      createdAtUtc: effectiveCreatedAtUtc,
+                      commandId: command.id,
+                      notes: cycleNotes,
+                      onCompletePastCycle: _confirmPastCycleCompletion,
+                      onUncompletePastCycle: _confirmPastCycleUncompletion,
+                    ),
                   };
 
                   final summary = const BuildCycleSummaryUseCase().execute(
@@ -409,10 +508,7 @@ class _CycleNoteSubscriptionState extends State<_CycleNoteSubscription> {
       anchorUtc: widget.anchorUtc,
       createdAtUtc: widget.createdAtUtc,
     );
-    provider.subscribe(
-      commandId: widget.commandId,
-      cycleKeys: keys,
-    );
+    provider.subscribe(commandId: widget.commandId, cycleKeys: keys);
   }
 
   @override
