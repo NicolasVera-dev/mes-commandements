@@ -10,7 +10,9 @@ import '../../domain/entities/command_position_update.dart';
 import '../../domain/repositories/command_event_repository.dart';
 import '../../domain/repositories/command_repository.dart';
 import '../../domain/repositories/cycle_note_repository.dart';
+import '../../domain/usecases/plan_backfill_cycle_completion_usecase.dart';
 import '../../domain/usecases/plan_edit_cycle_event_cleanup_usecase.dart';
+import '../../domain/usecases/plan_remove_cycle_completion_usecase.dart';
 import '../../../auth/domain/entities/auth_user.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 
@@ -25,10 +27,10 @@ class FirestoreCommandRepository implements CommandRepository {
     CommandEventRepository? eventRepository,
     CycleNoteRepository? cycleNoteRepository,
     FirebaseFirestore? firestore,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _authRepository = authRepository,
-        _eventRepository = eventRepository,
-        _cycleNoteRepository = cycleNoteRepository;
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _authRepository = authRepository,
+       _eventRepository = eventRepository,
+       _cycleNoteRepository = cycleNoteRepository;
 
   CollectionReference<Map<String, Object?>> _collectionForUser(String uid) {
     return _firestore.collection('users/$uid/commands');
@@ -79,20 +81,17 @@ class FirestoreCommandRepository implements CommandRepository {
       }
 
       final collection = _collectionForUser(user.uid);
-      commandsSub = collection.snapshots().listen(
-        (snapshot) {
-          final commands = snapshot.docs
-              .map(
-                (doc) => Command.fromMap(
-                  id: doc.id,
-                  map: Map<String, Object?>.from(doc.data()),
-                ),
-              )
-              .toList();
-          controller.add(commands);
-        },
-        onError: controller.addError,
-      );
+      commandsSub = collection.snapshots().listen((snapshot) {
+        final commands = snapshot.docs
+            .map(
+              (doc) => Command.fromMap(
+                id: doc.id,
+                map: Map<String, Object?>.from(doc.data()),
+              ),
+            )
+            .toList();
+        controller.add(commands);
+      }, onError: controller.addError);
     }
 
     authSub = _authRepository.authStateChanges().listen(
@@ -118,13 +117,15 @@ class FirestoreCommandRepository implements CommandRepository {
     if (snapshot.docs.isEmpty) return const AutoResetReport.empty();
 
     final nowUtc = now.toUtc();
-    final dueDocs = snapshot.docs.where((doc) {
-      final command = Command.fromMap(
-        id: doc.id,
-        map: Map<String, Object?>.from(doc.data()),
-      );
-      return command.shouldAutoReset(nowUtc);
-    }).toList(growable: false);
+    final dueDocs = snapshot.docs
+        .where((doc) {
+          final command = Command.fromMap(
+            id: doc.id,
+            map: Map<String, Object?>.from(doc.data()),
+          );
+          return command.shouldAutoReset(nowUtc);
+        })
+        .toList(growable: false);
 
     if (dueDocs.isEmpty) return const AutoResetReport.empty();
 
@@ -244,10 +245,13 @@ class FirestoreCommandRepository implements CommandRepository {
         for (final cycleKey in candidateCycleKeys) {
           final cycleEventsSnapshot = await eventsCollection
               .where('cycleKey', isEqualTo: cycleKey)
-              .where('type', whereIn: <String>[
-                CommandEventType.complete.name,
-                CommandEventType.increment.name,
-              ])
+              .where(
+                'type',
+                whereIn: <String>[
+                  CommandEventType.complete.name,
+                  CommandEventType.increment.name,
+                ],
+              )
               .get();
           for (final doc in cycleEventsSnapshot.docs) {
             if (seenEventIds.add(doc.id)) {
@@ -346,9 +350,7 @@ class FirestoreCommandRepository implements CommandRepository {
       if (!command.isCompleted() && updated.isCompleted()) {
         completedAtIncrement = updated;
       }
-      tx.update(docRef, <String, Object?>{
-        'progress': updated.progress,
-      });
+      tx.update(docRef, <String, Object?>{'progress': updated.progress});
     });
 
     if (updatedAfterIncrement != null) {
@@ -396,6 +398,123 @@ class FirestoreCommandRepository implements CommandRepository {
     );
   }
 
+  @override
+  Future<void> completePastCycle({
+    required String commandId,
+    required String cycleKey,
+  }) async {
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    final commandRef = _collectionForUser(uid).doc(commandId);
+    final snapshot = await commandRef.get();
+    if (!snapshot.exists) return;
+    final data = snapshot.data();
+    if (data == null) return;
+    final command = Command.fromMap(
+      id: commandRef.id,
+      map: Map<String, Object?>.from(data),
+    );
+
+    final now = DateTime.now().toUtc();
+    final requestedCycleCandidates = _cycleKeyCandidatesFromRequested(
+      frequency: command.frequency,
+      cycleKey: cycleKey,
+    );
+    final eventsCollection = _eventsCollectionForCommand(
+      uid: uid,
+      commandId: command.id,
+    );
+    final completeEventsForCycle =
+        <QueryDocumentSnapshot<Map<String, Object?>>>[];
+    for (final cycleCandidate in requestedCycleCandidates) {
+      final snapshot = await eventsCollection
+          .where('cycleKey', isEqualTo: cycleCandidate)
+          .where('type', isEqualTo: CommandEventType.complete.name)
+          .limit(1)
+          .get();
+      completeEventsForCycle.addAll(snapshot.docs);
+    }
+    final isAlreadyCompleted = completeEventsForCycle.isNotEmpty;
+
+    final plan = const PlanBackfillCycleCompletionUseCase().execute(
+      frequency: command.frequency,
+      cycleKey: cycleKey,
+      isAlreadyCompleted: isAlreadyCompleted,
+      nowUtc: now,
+    );
+    final completeEvent = CommandEvent(
+      type: CommandEventType.complete,
+      actionAtUtc: plan.actionAtUtc,
+      progressAfterAction: command.target,
+      targetAtAction: command.target,
+      cycleKey: plan.cycleKey,
+    );
+    await eventsCollection.add(_eventToMap(completeEvent));
+  }
+
+  @override
+  Future<void> uncompletePastCycle({
+    required String commandId,
+    required String cycleKey,
+  }) async {
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    final commandRef = _collectionForUser(uid).doc(commandId);
+    final snapshot = await commandRef.get();
+    if (!snapshot.exists) return;
+    final data = snapshot.data();
+    if (data == null) return;
+    final command = Command.fromMap(
+      id: commandRef.id,
+      map: Map<String, Object?>.from(data),
+    );
+
+    final now = DateTime.now().toUtc();
+    final requestedCycleCandidates = _cycleKeyCandidatesFromRequested(
+      frequency: command.frequency,
+      cycleKey: cycleKey,
+    );
+    final eventsCollection = _eventsCollectionForCommand(
+      uid: uid,
+      commandId: command.id,
+    );
+    final completeEventsForCycle =
+        <QueryDocumentSnapshot<Map<String, Object?>>>[];
+    final seenDocIds = <String>{};
+    for (final cycleCandidate in requestedCycleCandidates) {
+      final snapshot = await eventsCollection
+          .where('cycleKey', isEqualTo: cycleCandidate)
+          .where('type', isEqualTo: CommandEventType.complete.name)
+          .get();
+      for (final doc in snapshot.docs) {
+        if (seenDocIds.add(doc.id)) {
+          completeEventsForCycle.add(doc);
+        }
+      }
+    }
+
+    final plan = const PlanRemoveCycleCompletionUseCase().execute(
+      frequency: command.frequency,
+      cycleKey: cycleKey,
+      isAlreadyCompleted: completeEventsForCycle.isNotEmpty,
+      nowUtc: now,
+    );
+    final normalizedCandidates = _cycleKeyCandidatesFromRequested(
+      frequency: command.frequency,
+      cycleKey: plan.cycleKey,
+    );
+
+    final batch = _firestore.batch();
+    for (final eventDoc in completeEventsForCycle) {
+      final eventData = eventDoc.data();
+      final key = (eventData['cycleKey'] ?? '').toString().trim();
+      if (normalizedCandidates.contains(key)) {
+        batch.delete(eventDoc.reference);
+      }
+    }
+    await batch.commit();
+  }
+
   Future<void> _applyResetBatch({
     required String uid,
     required Command commandBeforeReset,
@@ -417,10 +536,13 @@ class FirestoreCommandRepository implements CommandRepository {
     for (final cycleKey in candidateCycleKeys) {
       final cycleEventsSnapshot = await eventsCollection
           .where('cycleKey', isEqualTo: cycleKey)
-          .where('type', whereIn: <String>[
-            CommandEventType.complete.name,
-            CommandEventType.increment.name,
-          ])
+          .where(
+            'type',
+            whereIn: <String>[
+              CommandEventType.complete.name,
+              CommandEventType.increment.name,
+            ],
+          )
           .get();
       for (final doc in cycleEventsSnapshot.docs) {
         if (seenEventIds.add(doc.id)) {
@@ -473,6 +595,25 @@ class FirestoreCommandRepository implements CommandRepository {
     return <String>[key, legacy];
   }
 
+  List<String> _cycleKeyCandidatesFromRequested({
+    required Frequency frequency,
+    required String cycleKey,
+  }) {
+    final raw = cycleKey.trim();
+    if (raw.isEmpty || frequency != Frequency.weekly) {
+      return <String>[raw];
+    }
+    final normalizedMatch = RegExp(r'^(\d{4})-[SW](\d{2})$').firstMatch(raw);
+    if (normalizedMatch == null) {
+      return <String>[raw];
+    }
+    final normalized =
+        '${normalizedMatch.group(1)}-S${normalizedMatch.group(2)}';
+    final legacy = '${normalizedMatch.group(1)}-W${normalizedMatch.group(2)}';
+    if (normalized == legacy) return <String>[normalized];
+    return <String>[normalized, legacy];
+  }
+
   List<CommandEvent> _eventsForCommandStateAfterEdit({
     required Command command,
     required DateTime eventAtUtc,
@@ -492,4 +633,3 @@ class FirestoreCommandRepository implements CommandRepository {
     return <CommandEvent>[increment, complete];
   }
 }
-

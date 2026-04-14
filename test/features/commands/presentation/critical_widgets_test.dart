@@ -65,6 +65,18 @@ class _FakeCommandRepository implements CommandRepository {
   Future<void> resetProgress(String commandId) async {}
 
   @override
+  Future<void> completePastCycle({
+    required String commandId,
+    required String cycleKey,
+  }) async {}
+
+  @override
+  Future<void> uncompletePastCycle({
+    required String commandId,
+    required String cycleKey,
+  }) async {}
+
+  @override
   Future<void> update(Command command) async {
     updateCalls++;
     if (updateError != null) throw updateError!;
@@ -83,8 +95,7 @@ class _FakeCycleNoteRepository implements CycleNoteRepository {
   Stream<Map<String, CycleNote>> watchNotes(
     String commandId, {
     required Set<String> cycleKeys,
-  }) =>
-      Stream<Map<String, CycleNote>>.value(<String, CycleNote>{});
+  }) => Stream<Map<String, CycleNote>>.value(<String, CycleNote>{});
 
   @override
   Future<void> deleteAllNotes(String commandId) async {}
@@ -205,6 +216,22 @@ Command _command({
   );
 }
 
+CommandEvent _event({
+  required String cycleKey,
+  required CommandEventType type,
+  DateTime? actionAtUtc,
+  int progressAfterAction = 1,
+  int targetAtAction = 1,
+}) {
+  return CommandEvent(
+    type: type,
+    actionAtUtc: actionAtUtc ?? DateTime.utc(2026, 3, 1, 12),
+    progressAfterAction: progressAfterAction,
+    targetAtAction: targetAtAction,
+    cycleKey: cycleKey,
+  );
+}
+
 Widget _wrap({
   required CommandProvider provider,
   CommandEventRepository? eventRepository,
@@ -245,8 +272,9 @@ void main() {
   });
 
   group('CommandCard', () {
-    testWidgets('tap incrémente et menu 3 points affiche les options',
-        (tester) async {
+    testWidgets('tap incrémente et menu 3 points affiche les options', (
+      tester,
+    ) async {
       final repo = _FakeCommandRepository();
       final provider = CommandProvider(repository: repo);
       final command = _command(id: 'c1', progress: 0);
@@ -272,8 +300,9 @@ void main() {
       repo.dispose();
     });
 
-    testWidgets('affiche icône completed uniquement si target atteinte',
-        (tester) async {
+    testWidgets('affiche icône completed uniquement si target atteinte', (
+      tester,
+    ) async {
       final repo = _FakeCommandRepository();
       final provider = CommandProvider(repository: repo);
       await tester.pumpWidget(
@@ -295,8 +324,60 @@ void main() {
   });
 
   group('Page détail', () {
-    testWidgets('état vide si aucun historique et fallback createdAt absent',
-        (tester) async {
+    testWidgets('streak reste affichée quand historique de succès présent', (
+      tester,
+    ) async {
+      final now = DateTime.now().toUtc();
+      final todayStart = DateTime.utc(now.year, now.month, now.day);
+      final d1 = todayStart.subtract(const Duration(days: 1));
+      final d2 = todayStart.subtract(const Duration(days: 2));
+      final d3 = todayStart.subtract(const Duration(days: 3));
+      final k1 =
+          '${d1.year}-${d1.month.toString().padLeft(2, '0')}-${d1.day.toString().padLeft(2, '0')}';
+      final k2 =
+          '${d2.year}-${d2.month.toString().padLeft(2, '0')}-${d2.day.toString().padLeft(2, '0')}';
+      final k3 =
+          '${d3.year}-${d3.month.toString().padLeft(2, '0')}-${d3.day.toString().padLeft(2, '0')}';
+
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+      final eventsRepo = _FakeCommandEventRepository()
+        ..firstEventResolver = (_) async => d3;
+      repo.emit([
+        _command(
+          id: 'c-streak',
+          progress: 0,
+          frequency: Frequency.daily,
+          createdAt: d3,
+        ),
+      ]);
+
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          eventRepository: eventsRepo,
+          child: const CommandDetailPage(commandId: 'c-streak'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 120));
+      eventsRepo.emit([
+        _event(cycleKey: k1, type: CommandEventType.complete),
+        _event(cycleKey: k2, type: CommandEventType.complete),
+        _event(cycleKey: k3, type: CommandEventType.complete),
+      ]);
+      await tester.pump(const Duration(milliseconds: 120));
+
+      expect(find.textContaining('jours réussis'), findsOneWidget);
+
+      provider.dispose();
+      repo.dispose();
+      eventsRepo.dispose();
+    });
+
+    testWidgets('état vide si aucun historique et fallback createdAt absent', (
+      tester,
+    ) async {
       final repo = _FakeCommandRepository();
       final provider = CommandProvider(repository: repo);
       final eventsRepo = _FakeCommandEventRepository()
@@ -331,46 +412,49 @@ void main() {
       eventsRepo.dispose();
     });
 
-    testWidgets('navigation précédent/suivant en yearly met à jour la période',
-        (tester) async {
-      final nowYear = DateTime.now().toUtc().year;
-      final repo = _FakeCommandRepository();
-      final provider = CommandProvider(repository: repo);
-      final eventsRepo = _FakeCommandEventRepository()
-        ..firstEventResolver = (_) async => DateTime.utc(nowYear, 1, 1);
-      repo.emit([
-        _command(
-          id: 'c2',
-          progress: 0,
-          frequency: Frequency.yearly,
-          createdAt: DateTime.utc(nowYear, 1, 1),
-        ),
-      ]);
-      eventsRepo.emit(const []);
+    testWidgets(
+      'navigation précédent/suivant en yearly met à jour la période',
+      (tester) async {
+        final nowYear = DateTime.now().toUtc().year;
+        final repo = _FakeCommandRepository();
+        final provider = CommandProvider(repository: repo);
+        final eventsRepo = _FakeCommandEventRepository()
+          ..firstEventResolver = (_) async => DateTime.utc(nowYear, 1, 1);
+        repo.emit([
+          _command(
+            id: 'c2',
+            progress: 0,
+            frequency: Frequency.yearly,
+            createdAt: DateTime.utc(nowYear, 1, 1),
+          ),
+        ]);
+        eventsRepo.emit(const []);
 
-      await tester.pumpWidget(
-        _wrap(
-          provider: provider,
-          eventRepository: eventsRepo,
-          child: const CommandDetailPage(commandId: 'c2'),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+        await tester.pumpWidget(
+          _wrap(
+            provider: provider,
+            eventRepository: eventsRepo,
+            child: const CommandDetailPage(commandId: 'c2'),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('$nowYear'), findsWidgets);
-      await tester.tap(find.byTooltip('Période précédente'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('${nowYear - 1}'), findsWidgets);
+        expect(find.text('$nowYear'), findsWidgets);
+        await tester.tap(find.byTooltip('Période précédente'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.text('${nowYear - 1}'), findsWidgets);
 
-      provider.dispose();
-      repo.dispose();
-      eventsRepo.dispose();
-    });
+        provider.dispose();
+        repo.dispose();
+        eventsRepo.dispose();
+      },
+    );
 
-    testWidgets('accessibilité: navigation lisible via tooltips',
-        (tester) async {
+    testWidgets('accessibilité: navigation lisible via tooltips', (
+      tester,
+    ) async {
       final repo = _FakeCommandRepository();
       final provider = CommandProvider(repository: repo);
       final eventsRepo = _FakeCommandEventRepository()
@@ -469,7 +553,9 @@ void main() {
   });
 
   group('Reset automatique lifecycle', () {
-    testWidgets('snackbar affichée uniquement si reset eu lieu', (tester) async {
+    testWidgets('snackbar affichée uniquement si reset eu lieu', (
+      tester,
+    ) async {
       final repo = _FakeCommandRepository()
         ..autoResetReport = const AutoResetReport(
           total: 1,
@@ -561,8 +647,9 @@ void main() {
       final repo = _FakeCommandRepository();
       final provider = CommandProvider(repository: repo);
       repo.emit([cmd]);
-      final fakeAuthRepo =
-          _FakeAuthRepository(const AuthUser(uid: 'u1', email: 'a@b.c'));
+      final fakeAuthRepo = _FakeAuthRepository(
+        const AuthUser(uid: 'u1', email: 'a@b.c'),
+      );
       final authProvider = AuthProvider(repository: fakeAuthRepo);
 
       await tester.pumpWidget(
@@ -634,8 +721,9 @@ void main() {
       repo.dispose();
     });
 
-    testWidgets('création: tap hors champ puis Enregistrer soumet toujours',
-        (tester) async {
+    testWidgets('création: tap hors champ puis Enregistrer soumet toujours', (
+      tester,
+    ) async {
       final repo = _FakeCommandRepository();
       final provider = CommandProvider(repository: repo);
 
@@ -674,14 +762,16 @@ void main() {
       repo.dispose();
     });
 
-    testWidgets('édition: soumission + gestion erreur repository',
-        (tester) async {
+    testWidgets('édition: soumission + gestion erreur repository', (
+      tester,
+    ) async {
       final cmd = _command(id: 'edit', progress: 1, target: 3);
       final repo = _FakeCommandRepository()..updateError = StateError('fail');
       final provider = CommandProvider(repository: repo)..addListener(() {});
       repo.emit([cmd]);
-      final fakeAuthRepo =
-          _FakeAuthRepository(const AuthUser(uid: 'u1', email: 'a@b.c'));
+      final fakeAuthRepo = _FakeAuthRepository(
+        const AuthUser(uid: 'u1', email: 'a@b.c'),
+      );
       final authProvider = AuthProvider(repository: fakeAuthRepo);
 
       await tester.pumpWidget(

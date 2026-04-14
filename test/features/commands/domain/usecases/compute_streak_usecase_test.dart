@@ -3,10 +3,7 @@ import 'package:rituel/features/commands/domain/entities/command.dart';
 import 'package:rituel/features/commands/domain/entities/command_event.dart';
 import 'package:rituel/features/commands/domain/usecases/compute_streak_usecase.dart';
 
-CommandEvent _complete({
-  required String cycleKey,
-  DateTime? actionAtUtc,
-}) {
+CommandEvent _complete({required String cycleKey, DateTime? actionAtUtc}) {
   return CommandEvent(
     type: CommandEventType.complete,
     actionAtUtc: actionAtUtc ?? DateTime.utc(2026, 4, 2, 12),
@@ -49,13 +46,14 @@ void main() {
     });
 
     test('série négative : ≥3 cycles passés sans succès → failDaily', () {
+      final createdForNegative = DateTime.utc(2026, 3, 31);
       final command = Command(
         id: 'c1',
         title: 't',
         target: 3,
         progress: 0,
         frequency: Frequency.daily,
-        createdAt: createdAt,
+        createdAt: createdForNegative,
       );
       final grouped = <String, List<CommandEvent>>{
         '2026-04-02': const <CommandEvent>[],
@@ -66,7 +64,7 @@ void main() {
       final r = const ComputeStreakUseCase().execute(
         command: command,
         grouped: grouped,
-        createdAtUtc: createdAt,
+        createdAtUtc: createdForNegative,
         nowUtc: now,
       );
 
@@ -74,14 +72,39 @@ void main() {
       expect(r.count, 3);
     });
 
+    test(
+      'série négative : cycles passés sans événement sont comptés en échec',
+      () {
+        final command = Command(
+          id: 'c1',
+          title: 't',
+          target: 3,
+          progress: 0,
+          frequency: Frequency.daily,
+          createdAt: DateTime.utc(2026, 4, 1),
+        );
+
+        final r = const ComputeStreakUseCase().execute(
+          command: command,
+          grouped: const <String, List<CommandEvent>>{},
+          createdAtUtc: DateTime.utc(2026, 4, 1),
+          nowUtc: DateTime.utc(2026, 4, 5, 12),
+        );
+
+        expect(r.badge, StreakBadge.failDaily);
+        expect(r.count, 4);
+      },
+    );
+
     test('reprise : succès sur le cycle courant après échecs passés', () {
+      final createdForRecovery = DateTime.utc(2026, 4, 1);
       final command = Command(
         id: 'c1',
         title: 't',
         target: 3,
         progress: 3,
         frequency: Frequency.daily,
-        createdAt: createdAt,
+        createdAt: createdForRecovery,
       );
       final grouped = <String, List<CommandEvent>>{
         '2026-04-03': [_complete(cycleKey: '2026-04-03')],
@@ -92,7 +115,7 @@ void main() {
       final r = const ComputeStreakUseCase().execute(
         command: command,
         grouped: grouped,
-        createdAtUtc: createdAt,
+        createdAtUtc: createdForRecovery,
         nowUtc: now,
       );
 
