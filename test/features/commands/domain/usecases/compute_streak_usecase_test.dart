@@ -125,6 +125,35 @@ void main() {
       expect(r.count, 0);
     });
 
+    test(
+      'série positive : le compteur inclut le jour courant lorsqu’il est complété',
+      () {
+        final command = Command(
+          id: 'c1',
+          title: 't',
+          target: 1,
+          progress: 1,
+          frequency: Frequency.daily,
+          createdAt: createdAt,
+        );
+        final grouped = <String, List<CommandEvent>>{
+          '2026-04-02': [_complete(cycleKey: '2026-04-02')],
+          '2026-04-01': [_complete(cycleKey: '2026-04-01')],
+          '2026-03-31': [_complete(cycleKey: '2026-03-31')],
+        };
+
+        final r = const ComputeStreakUseCase().execute(
+          command: command,
+          grouped: grouped,
+          createdAtUtc: createdAt,
+          nowUtc: now,
+        );
+
+        expect(r.badge, StreakBadge.success1);
+        expect(r.count, 4);
+      },
+    );
+
     test('reprise : succès sur le cycle courant après échecs passés', () {
       final createdForRecovery = DateTime.utc(2026, 4, 1);
       final command = Command(
