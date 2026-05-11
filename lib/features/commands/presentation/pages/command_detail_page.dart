@@ -71,6 +71,11 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
         endUtc: DateTime.utc(_anchorUtc.year + 1, 1, 1),
       );
     }
+    if (frequency == Frequency.weekly) {
+      return CommandEventsPeriod.forIsoWeeksTouchingCalendarMonthUtc(
+        _anchorUtc,
+      );
+    }
     return CommandEventsPeriod(
       startUtc: DateTime.utc(_anchorUtc.year, _anchorUtc.month, 1),
       endUtc: _anchorUtc.month == 12

@@ -78,7 +78,8 @@ class ComputeStreakUseCase {
 
     final successBadge = _successBadge(command.frequency, goodRun);
     if (successBadge != null) {
-      return StreakResult(badge: successBadge, count: goodRun);
+      final displayCount = currentComplete ? goodRun + 1 : goodRun;
+      return StreakResult(badge: successBadge, count: displayCount);
     }
 
     if (!currentComplete && badRun >= 3) {

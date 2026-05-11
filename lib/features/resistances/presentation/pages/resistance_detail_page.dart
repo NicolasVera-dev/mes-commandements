@@ -5,11 +5,8 @@ import '../../domain/entities/resistance.dart';
 import '../../domain/entities/resistance_relapse.dart';
 import '../../domain/repositories/resistance_relapse_repository.dart';
 import '../../domain/usecases/compute_resistance_streak_usecase.dart';
-import '../state/resistance_day_note_provider.dart';
 import '../state/resistance_provider.dart';
-import '../utils/resistance_day_keys.dart';
 import '../utils/resistance_streak_color.dart';
-import '../widgets/resistance_day_note_bottom_sheet.dart';
 import '../widgets/resistance_relapse_dialog.dart';
 import 'edit_resistance_page.dart';
 
@@ -112,16 +109,7 @@ class _ResistanceDetailBodyState extends State<_ResistanceDetailBody> {
     final streakColor = resistanceStreakColor(streakDays: streak, context: context);
     final relapseRepo = context.read<ResistanceRelapseRepository>();
 
-    final dayKeysList = resistanceDayKeysUtc(
-      createdAtUtc: r.createdAtUtc,
-      nowUtc: widget.nowUtc,
-    ).toList()
-      ..sort((a, b) => b.compareTo(a));
-
-    return _ResistanceDayNoteBinder(
-      resistanceId: r.id,
-      dayKeys: dayKeysList.toSet(),
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
@@ -268,125 +256,7 @@ class _ResistanceDetailBodyState extends State<_ResistanceDetailBody> {
               );
             },
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Notes par jour',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Touchez une date pour ajouter ou modifier une note.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          ...dayKeysList.map((key) {
-            return _DayNoteRow(
-              resistanceId: r.id,
-              dayKey: key,
-            );
-          }),
         ],
-      ),
-    );
-  }
-}
-
-class _ResistanceDayNoteBinder extends StatefulWidget {
-  final String resistanceId;
-  final Set<String> dayKeys;
-  final Widget child;
-
-  const _ResistanceDayNoteBinder({
-    required this.resistanceId,
-    required this.dayKeys,
-    required this.child,
-  });
-
-  @override
-  State<_ResistanceDayNoteBinder> createState() =>
-      _ResistanceDayNoteBinderState();
-}
-
-class _ResistanceDayNoteBinderState extends State<_ResistanceDayNoteBinder> {
-  ResistanceDayNoteProvider? _provider;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _provider = context.read<ResistanceDayNoteProvider>();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _subscribe();
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant _ResistanceDayNoteBinder oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.resistanceId != oldWidget.resistanceId ||
-        widget.dayKeys.length != oldWidget.dayKeys.length ||
-        !widget.dayKeys.containsAll(oldWidget.dayKeys) ||
-        !oldWidget.dayKeys.containsAll(widget.dayKeys)) {
-      _subscribe();
-    }
-  }
-
-  void _subscribe() {
-    final p = _provider;
-    if (p == null) return;
-    p.subscribe(
-      resistanceId: widget.resistanceId,
-      dayKeys: widget.dayKeys,
-    );
-  }
-
-  @override
-  void dispose() {
-    _provider?.unsubscribe();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.child;
-}
-
-class _DayNoteRow extends StatelessWidget {
-  final String resistanceId;
-  final String dayKey;
-
-  const _DayNoteRow({
-    required this.resistanceId,
-    required this.dayKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final notes = context.watch<ResistanceDayNoteProvider>().notes;
-    final has = notes.containsKey(dayKey);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 6),
-      child: ListTile(
-        title: Text(resistanceDayLabelFr(dayKey)),
-        trailing: has
-            ? Icon(
-                Icons.sticky_note_2_outlined,
-                color: Theme.of(context).colorScheme.tertiary,
-              )
-            : null,
-        onTap: () {
-          showResistanceDayNoteEditorSheet(
-            context,
-            resistanceId: resistanceId,
-            dayKey: dayKey,
-          );
-        },
-      ),
-    );
+      );
   }
 }
