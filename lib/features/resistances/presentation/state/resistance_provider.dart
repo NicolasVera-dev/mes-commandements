@@ -26,10 +26,11 @@ class ResistanceProvider extends ChangeNotifier {
     required ResistanceRepository repository,
     required RecordResistanceRelapseUseCase recordRelapseUseCase,
     FilterAndSortResistancesUseCase? filterAndSortResistancesUseCase,
-  })  : _repository = repository,
-        _recordRelapseUseCase = recordRelapseUseCase,
-        _filterAndSortUseCase = filterAndSortResistancesUseCase ??
-            const FilterAndSortResistancesUseCase() {
+  }) : _repository = repository,
+       _recordRelapseUseCase = recordRelapseUseCase,
+       _filterAndSortUseCase =
+           filterAndSortResistancesUseCase ??
+           const FilterAndSortResistancesUseCase() {
     _listen();
   }
 
@@ -98,8 +99,7 @@ class ResistanceProvider extends ChangeNotifier {
         debugPrint('Erreur mutation résistance: $e');
         debugPrint('$st');
       }
-      _syncErrorMessage =
-          'Une erreur est survenue lors de la modification.';
+      _syncErrorMessage = 'Une erreur est survenue lors de la modification.';
     } finally {
       _isMutating = false;
       notifyListeners();
@@ -121,8 +121,7 @@ class ResistanceProvider extends ChangeNotifier {
         debugPrint('Erreur mutation résistance: $e');
         debugPrint('$st');
       }
-      _syncErrorMessage =
-          'Une erreur est survenue lors de la modification.';
+      _syncErrorMessage = 'Une erreur est survenue lors de la modification.';
     } finally {
       _mutatingIds.remove(id);
       notifyListeners();
@@ -191,10 +190,10 @@ class ResistanceProvider extends ChangeNotifier {
     await _runMutationForId(
       resistanceId,
       () => _recordRelapseUseCase.execute(
-            resistance: r,
-            relapsedAtUtc: DateTime.now().toUtc(),
-            note: note,
-          ),
+        resistance: r,
+        relapsedAtUtc: DateTime.now().toUtc(),
+        note: note,
+      ),
     );
   }
 
@@ -206,18 +205,19 @@ class ResistanceProvider extends ChangeNotifier {
     if (oldIndex < 0 ||
         oldIndex >= visible.length ||
         newIndex < 0 ||
-        newIndex > visible.length) {
+        newIndex >= visible.length) {
       return;
     }
-    final adjusted = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    if (adjusted == oldIndex) return;
+    if (newIndex == oldIndex) return;
 
     final visibleIds = visible.map((r) => r.id).toSet();
     final reordered = List<Resistance>.from(visible);
     final moved = reordered.removeAt(oldIndex);
-    reordered.insert(adjusted, moved);
+    reordered.insert(newIndex, moved);
 
-    final others = _resistances.where((r) => !visibleIds.contains(r.id)).toList();
+    final others = _resistances
+        .where((r) => !visibleIds.contains(r.id))
+        .toList();
     final reindexed = <Resistance>[];
     for (var i = 0; i < reordered.length; i++) {
       reindexed.add(reordered[i].copyWith(position: i));
@@ -227,10 +227,7 @@ class ResistanceProvider extends ChangeNotifier {
 
     final updates = <ResistancePositionUpdate>[
       for (var i = 0; i < reordered.length; i++)
-        ResistancePositionUpdate(
-          resistanceId: reordered[i].id,
-          position: i,
-        ),
+        ResistancePositionUpdate(resistanceId: reordered[i].id, position: i),
     ];
 
     try {

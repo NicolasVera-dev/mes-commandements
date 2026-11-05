@@ -109,13 +109,16 @@ class _ExpandableSearchBarState extends State<ExpandableSearchBar> {
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         transitionBuilder: (child, animation) {
-          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
+          );
           return FadeTransition(
             opacity: curved,
             child: SizeTransition(
               sizeFactor: curved,
               axis: Axis.horizontal,
-              axisAlignment: -1,
+              alignment: Alignment.topLeft,
               child: child,
             ),
           );
@@ -162,10 +165,8 @@ class _CollapsedTitle extends StatelessWidget {
             collapsedTitle,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  height: 1.12,
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(height: 1.12, fontWeight: FontWeight.w700),
           ),
         ),
         IconButton(
@@ -226,9 +227,8 @@ class _SearchField extends StatelessWidget {
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              hintStyle: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
               border: InputBorder.none,

@@ -221,8 +221,9 @@ class _EditCommandPageState extends State<EditCommandPage> {
                           ),
                           validator: (value) {
                             final p = parseNonNegativeInt(value ?? '');
-                            if (p == null)
+                            if (p == null) {
                               return 'Veuillez entrer un nombre valide';
+                            }
 
                             final t = parsePositiveInt(_targetController.text);
                             if (t != null && p > t) {

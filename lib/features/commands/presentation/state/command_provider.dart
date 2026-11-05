@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+
 import '../../../notifications/domain/notification_scheduler.dart';
 import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
@@ -259,17 +260,16 @@ class CommandProvider extends ChangeNotifier {
     if (oldIndex < 0 ||
         oldIndex >= visibleCommands.length ||
         newIndex < 0 ||
-        newIndex > visibleCommands.length) {
+        newIndex >= visibleCommands.length) {
       return;
     }
 
-    final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    if (adjustedNewIndex == oldIndex) return;
+    if (newIndex == oldIndex) return;
 
     final visibleIds = visibleCommands.map((c) => c.id).toSet();
     final reorderedVisible = List<Command>.from(visibleCommands);
     final moved = reorderedVisible.removeAt(oldIndex);
-    reorderedVisible.insert(adjustedNewIndex, moved);
+    reorderedVisible.insert(newIndex, moved);
 
     // Optimistic UI: réapplique le nouvel ordre sur la liste locale complète.
     final others = _commands.where((c) => !visibleIds.contains(c.id)).toList();

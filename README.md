@@ -82,10 +82,10 @@ lib/
 
 ## Prérequis
 
-- [Flutter](https://flutter.dev/docs/get-started/install) avec **Dart SDK ^3.11.3** (contrainte `environment` du `pubspec.yaml`)
+- [Flutter](https://flutter.dev/docs/get-started/install) **3.47.9 stable** avec **Dart SDK ^3.13.0** (version utilisée pour la mise à jour : Dart 3.13.7)
 - Compte / projet **Firebase** (Auth + Firestore) — les fichiers sensibles ne sont pas versionnés : copiez `lib/firebase_options.example.dart` vers `lib/firebase_options.dart`, `android/app/google-services.json.example` vers `android/app/google-services.json`, puis exécutez `flutterfire configure` (ou collez les fichiers fournis par la console Firebase). Voir les commentaires en tête de `firebase_options.example.dart`.
 - Pour Android : Android Studio / SDK (le build active le *core library desugaring* requis par les notifications locales)
-- Pour iOS / macOS : Xcode
+- Pour iOS / macOS : Xcode avec Swift 6.2 minimum (requis par le SDK Firebase actuel). Pour un iPhone sous iOS 27 : **Xcode 27 et macOS Tahoe 26.6 minimum**, selon les [prérequis Apple](https://developer.apple.com/xcode/system-requirements/). La cible minimale de l’application est **iOS 15**.
 - Pour Windows : Visual Studio avec les workloads C++
 
 ---
@@ -103,6 +103,7 @@ cp android/app/google-services.json.example android/app/google-services.json
 # Puis : flutterfire configure — ou remplir les fichiers avec votre projet Firebase
 
 # Installer les dépendances
+mkdir -p build/ios/SourcePackages build/macos/SourcePackages
 flutter pub get
 ```
 
@@ -117,11 +118,33 @@ flutter run
 # Sur une plateforme spécifique
 flutter run -d chrome    # Web
 flutter run -d android   # Android
-flutter run -d ios       # iOS
+flutter run -d <identifiant-iphone> # iOS : identifiant donné par flutter devices
 flutter run -d windows   # Windows
 flutter run -d macos     # macOS
 flutter run -d linux     # Linux
 ```
+
+---
+
+## Relancer sur un iPhone
+
+1. Installer une version de macOS et de Xcode compatible avec l’iOS du téléphone (voir les prérequis ci-dessus), ouvrir Xcode et terminer l’installation de ses composants iOS.
+2. Brancher l’iPhone en USB, le déverrouiller, accepter « Faire confiance » et activer le mode développeur dans Réglages → Confidentialité et sécurité.
+3. Dans Xcode, ouvrir `ios/Runner.xcworkspace`, ajouter le compte Apple dans les réglages et vérifier l’équipe dans **Runner → Signing & Capabilities** (signature automatique, identifiant `com.nvadev.rituel`).
+4. Vérifier que `lib/firebase_options.dart` contient la configuration Firebase réelle du projet ; ne pas écraser ce fichier local avec le modèle.
+5. Exécuter :
+
+```bash
+flutter pub get
+flutter doctor -v
+flutter devices
+flutter run -d <identifiant-iphone>
+
+# Installation autonome sur le téléphone (sans débogueur)
+flutter run --release -d <identifiant-iphone>
+```
+
+Les dépendances iOS utilisent Swift Package Manager ; Xcode les résout au premier build. Les fichiers `Package.resolved` sont versionnés pour reproduire les versions natives. Xcode 16.2 ne peut pas résoudre le SDK Firebase actuel (Swift 6.2 requis).
 
 ---
 
@@ -328,3 +351,27 @@ Les **rechutes** et les **notes par jour** sont stockées dans des collections d
 - **Android** : permissions et receivers nécessaires sont déclarés dans `AndroidManifest.xml` (notifications, alarmes exactes, redémarrage pour la replanification côté système).
 
 ---
+
+
+## Maintenance et branches
+
+`develop` est la branche d’intégration et le point de départ des nouveaux développements. Créer une branche de travail depuis `develop`, valider les tests et les builds concernés, puis fusionner dans `develop` avec un commit de merge. Les branches de version existantes (`v1.1.0`, `v1.2.0`) restent des repères historiques. La branche `main` ne doit être mise à jour que lors d’une livraison préparée.
+
+```bash
+git switch develop
+git pull --ff-only origin develop
+git switch -c codex/feature/ma-fonctionnalite
+```
+
+Pour contrôler les dépendances : `flutter pub outdated`. Les dépendances indirectes verrouillées par Flutter ou d’autres paquets restent à la dernière version compatible, sans `dependency_overrides`. Après `flutter clean`, recréer les dossiers `build/ios/SourcePackages` et `build/macos/SourcePackages` avant `flutter pub get` si la copie des plugins échoue.
+
+Les outils Android sont alignés sur Flutter 3.47.9 : Gradle 9.3.1, AGP 9.1.0 et Kotlin 2.4.0. Flutter conserve les modes de compatibilité `android.builtInKotlin=false` et `android.newDsl=false` pour les plugins. La cible Android est l’API 36 via les valeurs du SDK Flutter.
+
+Avant une publication, augmenter `version` et le numéro de build dans `pubspec.yaml` selon la dernière version réellement envoyée aux stores, puis générer les artefacts signés :
+
+```bash
+flutter build ipa --release
+flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
+```
+
+Les signatures, les déclarations de confidentialité et les fiches des stores doivent être vérifiées avant l’envoi. La mise à jour des dépendances ne constitue pas une validation par les stores.

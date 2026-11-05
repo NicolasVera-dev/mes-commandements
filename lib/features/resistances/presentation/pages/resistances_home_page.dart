@@ -39,7 +39,8 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
 
     final hasActiveFilters =
         _selectedTags.isNotEmpty || _sort != ResistanceSort.alpha;
-    final canReorder = _sort == ResistanceSort.alpha &&
+    final canReorder =
+        _sort == ResistanceSort.alpha &&
         _selectedTags.isEmpty &&
         provider.searchQuery.isEmpty;
 
@@ -84,11 +85,7 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
               children: [
                 const Icon(Icons.filter_list_rounded),
                 if (hasActiveFilters)
-                  const Positioned(
-                    top: 8,
-                    right: 8,
-                    child: _ActiveDot(),
-                  ),
+                  const Positioned(top: 8, right: 8, child: _ActiveDot()),
               ],
             ),
           ),
@@ -115,13 +112,9 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
+                    Theme.of(context).colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.2),
-                    Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
+                    Theme.of(context).colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.04),
                   ],
                 ),
@@ -195,166 +188,143 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
                       child: provider.isInitialLoading
                           ? const Center(child: CircularProgressIndicator())
                           : provider.syncErrorMessage != null
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline_rounded,
-                                        size: 48,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .error,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        provider.syncErrorMessage!,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      FilledButton.tonal(
-                                        onPressed: () => provider.retrySync(),
-                                        child: const Text('Réessayer'),
-                                      ),
-                                    ],
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline_rounded,
+                                    size: 48,
+                                    color: Theme.of(context).colorScheme.error,
                                   ),
-                                )
-                              : provider.resistances.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.shield_outlined,
-                                            size: 48,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Text(
-                                            'Aucune résistance pour le moment.\nAjoutez ce que vous voulez arrêter !',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyLarge,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    provider.syncErrorMessage!,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  FilledButton.tonal(
+                                    onPressed: () => provider.retrySync(),
+                                    child: const Text('Réessayer'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : provider.resistances.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.shield_outlined,
+                                    size: 48,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucune résistance pour le moment.\nAjoutez ce que vous voulez arrêter !',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : list.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    provider.searchQuery.isNotEmpty
+                                        ? Icons.search_off_rounded
+                                        : Icons.filter_alt_off_rounded,
+                                    size: 48,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucune résistance trouvée',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : canReorder
+                          ? ReorderableListView.builder(
+                              padding: const EdgeInsets.only(bottom: 100),
+                              itemCount: list.length,
+                              buildDefaultDragHandles: false,
+                              onReorderStart: (_) =>
+                                  setState(() => _isDragging = true),
+                              onReorderEnd: (_) =>
+                                  setState(() => _isDragging = false),
+                              proxyDecorator: (child, index, animation) {
+                                final proxyRadius = cardListGap <= 8
+                                    ? 12.0
+                                    : 16.0;
+                                return AnimatedBuilder(
+                                  animation: animation,
+                                  builder: (context, _) {
+                                    final t = Curves.easeOut.transform(
+                                      animation.value,
+                                    );
+                                    return Transform.scale(
+                                      scale: 1 + (0.03 * t),
+                                      child: Material(
+                                        elevation: 12,
+                                        borderRadius: BorderRadius.circular(
+                                          proxyRadius,
+                                        ),
+                                        color: Colors.transparent,
+                                        child: child,
                                       ),
-                                    )
-                                  : list.isEmpty
-                                      ? Center(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                provider.searchQuery.isNotEmpty
-                                                    ? Icons.search_off_rounded
-                                                    : Icons.filter_alt_off_rounded,
-                                                size: 48,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                              const SizedBox(height: 12),
-                                              Text(
-                                                'Aucune résistance trouvée',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge,
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                        )
-                                      : canReorder
-                                          ? ReorderableListView.builder(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 100,
-                                              ),
-                                              itemCount: list.length,
-                                              buildDefaultDragHandles: false,
-                                              onReorderStart: (_) => setState(
-                                                () => _isDragging = true,
-                                              ),
-                                              onReorderEnd: (_) => setState(
-                                                () => _isDragging = false,
-                                              ),
-                                              proxyDecorator:
-                                                  (child, index, animation) {
-                                                final proxyRadius =
-                                                    cardListGap <= 8 ? 12.0 : 16.0;
-                                                return AnimatedBuilder(
-                                                  animation: animation,
-                                                  builder: (context, _) {
-                                                    final t =
-                                                        Curves.easeOut.transform(
-                                                      animation.value,
-                                                    );
-                                                    return Transform.scale(
-                                                      scale: 1 + (0.03 * t),
-                                                      child: Material(
-                                                        elevation: 12,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                          proxyRadius,
-                                                        ),
-                                                        color: Colors.transparent,
-                                                        child: child,
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              onReorder: (oldIndex, newIndex) {
-                                                provider.reorderResistances(
-                                                  oldIndex: oldIndex,
-                                                  newIndex: newIndex,
-                                                  visible: list,
-                                                );
-                                              },
-                                              itemBuilder: (context, index) {
-                                                final r = list[index];
-                                                return Padding(
-                                                  key: ValueKey(r.id),
-                                                  padding: EdgeInsets.only(
-                                                    bottom: cardListGap,
-                                                  ),
-                                                  child: AnimatedOpacity(
-                                                    duration: const Duration(
-                                                      milliseconds: 160,
-                                                    ),
-                                                    opacity:
-                                                        _isDragging ? 0.85 : 1,
-                                                    child:
-                                                        ReorderableDelayedDragStartListener(
-                                                      index: index,
-                                                      child: ResistanceCard(
-                                                        resistance: r,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            )
-                                          : ListView.separated(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 100,
-                                              ),
-                                              itemCount: list.length,
-                                              separatorBuilder:
-                                                  (context, index) => SizedBox(
-                                                height: cardListGap,
-                                                key: ValueKey(index),
-                                              ),
-                                              itemBuilder: (context, index) {
-                                                return ResistanceCard(
-                                                  resistance: list[index],
-                                                );
-                                              },
-                                            ),
+                                    );
+                                  },
+                                );
+                              },
+                              onReorderItem: (oldIndex, newIndex) {
+                                provider.reorderResistances(
+                                  oldIndex: oldIndex,
+                                  newIndex: newIndex,
+                                  visible: list,
+                                );
+                              },
+                              itemBuilder: (context, index) {
+                                final r = list[index];
+                                return Padding(
+                                  key: ValueKey(r.id),
+                                  padding: EdgeInsets.only(bottom: cardListGap),
+                                  child: AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 160),
+                                    opacity: _isDragging ? 0.85 : 1,
+                                    child: ReorderableDelayedDragStartListener(
+                                      index: index,
+                                      child: ResistanceCard(resistance: r),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.only(bottom: 100),
+                              itemCount: list.length,
+                              separatorBuilder: (context, index) => SizedBox(
+                                height: cardListGap,
+                                key: ValueKey(index),
+                              ),
+                              itemBuilder: (context, index) {
+                                return ResistanceCard(resistance: list[index]);
+                              },
+                            ),
                     ),
                   ),
                 ),

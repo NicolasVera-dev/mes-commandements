@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:provider/provider.dart';
 
 import '../state/command_provider.dart';
@@ -41,7 +42,8 @@ class _HomePageState extends State<HomePage> {
 
   void _scheduleClampScrollAfterListShrink({required int newFilteredCount}) {
     final commandProvider = context.read<CommandProvider>();
-    if (commandProvider.isInitialLoading || commandProvider.syncErrorMessage != null) {
+    if (commandProvider.isInitialLoading ||
+        commandProvider.syncErrorMessage != null) {
       _previousFilteredCommandCount = -1;
       return;
     }
@@ -219,9 +221,9 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.info_outline_rounded,
                               size: 18,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -240,151 +242,146 @@ class _HomePageState extends State<HomePage> {
                     child: commandProvider.isInitialLoading
                         ? _InitialLoadingList(gap: cardListGap)
                         : commandProvider.syncErrorMessage != null
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline_rounded,
-                                        size: 48,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.errorContainer,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        commandProvider.syncErrorMessage!,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      FilledButton.tonal(
-                                        onPressed: () {
-                                          commandProvider.retrySync();
-                                        },
-                                        child: const Text('Réessayer'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : commands.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      commandProvider.searchQuery.isNotEmpty
-                                          ? Icons.search_off_rounded
-                                          : Icons.hourglass_empty_rounded,
-                                      size: 48,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      'Aucun commandement trouvé',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : canReorder
-                            ? ReorderableListView.builder(
-                                key: const PageStorageKey<String>(
-                                  'home_commands_reorder',
-                                ),
-                                scrollController: _listScrollController,
-                                padding: const EdgeInsets.only(bottom: 100),
-                                cacheExtent: 800,
-                                itemCount: commands.length,
-                                buildDefaultDragHandles: false,
-                                onReorderStart: (_) {
-                                  setState(() => _isDragging = true);
-                                },
-                                onReorderEnd: (_) {
-                                  setState(() => _isDragging = false);
-                                },
-                                proxyDecorator: (child, index, animation) {
-                                  return AnimatedBuilder(
-                                    animation: animation,
-                                    builder: (context, _) {
-                                      final t = Curves.easeOut.transform(
-                                        animation.value,
-                                      );
-                                      return Transform.scale(
-                                        scale: 1 + (0.03 * t),
-                                        child: Material(
-                                          elevation: 12,
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          color: Colors.transparent,
-                                          child: child,
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                onReorder: (oldIndex, newIndex) {
-                                  commandProvider.reorderCommands(
-                                    oldIndex: oldIndex,
-                                    newIndex: newIndex,
-                                    visibleCommands: commands,
-                                  );
-                                },
-                                itemBuilder: (context, index) {
-                                  final command = commands[index];
-                                  return Padding(
-                                    key: ValueKey(command.id),
-                                    padding: EdgeInsets.only(
-                                      bottom: cardListGap,
-                                    ),
-                                    child: AnimatedOpacity(
-                                      duration: const Duration(
-                                        milliseconds: 160,
-                                      ),
-                                      opacity: _isDragging ? 0.8 : 1,
-                                      child:
-                                          ReorderableDelayedDragStartListener(
-                                            index: index,
-                                            child: CommandCard(
-                                              key: ValueKey<String>(command.id),
-                                              command: command,
-                                            ),
-                                          ),
-                                    ),
-                                  );
-                                },
-                              )
-                            : ListView.separated(
-                                key: const PageStorageKey<String>(
-                                  'home_commands_list',
-                                ),
-                                controller: _listScrollController,
-                                padding: const EdgeInsets.only(bottom: 100),
-                                cacheExtent: 800,
-                                itemCount: commands.length,
-                                separatorBuilder: (context, index) =>
-                                    SizedBox(height: cardListGap),
-                                itemBuilder: (context, index) {
-                                  final command = commands[index];
-                                  return CommandCard(
-                                    key: ValueKey<String>(command.id),
-                                    command: command,
-                                  );
-                                },
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
                               ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline_rounded,
+                                    size: 48,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .errorContainer,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    commandProvider.syncErrorMessage!,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  FilledButton.tonal(
+                                    onPressed: () {
+                                      commandProvider.retrySync();
+                                    },
+                                    child: const Text('Réessayer'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : commands.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  commandProvider.searchQuery.isNotEmpty
+                                      ? Icons.search_off_rounded
+                                      : Icons.hourglass_empty_rounded,
+                                  size: 48,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Aucun commandement trouvé',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : canReorder
+                        ? ReorderableListView.builder(
+                            key: const PageStorageKey<String>(
+                              'home_commands_reorder',
+                            ),
+                            scrollController: _listScrollController,
+                            padding: const EdgeInsets.only(bottom: 100),
+                            scrollCacheExtent: const ScrollCacheExtent.pixels(
+                              800,
+                            ),
+                            itemCount: commands.length,
+                            buildDefaultDragHandles: false,
+                            onReorderStart: (_) {
+                              setState(() => _isDragging = true);
+                            },
+                            onReorderEnd: (_) {
+                              setState(() => _isDragging = false);
+                            },
+                            proxyDecorator: (child, index, animation) {
+                              return AnimatedBuilder(
+                                animation: animation,
+                                builder: (context, _) {
+                                  final t = Curves.easeOut.transform(
+                                    animation.value,
+                                  );
+                                  return Transform.scale(
+                                    scale: 1 + (0.03 * t),
+                                    child: Material(
+                                      elevation: 12,
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.transparent,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            onReorderItem: (oldIndex, newIndex) {
+                              commandProvider.reorderCommands(
+                                oldIndex: oldIndex,
+                                newIndex: newIndex,
+                                visibleCommands: commands,
+                              );
+                            },
+                            itemBuilder: (context, index) {
+                              final command = commands[index];
+                              return Padding(
+                                key: ValueKey(command.id),
+                                padding: EdgeInsets.only(bottom: cardListGap),
+                                child: AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 160),
+                                  opacity: _isDragging ? 0.8 : 1,
+                                  child: ReorderableDelayedDragStartListener(
+                                    index: index,
+                                    child: CommandCard(
+                                      key: ValueKey<String>(command.id),
+                                      command: command,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        : ListView.separated(
+                            key: const PageStorageKey<String>(
+                              'home_commands_list',
+                            ),
+                            controller: _listScrollController,
+                            padding: const EdgeInsets.only(bottom: 100),
+                            scrollCacheExtent: const ScrollCacheExtent.pixels(
+                              800,
+                            ),
+                            itemCount: commands.length,
+                            separatorBuilder: (context, index) =>
+                                SizedBox(height: cardListGap),
+                            itemBuilder: (context, index) {
+                              final command = commands[index];
+                              return CommandCard(
+                                key: ValueKey<String>(command.id),
+                                command: command,
+                              );
+                            },
+                          ),
                   ),
                 ),
               ],
@@ -438,7 +435,7 @@ class _InitialLoadingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 100),
-      cacheExtent: 800,
+      scrollCacheExtent: const ScrollCacheExtent.pixels(800),
       itemCount: 5,
       separatorBuilder: (context, index) => SizedBox(height: gap),
       itemBuilder: (context, index) => const _LoadingCommandCard(),
