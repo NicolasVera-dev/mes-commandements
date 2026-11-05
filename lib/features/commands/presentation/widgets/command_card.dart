@@ -123,6 +123,10 @@ class _CommandCardState extends State<CommandCard> {
       (p) => p.searchQuery,
     );
     final isCompleted = command.isCompleted();
+    final nowUtc = DateTime.now().toUtc();
+    final todayStartUtc = DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day);
+    final isActiveToday = command.isActiveOnDayUtc(todayStartUtc);
+    final canTapToIncrement = isActiveToday && !isCompleted;
     final scheme = Theme.of(context).colorScheme;
     final semanticColors = Theme.of(context).extension<AppSemanticColors>();
     final hasCustomAccent = command.accentColorValue != null;
@@ -179,12 +183,16 @@ class _CommandCardState extends State<CommandCard> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(cardRadius),
         child: IncrementAnimationOverlay(
-          enabled: !isCompleted,
+          enabled: canTapToIncrement,
           onTap: () {
             commandProvider.incrementProgress(command.id);
           },
           borderRadius: BorderRadius.circular(cardRadius),
-          child: AnimatedContainer(
+            child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            opacity: (!isActiveToday && !isCompleted) ? 0.55 : 1,
+            child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
             decoration: BoxDecoration(
@@ -474,8 +482,10 @@ class _CommandCardState extends State<CommandCard> {
                     child: IconButton(
                       tooltip: 'Réinitialiser',
                       color: actionIconColor,
-                      onPressed: () =>
-                          commandProvider.resetProgress(command.id),
+                      onPressed: isActiveToday
+                          ? () =>
+                                commandProvider.resetProgress(command.id)
+                          : null,
                       icon: const Icon(Icons.refresh),
                     ),
                   ),
@@ -507,8 +517,10 @@ class _CommandCardState extends State<CommandCard> {
                           minimumSize: const Size(36, 36),
                           padding: EdgeInsets.zero,
                         ),
-                        onPressed: () =>
-                            commandProvider.resetProgress(command.id),
+                        onPressed: isActiveToday
+                            ? () =>
+                                  commandProvider.resetProgress(command.id)
+                            : null,
                         icon: const Icon(Icons.refresh, size: 20),
                       ),
                     ],
@@ -522,6 +534,7 @@ class _CommandCardState extends State<CommandCard> {
                   ],
                 ],
               ],
+            ),
             ),
           ),
         ),

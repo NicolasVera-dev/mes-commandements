@@ -13,7 +13,18 @@ class DailyCalendar extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final List<int> activeWeekdays;
   final Map<String, CycleNote> notes;
+  final Future<void> Function({
+    required String cycleKey,
+    required String cycleLabel,
+  })?
+  onCompletePastCycle;
+  final Future<void> Function({
+    required String cycleKey,
+    required String cycleLabel,
+  })?
+  onUncompletePastCycle;
 
   const DailyCalendar({
     super.key,
@@ -22,14 +33,72 @@ class DailyCalendar extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.activeWeekdays = const <int>[],
     this.notes = const <String, CycleNote>{},
+    this.onCompletePastCycle,
+    this.onUncompletePastCycle,
   });
 
   void _openNote(BuildContext context, String cycleKey) {
-    showCycleNoteEditorSheet(
-      context,
-      commandId: commandId,
-      cycleKey: cycleKey,
+    showCycleNoteEditorSheet(context, commandId: commandId, cycleKey: cycleKey);
+  }
+
+  Future<void> _onCycleTap({
+    required BuildContext context,
+    required String cycleKey,
+    required String cycleLabel,
+    required bool canCompletePastCycle,
+    required bool canUncompletePastCycle,
+  }) async {
+    if (!canCompletePastCycle && !canUncompletePastCycle) {
+      _openNote(context, cycleKey);
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  canCompletePastCycle
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.remove_circle_outline_rounded,
+                ),
+                title: Text(
+                  canCompletePastCycle
+                      ? 'Marquer comme complété'
+                      : 'Retirer la complétion',
+                ),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  if (canCompletePastCycle) {
+                    await onCompletePastCycle?.call(
+                      cycleKey: cycleKey,
+                      cycleLabel: cycleLabel,
+                    );
+                  } else {
+                    await onUncompletePastCycle?.call(
+                      cycleKey: cycleKey,
+                      cycleLabel: cycleLabel,
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.sticky_note_2_outlined),
+                title: const Text('Ajouter/modifier une note'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _openNote(context, cycleKey);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -66,24 +135,45 @@ class DailyCalendar extends StatelessWidget {
         final success = hasComplete(events);
         final isCurrent = key == currentKey;
         final isPast = day.isBefore(DateTime.utc(now.year, now.month, now.day));
+        final isActive =
+            activeWeekdays.isEmpty || activeWeekdays.contains(day.weekday);
         final status = statusForCycle(
           isSuccess: success,
           isCurrent: isCurrent,
           isPast: isPast,
+          isInactive: !isActive,
         );
         final style = styleForStatus(status, context);
+        final dayNumberColor = accessibleForegroundColor(
+          backgroundColor: style.backgroundColor,
+          context: context,
+        );
+        final canCompletePastCycle =
+            isActive && !success && !isCurrent && isPast;
+        final canUncompletePastCycle =
+            isActive && success && !isCurrent && isPast;
         final hasNote = notes.containsKey(key);
         final semanticsNote = hasNote ? ', note enregistrée' : '';
+        final dayLabel = 'le ${day.day} ${monthLabel(day.month)} ${day.year}';
+        final semanticsAction = (canCompletePastCycle || canUncompletePastCycle)
+            ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
+            : 'Appuyez pour ajouter ou modifier une note.';
 
         return Semantics(
           label:
-              'Jour ${day.day} ${monthLabel(day.month)} ${day.year} : ${statusSemantics(status)}$semanticsNote. Appuyez pour ajouter ou modifier une note.',
+              'Jour ${day.day} ${monthLabel(day.month)} ${day.year} : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
           button: true,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(6),
-              onTap: () => _openNote(context, key),
+              onTap: () => _onCycleTap(
+                context: context,
+                cycleKey: key,
+                cycleLabel: dayLabel,
+                canCompletePastCycle: canCompletePastCycle,
+                canUncompletePastCycle: canUncompletePastCycle,
+              ),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -96,15 +186,28 @@ class DailyCalendar extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Center(
-                        child: Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: style.indicatorColor,
-                            shape: BoxShape.circle,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${day.day}',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                              color: dayNumberColor,
+                              fontWeight: FontWeight.w700,
+                              height: 1,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: style.indicatorColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

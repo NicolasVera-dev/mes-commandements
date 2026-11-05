@@ -14,9 +14,9 @@ class LocalNotificationScheduler implements NotificationScheduler {
     required FlutterLocalNotificationsPlugin plugin,
     required NotificationPreferencesService preferences,
     ReminderSlotCalculator calculator = const ReminderSlotCalculator(),
-  })  : _plugin = plugin,
-        _preferences = preferences,
-        _calculator = calculator;
+  }) : _plugin = plugin,
+       _preferences = preferences,
+       _calculator = calculator;
 
   final FlutterLocalNotificationsPlugin _plugin;
   final NotificationPreferencesService _preferences;
@@ -24,13 +24,15 @@ class LocalNotificationScheduler implements NotificationScheduler {
 
   static const AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
-    'command_reminders',
-    'Rappels',
-    description: 'Rappels discrets pour vos commandements en cours',
-    importance: Importance.defaultImportance,
-  );
+        'command_reminders',
+        'Rappels',
+        description: 'Rappels discrets pour vos commandements en cours',
+        importance: Importance.defaultImportance,
+      );
 
-  static Future<void> initializePlugin(FlutterLocalNotificationsPlugin plugin) async {
+  static Future<void> initializePlugin(
+    FlutterLocalNotificationsPlugin plugin,
+  ) async {
     await plugin.initialize(
       settings: InitializationSettings(
         android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -46,8 +48,10 @@ class LocalNotificationScheduler implements NotificationScheduler {
         ),
       ),
     );
-    final android = plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await android?.createNotificationChannel(_androidChannel);
   }
 
@@ -74,19 +78,23 @@ class LocalNotificationScheduler implements NotificationScheduler {
       return;
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await android?.requestNotificationsPermission();
       await android?.requestExactAlarmsPermission();
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       await _plugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+            IOSFlutterLocalNotificationsPlugin
+          >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     } else if (defaultTargetPlatform == TargetPlatform.macOS) {
       await _plugin
           .resolvePlatformSpecificImplementation<
-              MacOSFlutterLocalNotificationsPlugin>()
+            MacOSFlutterLocalNotificationsPlugin
+          >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
   }
@@ -112,9 +120,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
 
       for (final frequency in Frequency.values) {
         final incomplete = commands
-            .where(
-              (c) => c.frequency == frequency && c.progress < c.target,
-            )
+            .where((c) => c.frequency == frequency && c.progress < c.target)
             .toList();
         if (incomplete.isEmpty) {
           continue;
@@ -125,6 +131,15 @@ class LocalNotificationScheduler implements NotificationScheduler {
 
         switch (frequency) {
           case Frequency.daily:
+            final nowUtc = now.toUtc();
+            final dailyIncompleteActive = incomplete
+                .where((c) => c.isActiveOnDayUtc(nowUtc))
+                .toList(growable: false);
+            if (dailyIncompleteActive.isEmpty) {
+              break;
+            }
+            final dailyCount = dailyIncompleteActive.length;
+            final dailyBody = _messageBody(frequency, dailyCount);
             final slot = _calculator.nextDailySlot(now, hour, minute);
             await _plugin.zonedSchedule(
               id: LocalNotificationIds.daily,
@@ -132,13 +147,16 @@ class LocalNotificationScheduler implements NotificationScheduler {
               notificationDetails: details,
               androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
               title: title,
-              body: body,
+              body: dailyBody,
               matchDateTimeComponents: DateTimeComponents.time,
             );
             break;
           case Frequency.weekly:
-            for (final slot
-                in _calculator.nextWeeklyWednesdayAndSunday(now, hour, minute)) {
+            for (final slot in _calculator.nextWeeklyWednesdayAndSunday(
+              now,
+              hour,
+              minute,
+            )) {
               final id = slot.weekday == DateTime.wednesday
                   ? LocalNotificationIds.weeklyWednesday
                   : LocalNotificationIds.weeklySunday;

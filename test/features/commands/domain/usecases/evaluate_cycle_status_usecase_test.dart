@@ -56,9 +56,7 @@ void main() {
             cycleStartUtc: DateTime.utc(2026, 3, 20),
             createdAtUtc: DateTime.utc(2026, 3, 1),
             nowUtc: DateTime.utc(2026, 3, 20),
-            cycleEvents: [
-              ev(type: CommandEventType.complete, cycleKey: 'x'),
-            ],
+            cycleEvents: [ev(type: CommandEventType.complete, cycleKey: 'x')],
           ),
           CycleStatus.success,
         );
@@ -130,6 +128,26 @@ void main() {
             cycleEvents: const [],
           ),
           CycleStatus.inProgress,
+        );
+      });
+
+      test('inactive si jour non sélectionné pour un quotidien', () {
+        expect(
+          useCase.execute(
+            frequency: Frequency.daily,
+            cycleStartUtc: DateTime.utc(2026, 3, 15), // dimanche
+            createdAtUtc: DateTime.utc(2026, 3, 1),
+            nowUtc: DateTime.utc(2026, 3, 16),
+            activeWeekdays: const <int>[
+              DateTime.monday,
+              DateTime.tuesday,
+              DateTime.wednesday,
+              DateTime.thursday,
+              DateTime.friday,
+            ],
+            cycleEvents: const [],
+          ),
+          CycleStatus.inactive,
         );
       });
     });
@@ -263,7 +281,9 @@ void main() {
             cycleStartUtc: DateTime.utc(2026, 1, 1),
             createdAtUtc: DateTime.utc(2020, 1, 1),
             nowUtc: DateTime.utc(2026, 6, 1),
-            cycleEvents: [ev(type: CommandEventType.complete, cycleKey: '2026')],
+            cycleEvents: [
+              ev(type: CommandEventType.complete, cycleKey: '2026'),
+            ],
           ),
           CycleStatus.success,
         );

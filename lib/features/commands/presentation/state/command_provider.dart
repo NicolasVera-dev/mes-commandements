@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+
 import '../../../notifications/domain/notification_scheduler.dart';
 import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
@@ -26,11 +27,11 @@ class CommandProvider extends ChangeNotifier {
     required CommandRepository repository,
     FilterAndSortCommandsUseCase? filterAndSortCommandsUseCase,
     NotificationScheduler? notificationScheduler,
-  })  : _repository = repository,
-        _filterAndSortCommandsUseCase =
-            filterAndSortCommandsUseCase ?? const FilterAndSortCommandsUseCase(),
-        _notificationScheduler =
-            notificationScheduler ?? const NoOpNotificationScheduler() {
+  }) : _repository = repository,
+       _filterAndSortCommandsUseCase =
+           filterAndSortCommandsUseCase ?? const FilterAndSortCommandsUseCase(),
+       _notificationScheduler =
+           notificationScheduler ?? const NoOpNotificationScheduler() {
     _listenToRepository();
   }
 
@@ -116,8 +117,7 @@ class CommandProvider extends ChangeNotifier {
         debugPrint('Erreur mutation Firestore: $e');
         debugPrint('$st');
       }
-      _syncErrorMessage =
-          'Une erreur est survenue lors de la modification.';
+      _syncErrorMessage = 'Une erreur est survenue lors de la modification.';
     } finally {
       _isMutating = false;
       notifyListeners();
@@ -140,8 +140,7 @@ class CommandProvider extends ChangeNotifier {
         debugPrint('Erreur mutation Firestore: $e');
         debugPrint('$st');
       }
-      _syncErrorMessage =
-          'Une erreur est survenue lors de la modification.';
+      _syncErrorMessage = 'Une erreur est survenue lors de la modification.';
     } finally {
       _mutatingIds.remove(commandId);
       notifyListeners();
@@ -179,23 +178,17 @@ class CommandProvider extends ChangeNotifier {
 
   void addCommand(Command command) {
     _markCommandsChangedForNotifications();
-    unawaited(
-      _runMutation(() => _repository.add(command)),
-    );
+    unawaited(_runMutation(() => _repository.add(command)));
   }
 
   void updateCommand(Command updatedCommand) {
     _markCommandsChangedForNotifications();
-    unawaited(
-      _runMutation(() => _repository.update(updatedCommand)),
-    );
+    unawaited(_runMutation(() => _repository.update(updatedCommand)));
   }
 
   void deleteCommand(String id) {
     _markCommandsChangedForNotifications();
-    unawaited(
-      _runMutationForId(id, () => _repository.delete(id)),
-    );
+    unawaited(_runMutationForId(id, () => _repository.delete(id)));
   }
 
   void incrementProgress(String commandId) {
@@ -217,9 +210,44 @@ class CommandProvider extends ChangeNotifier {
 
     _markCommandsChangedForNotifications();
     unawaited(
+      _runMutationForId(commandId, () => _repository.resetProgress(commandId)),
+    );
+  }
+
+  void completePastCycle({
+    required String commandId,
+    required String cycleKey,
+  }) {
+    final command = getById(commandId);
+    if (command == null) return;
+
+    _markCommandsChangedForNotifications();
+    unawaited(
       _runMutationForId(
         commandId,
-        () => _repository.resetProgress(commandId),
+        () => _repository.completePastCycle(
+          commandId: commandId,
+          cycleKey: cycleKey,
+        ),
+      ),
+    );
+  }
+
+  void uncompletePastCycle({
+    required String commandId,
+    required String cycleKey,
+  }) {
+    final command = getById(commandId);
+    if (command == null) return;
+
+    _markCommandsChangedForNotifications();
+    unawaited(
+      _runMutationForId(
+        commandId,
+        () => _repository.uncompletePastCycle(
+          commandId: commandId,
+          cycleKey: cycleKey,
+        ),
       ),
     );
   }
@@ -232,17 +260,16 @@ class CommandProvider extends ChangeNotifier {
     if (oldIndex < 0 ||
         oldIndex >= visibleCommands.length ||
         newIndex < 0 ||
-        newIndex > visibleCommands.length) {
+        newIndex >= visibleCommands.length) {
       return;
     }
 
-    final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    if (adjustedNewIndex == oldIndex) return;
+    if (newIndex == oldIndex) return;
 
     final visibleIds = visibleCommands.map((c) => c.id).toSet();
     final reorderedVisible = List<Command>.from(visibleCommands);
     final moved = reorderedVisible.removeAt(oldIndex);
-    reorderedVisible.insert(adjustedNewIndex, moved);
+    reorderedVisible.insert(newIndex, moved);
 
     // Optimistic UI: réapplique le nouvel ordre sur la liste locale complète.
     final others = _commands.where((c) => !visibleIds.contains(c.id)).toList();
@@ -284,8 +311,10 @@ class CommandProvider extends ChangeNotifier {
   List<Command> commandsFilteredSorted({
     /// null => "Toutes" (no frequency filtering).
     required Set<Frequency>? frequencies,
+
     /// empty => "Tous" (no status filtering).
     required Set<CommandStatusFilter> statuses,
+
     /// empty => no tag filtering.
     required Set<String> tags,
     required CommandSort sort,
@@ -306,4 +335,3 @@ class CommandProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

@@ -24,5 +24,14 @@ abstract class CommandRepository {
   Future<void> incrementProgress(String commandId);
 
   Future<void> resetProgress(String commandId);
-}
 
+  Future<void> completePastCycle({
+    required String commandId,
+    required String cycleKey,
+  });
+
+  Future<void> uncompletePastCycle({
+    required String commandId,
+    required String cycleKey,
+  });
+}

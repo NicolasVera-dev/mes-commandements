@@ -21,9 +21,7 @@ Future<void> showCreateCommandSheet({
     isScrollControlled: true,
     showDragHandle: true,
     builder: (context) {
-      return _CreateCommandSheet(
-        initialFrequency: initialFrequency,
-      );
+      return _CreateCommandSheet(initialFrequency: initialFrequency);
     },
   );
 }
@@ -31,13 +29,10 @@ Future<void> showCreateCommandSheet({
 class _CreateCommandSheet extends StatefulWidget {
   final Frequency initialFrequency;
 
-  const _CreateCommandSheet({
-    required this.initialFrequency,
-  });
+  const _CreateCommandSheet({required this.initialFrequency});
 
   @override
-  State<_CreateCommandSheet> createState() =>
-      _CreateCommandSheetState();
+  State<_CreateCommandSheet> createState() => _CreateCommandSheetState();
 }
 
 class _CreateCommandSheetState extends State<_CreateCommandSheet> {
@@ -49,6 +44,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
   String _emoji = Command.defaultEmoji;
   int? _accentColorValue;
   List<String> _tags = <String>[];
+  Set<int> _selectedActiveWeekdays = Command.allWeekdays.toSet();
   final TextEditingController _targetController = TextEditingController();
 
   /// Chip visuellement sélectionnée ; `null` si aucune ou après édition manuelle.
@@ -109,8 +105,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
           top: 12,
         ),
         child: SingleChildScrollView(
-          keyboardDismissBehavior:
-              ScrollViewKeyboardDismissBehavior.onDrag,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: _CommandFormBody(
             formKey: _formKey,
             titleController: _titleController,
@@ -136,6 +131,11 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
               _onManualEdit();
               setState(() => _tags = t);
             },
+            selectedActiveWeekdays: _selectedActiveWeekdays,
+            onActiveWeekdaysChanged: (weekdays) {
+              _onManualEdit();
+              setState(() => _selectedActiveWeekdays = weekdays);
+            },
             availableTags: commandProvider.availableTags,
             suggestionChips: SuggestionTemplateChips(
               labels: _suggestionLabels,
@@ -156,6 +156,12 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
               final target = parsePositiveInt(_targetController.text)!;
               final title = _titleController.text.trim();
               final description = _descriptionController.text.trim();
+              final activeWeekdays =
+                  _frequency == Frequency.daily &&
+                      _selectedActiveWeekdays.length <
+                          Command.allWeekdays.length
+                  ? (_selectedActiveWeekdays.toList(growable: false)..sort())
+                  : const <int>[];
 
               final command = Command(
                 id: 'cmd-${DateTime.now().microsecondsSinceEpoch}',
@@ -167,6 +173,7 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
                 emoji: _emoji,
                 accentColorValue: _accentColorValue,
                 tags: _tags,
+                activeWeekdays: activeWeekdays,
               );
 
               commandProvider.addCommand(command);
@@ -193,6 +200,8 @@ class _CommandFormBody extends StatelessWidget {
   final ValueChanged<int?> onAccentChanged;
   final List<String> tags;
   final ValueChanged<List<String>> onTagsChanged;
+  final Set<int> selectedActiveWeekdays;
+  final ValueChanged<Set<int>> onActiveWeekdaysChanged;
   final List<String> availableTags;
   final Widget suggestionChips;
   final VoidCallback onManualTextEdit;
@@ -212,6 +221,8 @@ class _CommandFormBody extends StatelessWidget {
     required this.onAccentChanged,
     required this.tags,
     required this.onTagsChanged,
+    required this.selectedActiveWeekdays,
+    required this.onActiveWeekdaysChanged,
     required this.availableTags,
     required this.suggestionChips,
     required this.onManualTextEdit,
@@ -273,17 +284,26 @@ class _CommandFormBody extends StatelessWidget {
                 labelText: 'Fréquence',
                 prefixIcon: Icon(Icons.schedule),
               ),
-              items: Frequency.values.map((f) {
-                return DropdownMenuItem<Frequency>(
-                  value: f,
-                  child: Text(_frequencyLabel(f)),
-                );
-              }).toList(growable: false),
+              items: Frequency.values
+                  .map((f) {
+                    return DropdownMenuItem<Frequency>(
+                      value: f,
+                      child: Text(_frequencyLabel(f)),
+                    );
+                  })
+                  .toList(growable: false),
               onChanged: (value) {
                 if (value == null) return;
                 onFrequencyChanged(value);
               },
             ),
+            if (frequency == Frequency.daily) ...[
+              const SizedBox(height: 12),
+              _DailyActiveWeekdaysField(
+                selectedWeekdays: selectedActiveWeekdays,
+                onChanged: onActiveWeekdaysChanged,
+              ),
+            ],
             const SizedBox(height: 12),
             TextFormField(
               controller: targetController,
@@ -325,10 +345,7 @@ class _CommandFormBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            EmojiPickerField(
-              selectedEmoji: emoji,
-              onChanged: onEmojiChanged,
-            ),
+            EmojiPickerField(selectedEmoji: emoji, onChanged: onEmojiChanged),
             AccentColorPickerField(
               selectedColorValue: accentColorValue,
               emojiPreview: emoji,
@@ -383,5 +400,72 @@ String _frequencyLabel(Frequency frequency) {
       return 'Mensuel';
     case Frequency.yearly:
       return 'Annuel';
+  }
+}
+
+class _DailyActiveWeekdaysField extends StatelessWidget {
+  final Set<int> selectedWeekdays;
+  final ValueChanged<Set<int>> onChanged;
+
+  const _DailyActiveWeekdaysField({
+    required this.selectedWeekdays,
+    required this.onChanged,
+  });
+
+  static const _labels = <int, String>{
+    DateTime.monday: 'L',
+    DateTime.tuesday: 'Ma',
+    DateTime.wednesday: 'Me',
+    DateTime.thursday: 'J',
+    DateTime.friday: 'V',
+    DateTime.saturday: 'S',
+    DateTime.sunday: 'D',
+  };
+
+  static const _tooltips = <int, String>{
+    DateTime.monday: 'Lundi',
+    DateTime.tuesday: 'Mardi',
+    DateTime.wednesday: 'Mercredi',
+    DateTime.thursday: 'Jeudi',
+    DateTime.friday: 'Vendredi',
+    DateTime.saturday: 'Samedi',
+    DateTime.sunday: 'Dimanche',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Jours actifs', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: Command.allWeekdays
+              .map((weekday) {
+                final selected = selectedWeekdays.contains(weekday);
+                return Tooltip(
+                  message: _tooltips[weekday]!,
+                  child: FilterChip(
+                    selected: selected,
+                    label: Text(_labels[weekday]!),
+                    onSelected: (isSelected) {
+                      final next = Set<int>.from(selectedWeekdays);
+                      if (isSelected) {
+                        next.add(weekday);
+                      } else {
+                        next.remove(weekday);
+                      }
+                      if (next.isEmpty) return;
+                      onChanged(next);
+                    },
+                  ),
+                );
+              })
+              .toList(growable: false),
+        ),
+      ],
+    );
   }
 }

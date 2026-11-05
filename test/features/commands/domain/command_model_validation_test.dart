@@ -50,6 +50,20 @@ void main() {
         throwsA(isA<AssertionError>()),
       );
     });
+
+    test('échoue si un jour actif est hors plage 1..7', () {
+      expect(
+        () => Command(
+          id: 'c1',
+          title: 'Titre',
+          target: 1,
+          progress: 0,
+          frequency: Frequency.daily,
+          activeWeekdays: const [0, 8],
+        ),
+        throwsA(isA<AssertionError>()),
+      );
+    });
   });
 
   group('Rétrocompatibilité Command.fromMap', () {
@@ -74,12 +88,18 @@ void main() {
           'target': 2,
           'progress': 1,
           'frequency': 'daily',
-          'tags': List<String>.generate(10, (i) => 'tag$i-abcdefghijklmnopqrstuvwxyz'),
+          'tags': List<String>.generate(
+            10,
+            (i) => 'tag$i-abcdefghijklmnopqrstuvwxyz',
+          ),
         },
       );
       expect(command.title.length, Command.maxTitleLength);
       expect(command.tags.length, Command.maxTagsCount);
-      expect(command.tags.every((t) => t.length <= Command.maxTagLength), isTrue);
+      expect(
+        command.tags.every((t) => t.length <= Command.maxTagLength),
+        isTrue,
+      );
     });
 
     test('createdAt accepte un objet avec toDate (compat Timestamp)', () {
