@@ -120,7 +120,12 @@ class LocalNotificationScheduler implements NotificationScheduler {
 
       for (final frequency in Frequency.values) {
         final incomplete = commands
-            .where((c) => c.frequency == frequency && c.progress < c.target)
+            .where(
+              (c) =>
+                  c.frequency == frequency &&
+                  c.progress < c.target &&
+                  !c.isPausedAt(now),
+            )
             .toList();
         if (incomplete.isEmpty) {
           continue;

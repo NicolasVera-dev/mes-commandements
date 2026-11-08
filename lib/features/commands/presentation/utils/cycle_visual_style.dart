@@ -7,16 +7,18 @@ import '../../domain/entities/command.dart';
 import '../../domain/entities/command_event.dart';
 import '../../domain/services/cycle_key_generator.dart';
 
-enum CycleVisualStatus { success, failed, current, inactive }
+enum CycleVisualStatus { success, failed, current, inactive, paused }
 
 CycleVisualStatus statusForCycle({
   required bool isSuccess,
   required bool isCurrent,
   required bool isPast,
   bool isInactive = false,
+  bool isPaused = false,
 }) {
   if (isInactive) return CycleVisualStatus.inactive;
   if (isSuccess) return CycleVisualStatus.success;
+  if (isPaused) return CycleVisualStatus.paused;
   if (isCurrent) return CycleVisualStatus.current;
   if (isPast) return CycleVisualStatus.failed;
   return CycleVisualStatus.current;
@@ -72,13 +74,16 @@ CycleStyle styleForStatus(CycleVisualStatus status, BuildContext context) {
         stateIcon: Icons.schedule_rounded,
       );
     case CycleVisualStatus.inactive:
+    case CycleVisualStatus.paused:
       return CycleStyle(
         backgroundColor: Color.alphaBlend(
           scheme.surfaceContainerLow.withValues(alpha: 0.6),
           scheme.surface,
         ),
         indicatorColor: scheme.outlineVariant,
-        stateIcon: Icons.remove_rounded,
+        stateIcon: status == CycleVisualStatus.paused
+            ? Icons.pause_rounded
+            : Icons.remove_rounded,
       );
   }
 }
@@ -93,6 +98,8 @@ String statusSemantics(CycleVisualStatus status) {
       return 'en cours';
     case CycleVisualStatus.inactive:
       return 'jour inactif';
+    case CycleVisualStatus.paused:
+      return 'en pause';
   }
 }
 

@@ -1,6 +1,8 @@
 import 'package:meta/meta.dart';
+
 import '../services/cycle_key_generator.dart';
 import 'command_event.dart';
+import 'command_pause.dart';
 
 /// Domain model representing a command/progress item.
 @immutable
@@ -33,6 +35,7 @@ class Command {
   final int position;
   final List<String> tags;
   final List<int> activeWeekdays;
+  final List<CommandPause> pauses;
 
   Command({
     required this.id,
@@ -48,6 +51,7 @@ class Command {
     this.position = 0,
     this.tags = const <String>[],
     this.activeWeekdays = const <int>[],
+    this.pauses = const <CommandPause>[],
   }) : assert(title.trim().isNotEmpty, 'Le titre ne doit pas être vide.'),
        assert(
          title.trim().length <= maxTitleLength,
@@ -96,6 +100,7 @@ class Command {
     int? position,
     List<String>? tags,
     List<int>? activeWeekdays,
+    List<CommandPause>? pauses,
     bool clearLastResetAt = false,
     bool clearAccentColorValue = false,
   }) {
@@ -115,6 +120,7 @@ class Command {
       position: position ?? this.position,
       tags: tags ?? this.tags,
       activeWeekdays: activeWeekdays ?? this.activeWeekdays,
+      pauses: pauses ?? this.pauses,
     );
   }
 
@@ -132,8 +138,10 @@ class Command {
 
   /// Détermine si la progression doit être réinitialisée pour la période en cours.
   bool shouldAutoReset(DateTime now) {
+    if (isPausedAt(now)) return false;
     final currentBoundary = _periodStart(now.toUtc());
-    final effectiveLastReset = lastResetAt?.toUtc();
+    final effectiveLastReset =
+        lastResetAt ?? (pauses.isEmpty ? null : createdAt);
     if (effectiveLastReset == null) return true;
     return effectiveLastReset.isBefore(currentBoundary);
   }
@@ -150,6 +158,21 @@ class Command {
       frequency: frequency,
       atUtc: atUtc.toUtc(),
     );
+  }
+
+  CommandPause? pauseAt(DateTime instant) {
+    for (final pause in pauses.reversed) {
+      if (pause.contains(instant)) return pause;
+    }
+    return null;
+  }
+
+  bool isPausedAt(DateTime instant) => pauseAt(instant) != null;
+
+  /// Un cycle incomplet est neutralisé si la pause couvre sa clôture.
+  bool wasPausedAtCycleEnd(DateTime cycleStart) {
+    final end = CycleKeyGenerator.nextCycleStartUtc(frequency, cycleStart);
+    return isPausedAt(end.subtract(const Duration(microseconds: 1)));
   }
 
   bool isActiveOnDayUtc(DateTime dayUtc) {
@@ -190,7 +213,8 @@ class Command {
         other.accentColorValue == accentColorValue &&
         other.position == position &&
         _listEquals(other.tags, tags) &&
-        _listEquals(other.activeWeekdays, activeWeekdays);
+        _listEquals(other.activeWeekdays, activeWeekdays) &&
+        _listEquals(other.pauses, pauses);
   }
 
   @override
@@ -208,6 +232,7 @@ class Command {
     position,
     Object.hashAll(tags),
     Object.hashAll(activeWeekdays),
+    Object.hashAll(pauses),
   );
 
   Map<String, Object?> toMap() {
@@ -224,6 +249,8 @@ class Command {
       'position': position,
       'tags': tags,
       'activeWeekdays': activeWeekdays,
+      if (pauses.isNotEmpty)
+        'pauses': pauses.map((pause) => pause.toMap()).toList(),
     };
   }
 
@@ -281,6 +308,7 @@ class Command {
               .toList(growable: false)
         : const <String>[];
     final activeWeekdays = _parseActiveWeekdays(map['activeWeekdays']);
+    final rawPauses = map['pauses'];
     final rawEmoji = (map['emoji'] ?? '').toString().trim();
     final emoji = rawEmoji.isEmpty ? defaultEmoji : rawEmoji;
 
@@ -298,6 +326,11 @@ class Command {
       position: position,
       tags: tags,
       activeWeekdays: activeWeekdays,
+      pauses: rawPauses is List
+          ? List.unmodifiable(
+              rawPauses.map(CommandPause.fromMap).whereType<CommandPause>(),
+            )
+          : const [],
     );
   }
 

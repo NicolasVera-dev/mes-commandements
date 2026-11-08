@@ -19,6 +19,16 @@ class CycleKeyGenerator {
     }
   }
 
+  static DateTime nextCycleStartUtc(Frequency frequency, DateTime instant) {
+    final start = cycleStartUtc(frequency, instant);
+    return switch (frequency) {
+      Frequency.daily => start.add(const Duration(days: 1)),
+      Frequency.weekly => start.add(const Duration(days: 7)),
+      Frequency.monthly => DateTime.utc(start.year, start.month + 1),
+      Frequency.yearly => DateTime.utc(start.year + 1),
+    };
+  }
+
   static String forFrequency({
     required Frequency frequency,
     required DateTime atUtc,
@@ -45,8 +55,9 @@ class CycleKeyGenerator {
   static int _isoWeek(DateTime date) {
     final thursday = date.add(Duration(days: DateTime.thursday - date.weekday));
     final firstThursday = DateTime.utc(thursday.year, 1, 4);
-    final firstWeekThursday = firstThursday
-        .add(Duration(days: DateTime.thursday - firstThursday.weekday));
+    final firstWeekThursday = firstThursday.add(
+      Duration(days: DateTime.thursday - firstThursday.weekday),
+    );
     return 1 + (thursday.difference(firstWeekThursday).inDays ~/ 7);
   }
 
