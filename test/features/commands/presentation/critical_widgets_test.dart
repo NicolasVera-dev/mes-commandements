@@ -368,7 +368,7 @@ void main() {
       ]);
       await tester.pump(const Duration(milliseconds: 120));
 
-      expect(find.textContaining('jours réussis'), findsOneWidget);
+      expect(find.text('En rythme · 3 jours réussis'), findsOneWidget);
 
       provider.dispose();
       repo.dispose();

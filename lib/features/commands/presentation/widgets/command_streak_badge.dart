@@ -24,23 +24,23 @@ class CommandStreakBadge extends StatelessWidget {
     }
 
     final semantic = Theme.of(context).extension<AppSemanticColors>();
-    final isPositive = result.badge == StreakBadge.success1 ||
-        result.badge == StreakBadge.success2 ||
-        result.badge == StreakBadge.success3 ||
-        result.badge == StreakBadge.success4 ||
-        result.badge == StreakBadge.recoveredToday;
+    final isPositive = !result.badge.isNegative;
     final background = isPositive
         ? (semantic?.successBackground ??
-            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35))
+              Theme.of(context).colorScheme.primaryContainer
+                  .withValues(alpha: 0.35))
         : (semantic?.failedBackground ??
-            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.35));
+              Theme.of(context).colorScheme.errorContainer
+                  .withValues(alpha: 0.35));
     final foreground = isPositive
         ? (semantic?.successIndicator ??
-            Theme.of(context).colorScheme.onPrimaryContainer)
+              Theme.of(context).colorScheme.onPrimaryContainer)
         : (semantic?.failedIndicator ?? Theme.of(context).colorScheme.error);
 
-    final emoji = _emojiFor(result.badge);
-    final label = _labelFor(result, frequency);
+    final (emoji, title) = _badgeContent(result.badge);
+    final label = result.badge == StreakBadge.recovered
+        ? title
+        : '$title · ${_countLabel(result, frequency)}';
     final fontSize = compact ? 11.5 : 12.5;
 
     return Padding(
@@ -62,14 +62,16 @@ class CommandStreakBadge extends StatelessWidget {
               style: TextStyle(fontSize: compact ? 13 : 14, height: 1.1),
             ),
             SizedBox(width: compact ? 4 : 6),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w600,
-                    fontSize: fontSize,
-                    height: 1.2,
-                  ),
+            Flexible(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w600,
+                  fontSize: fontSize,
+                  height: 1.2,
+                ),
+              ),
             ),
           ],
         ),
@@ -78,103 +80,46 @@ class CommandStreakBadge extends StatelessWidget {
   }
 }
 
-String _emojiFor(StreakBadge badge) {
-  switch (badge) {
-    case StreakBadge.none:
-      return '';
-    case StreakBadge.success1:
-      return '🔥';
-    case StreakBadge.success2:
-      return '🚀';
-    case StreakBadge.success3:
-      return '👑';
-    case StreakBadge.success4:
-      return '🏆';
-    case StreakBadge.failDaily:
-    case StreakBadge.failOther:
-      return '😕';
-    case StreakBadge.recoveredToday:
-      return '✨';
-  }
+(String, String) _badgeContent(StreakBadge badge) {
+  return switch (badge) {
+    StreakBadge.none => ('', ''),
+    StreakBadge.recovered => ('✨', 'Reprise'),
+    StreakBadge.goodStart => ('🌱', 'Bon départ'),
+    StreakBadge.inRhythm => ('🔥', 'En rythme'),
+    StreakBadge.solidStreak => ('💪', 'Série solide'),
+    StreakBadge.consistent => ('⭐', 'Belle régularité'),
+    StreakBadge.momentum => ('🚀', 'Sur ta lancée'),
+    StreakBadge.milestone => ('🏅', 'Cap franchi'),
+    StreakBadge.established => ('👑', 'Habitude ancrée'),
+    StreakBadge.legendary => ('🏆', 'Série légendaire'),
+    StreakBadge.missedOccasion => ('🌥️', 'Faux pas'),
+    StreakBadge.setback => ('🟡', 'Ça coince'),
+    StreakBadge.findRhythm => ('🟠', 'Ça déraille'),
+    StreakBadge.slowingDown => ('🍂', 'Coup dur'),
+    StreakBadge.adjustGoal => ('🧭', 'Zone rouge'),
+    StreakBadge.smallStep => ('👣', 'Plus d’élan'),
+    StreakBadge.freshStart => ('🔄', 'Panne sèche'),
+    StreakBadge.rethinkDirection => ('🎯', 'Crash'),
+  };
 }
 
-String _labelFor(StreakResult result, Frequency frequency) {
-  final n = result.count;
-  switch (result.badge) {
-    case StreakBadge.none:
-      return '';
-    case StreakBadge.recoveredToday:
-      return 'Reprise aujourd’hui';
-    case StreakBadge.success1:
-    case StreakBadge.success2:
-    case StreakBadge.success3:
-    case StreakBadge.success4:
-      return _successLabel(
-        frequency: frequency,
-        level: result.badge,
-        count: n,
-      );
-    case StreakBadge.failDaily:
-    case StreakBadge.failOther:
-      return _failLabel(frequency: frequency, count: n);
-  }
-}
-
-String _successLabel({
-  required Frequency frequency,
-  required StreakBadge level,
-  required int count,
-}) {
-  final n = count;
-  switch (frequency) {
-    case Frequency.daily:
-      return switch (level) {
-        StreakBadge.success1 => '$n jours réussis',
-        StreakBadge.success2 => '$n jours au top',
-        StreakBadge.success3 => '$n jours incroyables',
-        StreakBadge.success4 => '$n jours légendaires',
-        _ => '$n jours réussis',
-      };
-    case Frequency.weekly:
-      return switch (level) {
-        StreakBadge.success1 => '$n semaines réussies',
-        StreakBadge.success2 => '$n semaines au top',
-        StreakBadge.success3 => '$n semaines incroyables',
-        StreakBadge.success4 => '$n semaines légendaires',
-        _ => '$n semaines réussies',
-      };
-    case Frequency.monthly:
-      return switch (level) {
-        StreakBadge.success1 => '$n mois réussis',
-        StreakBadge.success2 => '$n mois au top',
-        StreakBadge.success3 => '$n mois incroyables',
-        StreakBadge.success4 => '$n mois légendaires',
-        _ => '$n mois réussis',
-      };
-    case Frequency.yearly:
-      return switch (level) {
-        StreakBadge.success1 => '$n années réussies',
-        StreakBadge.success2 => '$n années au top',
-        StreakBadge.success3 => '$n années incroyables',
-        StreakBadge.success4 => '$n années légendaires',
-        _ => '$n années réussies',
-      };
-  }
-}
-
-String _failLabel({
-  required Frequency frequency,
-  required int count,
-}) {
-  final n = count;
-  switch (frequency) {
-    case Frequency.daily:
-      return '$n jours échoués consécutifs';
-    case Frequency.weekly:
-      return '$n semaines échouées consécutives';
-    case Frequency.monthly:
-      return '$n mois échoués consécutifs';
-    case Frequency.yearly:
-      return '$n années échouées consécutives';
-  }
+String _countLabel(StreakResult result, Frequency frequency) {
+  final count = result.count;
+  final single = count == 1;
+  final negative = result.badge.isNegative;
+  final description = switch ((frequency, negative, single)) {
+    (Frequency.daily, false, _) => 'jours réussis',
+    (Frequency.weekly, false, _) => 'semaines réussies',
+    (Frequency.monthly, false, _) => 'mois réussis',
+    (Frequency.yearly, false, _) => 'années réussies',
+    (Frequency.daily, true, true) => 'jour manqué',
+    (Frequency.daily, true, false) => 'jours manqués',
+    (Frequency.weekly, true, true) => 'semaine manquée',
+    (Frequency.weekly, true, false) => 'semaines manquées',
+    (Frequency.monthly, true, true) => 'mois manqué',
+    (Frequency.monthly, true, false) => 'mois manqués',
+    (Frequency.yearly, true, true) => 'année manquée',
+    (Frequency.yearly, true, false) => 'années manquées',
+  };
+  return '$count $description';
 }
