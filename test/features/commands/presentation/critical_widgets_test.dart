@@ -205,10 +205,12 @@ Command _command({
   int target = 3,
   Frequency frequency = Frequency.daily,
   DateTime? createdAt,
+  String description = '',
 }) {
   return Command(
     id: id,
     title: 'Commandement $id',
+    description: description,
     target: target,
     progress: progress,
     frequency: frequency,
@@ -324,6 +326,38 @@ void main() {
   });
 
   group('Page détail', () {
+    testWidgets('affiche la description longue sans limite de lignes', (
+      tester,
+    ) async {
+      const description =
+          'Préparer mes affaires la veille et choisir un créneau calme. '
+          'Commencer par dix minutes et noter ce qui a bien fonctionné. '
+          'Si la journée est chargée, choisir une version plus courte. '
+          'Terminer en préparant la prochaine séance.';
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+      final eventsRepo = _FakeCommandEventRepository();
+      addTearDown(repo.dispose);
+      addTearDown(provider.dispose);
+      addTearDown(eventsRepo.dispose);
+
+      repo.emit([
+        _command(id: 'c-description', progress: 0, description: description),
+      ]);
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          eventRepository: eventsRepo,
+          child: const CommandDetailPage(commandId: 'c-description'),
+        ),
+      );
+      await tester.pump();
+
+      final descriptionText = tester.widget<Text>(find.text(description));
+      expect(descriptionText.maxLines, isNull);
+      expect(descriptionText.overflow, isNot(TextOverflow.ellipsis));
+    });
+
     testWidgets('streak reste affichée quand historique de succès présent', (
       tester,
     ) async {
