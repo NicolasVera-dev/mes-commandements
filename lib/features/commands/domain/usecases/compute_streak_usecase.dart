@@ -4,19 +4,27 @@ import '../services/cycle_key_generator.dart';
 
 enum StreakBadge {
   none,
-  recoveredToday,
+  recovered,
+  goodStart,
+  inRhythm,
+  solidStreak,
+  consistent,
+  momentum,
+  milestone,
+  established,
+  legendary,
+  missedOccasion(isNegative: true),
+  setback(isNegative: true),
+  findRhythm(isNegative: true),
+  slowingDown(isNegative: true),
+  adjustGoal(isNegative: true),
+  smallStep(isNegative: true),
+  freshStart(isNegative: true),
+  rethinkDirection(isNegative: true);
 
-  /// Succès palier 1 (seuils selon fréquence, ex. ≥3 jours).
-  success1,
-  success2,
-  success3,
-  success4,
+  const StreakBadge({this.isNegative = false});
 
-  /// Échecs consécutifs — quotidien (libellés « jours »).
-  failDaily,
-
-  /// Échecs consécutifs — hebdo / mensuel / annuel (libellés adaptés).
-  failOther,
+  final bool isNegative;
 }
 
 class StreakResult {
@@ -26,9 +34,30 @@ class StreakResult {
   const StreakResult({required this.badge, required this.count});
 }
 
-/// Calcule le badge de série (cycles passés uniquement, hors cycle courant non terminé).
 class ComputeStreakUseCase {
   const ComputeStreakUseCase();
+
+  static const _noBadge = StreakResult(badge: StreakBadge.none, count: 0);
+  static const _positiveBadges = [
+    StreakBadge.goodStart,
+    StreakBadge.inRhythm,
+    StreakBadge.solidStreak,
+    StreakBadge.consistent,
+    StreakBadge.momentum,
+    StreakBadge.milestone,
+    StreakBadge.established,
+    StreakBadge.legendary,
+  ];
+  static const _negativeBadges = [
+    StreakBadge.missedOccasion,
+    StreakBadge.setback,
+    StreakBadge.findRhythm,
+    StreakBadge.slowingDown,
+    StreakBadge.adjustGoal,
+    StreakBadge.smallStep,
+    StreakBadge.freshStart,
+    StreakBadge.rethinkDirection,
+  ];
 
   StreakResult execute({
     required Command command,
@@ -37,159 +66,76 @@ class ComputeStreakUseCase {
     DateTime? nowUtc,
   }) {
     final now = (nowUtc ?? DateTime.now()).toUtc();
-    final pastKeys = _pastCycleKeysNewestFirst(
-      command: command,
-      createdAtUtc: createdAtUtc.toUtc(),
-      nowUtc: now,
-    );
+    if (now.isBefore(createdAtUtc)) return _noBadge;
 
-    bool hasComplete(List<CommandEvent>? events) =>
-        (events ?? const <CommandEvent>[]).any(
-          (e) => e.type == CommandEventType.complete,
-        );
-
-    final currentComplete =
-        hasComplete(grouped[command.cycleKeyAt(now)]) || command.isCompleted();
-
-    var goodRun = 0;
-    for (final key in pastKeys) {
-      if (!grouped.containsKey(key)) {
-        break;
-      }
-      if (hasComplete(grouped[key])) {
-        goodRun++;
-      } else {
-        break;
-      }
-    }
-
-    var badRun = 0;
-    for (final key in pastKeys) {
-      if (!hasComplete(grouped[key])) {
-        badRun++;
-      } else {
-        break;
-      }
-    }
-
-    if (currentComplete && goodRun == 0 && badRun >= 1) {
-      return StreakResult(badge: StreakBadge.recoveredToday, count: badRun);
-    }
-
-    final successBadge = _successBadge(command.frequency, goodRun);
-    if (successBadge != null) {
-      final displayCount = currentComplete ? goodRun + 1 : goodRun;
-      return StreakResult(badge: successBadge, count: displayCount);
-    }
-
-    if (!currentComplete && badRun >= 3) {
-      final fail = command.frequency == Frequency.daily
-          ? StreakBadge.failDaily
-          : StreakBadge.failOther;
-      return StreakResult(badge: fail, count: badRun);
-    }
-
-    return const StreakResult(badge: StreakBadge.none, count: 0);
-  }
-
-  /// Retourne le palier de succès affichable, ou `null` si [goodRun] &lt; premier seuil.
-  StreakBadge? _successBadge(Frequency frequency, int goodRun) {
-    switch (frequency) {
-      case Frequency.daily:
-      case Frequency.weekly:
-        if (goodRun < 3) return null;
-        if (goodRun >= 30) return StreakBadge.success4;
-        if (goodRun >= 10) return StreakBadge.success3;
-        if (goodRun >= 6) return StreakBadge.success2;
-        return StreakBadge.success1;
-      case Frequency.monthly:
-        if (goodRun < 3) return null;
-        if (goodRun >= 24) return StreakBadge.success4;
-        if (goodRun >= 10) return StreakBadge.success3;
-        if (goodRun >= 6) return StreakBadge.success2;
-        return StreakBadge.success1;
-      case Frequency.yearly:
-        if (goodRun < 3) return null;
-        if (goodRun >= 20) return StreakBadge.success4;
-        if (goodRun >= 10) return StreakBadge.success3;
-        if (goodRun >= 5) return StreakBadge.success2;
-        return StreakBadge.success1;
-    }
-  }
-
-  List<String> _pastCycleKeysNewestFirst({
-    required Command command,
-    required DateTime createdAtUtc,
-    required DateTime nowUtc,
-  }) {
     final frequency = command.frequency;
-    final firstVisibleStart = CycleKeyGenerator.cycleStartUtc(
-      frequency,
-      createdAtUtc.toUtc(),
-    );
+    final currentStart = CycleKeyGenerator.cycleStartUtc(frequency, now);
+    final firstStart = CycleKeyGenerator.cycleStartUtc(frequency, createdAtUtc);
+    bool hasComplete(DateTime cycle) =>
+        grouped[command.cycleKeyAt(cycle)]?.any(
+          (event) => event.type == CommandEventType.complete,
+        ) ??
+        false;
 
-    switch (frequency) {
-      case Frequency.daily:
-        final currentDayStart = DateTime.utc(
-          nowUtc.year,
-          nowUtc.month,
-          nowUtc.day,
-        );
-        var d = currentDayStart.subtract(const Duration(days: 1));
-        final keys = <String>[];
-        while (!d.isBefore(firstVisibleStart)) {
-          if (command.isActiveOnDayUtc(d)) {
-            keys.add(
-              CycleKeyGenerator.forFrequency(
-                frequency: Frequency.daily,
-                atUtc: d,
-              ),
-            );
-          }
-          d = d.subtract(const Duration(days: 1));
-        }
-        return keys;
-      case Frequency.weekly:
-        final currentWeekStart = CycleKeyGenerator.cycleStartUtc(
-          Frequency.weekly,
-          nowUtc,
-        );
-        var w = currentWeekStart.subtract(const Duration(days: 7));
-        final keys = <String>[];
-        while (!w.isBefore(firstVisibleStart)) {
-          keys.add(
-            CycleKeyGenerator.forFrequency(
-              frequency: Frequency.weekly,
-              atUtc: w,
-            ),
-          );
-          w = w.subtract(const Duration(days: 7));
-        }
-        return keys;
-      case Frequency.monthly:
-        final cursor = DateTime.utc(nowUtc.year, nowUtc.month, 1);
-        var lastPast = cursor.month == 1
-            ? DateTime.utc(cursor.year - 1, 12, 1)
-            : DateTime.utc(cursor.year, cursor.month - 1, 1);
-        final keys = <String>[];
-        while (!lastPast.isBefore(firstVisibleStart)) {
-          keys.add(
-            CycleKeyGenerator.forFrequency(
-              frequency: Frequency.monthly,
-              atUtc: lastPast,
-            ),
-          );
-          lastPast = lastPast.month == 1
-              ? DateTime.utc(lastPast.year - 1, 12, 1)
-              : DateTime.utc(lastPast.year, lastPast.month - 1, 1);
-        }
-        return keys;
-      case Frequency.yearly:
-        final keys = <String>[];
-        for (var y = nowUtc.year - 1; y >= firstVisibleStart.year; y--) {
-          keys.add('$y');
-        }
-        return keys;
+    final progressCycle = command.lastResetAt ?? createdAtUtc;
+    final currentComplete =
+        command.isActiveOnDayUtc(now) &&
+        (hasComplete(currentStart) ||
+            (command.isCompleted() && !progressCycle.isBefore(currentStart)));
+
+    bool? pastSuccess;
+    var pastCount = 0;
+    for (
+      var cycle = _previousCycle(frequency, currentStart);
+      !cycle.isBefore(firstStart);
+      cycle = _previousCycle(frequency, cycle)
+    ) {
+      if (!command.isActiveOnDayUtc(cycle)) continue;
+      final success = hasComplete(cycle);
+      pastSuccess ??= success;
+      if (success != pastSuccess) break;
+      pastCount++;
     }
+
+    if (currentComplete && pastSuccess == false) {
+      return StreakResult(badge: StreakBadge.recovered, count: pastCount);
+    }
+    if (pastSuccess == false) {
+      final thresholds = switch (frequency) {
+        Frequency.daily => const [1, 2, 3, 5, 7, 10, 14, 21],
+        Frequency.weekly => const [1, 2, 3, 4, 5, 6, 8, 12],
+        Frequency.monthly => const [1, 2, 3, 4, 5, 6, 9, 12],
+        Frequency.yearly => const [1, 2, 3, 4, 5, 6, 7, 8],
+      };
+      return _resultFor(pastCount, thresholds, _negativeBadges);
+    }
+
+    final thresholds = switch (frequency) {
+      Frequency.daily => const [2, 3, 5, 7, 14, 30, 60, 100],
+      Frequency.weekly => const [2, 3, 4, 6, 8, 12, 26, 52],
+      Frequency.monthly => const [2, 3, 4, 6, 9, 12, 18, 24],
+      Frequency.yearly => const [2, 3, 4, 5, 6, 8, 10, 15],
+    };
+    final count = pastCount + (currentComplete ? 1 : 0);
+    return _resultFor(count, thresholds, _positiveBadges);
+  }
+
+  StreakResult _resultFor(
+    int count,
+    List<int> thresholds,
+    List<StreakBadge> badges,
+  ) {
+    final index = thresholds.lastIndexWhere((threshold) => count >= threshold);
+    if (index < 0) return _noBadge;
+    return StreakResult(badge: badges[index], count: count);
+  }
+
+  DateTime _previousCycle(Frequency frequency, DateTime start) {
+    return switch (frequency) {
+      Frequency.daily => start.subtract(const Duration(days: 1)),
+      Frequency.weekly => start.subtract(const Duration(days: 7)),
+      Frequency.monthly => DateTime.utc(start.year, start.month - 1),
+      Frequency.yearly => DateTime.utc(start.year - 1),
+    };
   }
 }

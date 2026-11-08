@@ -12,7 +12,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
 - 🧭 **Page détail riche** : historique par période, résumé de cycles réussis/échoués, navigation temporelle
 - 📝 **Notes de cycle** : dans le détail, une note optionnelle par période de l’historique (jour, semaine, mois ou année) ; une icône discrète marque les périodes qui en ont une ; ouvrez-la en touchant la case ou la ligne ; tout est synchronisé avec le compte et supprimé avec le commandement
-- 🔥 **Badge de série (streak)** : sur chaque carte et dans le détail, un seul pill (emoji + libellé) sous le titre — série de **cycles passés** consécutifs (succès si au moins un `complete` par cycle, échec si cycle passé sans `complete` dans l’historique Firestore) ; priorité *reprise aujourd’hui* → succès (paliers par fréquence) → échecs (seuil ≥ 3) ; calcul dans `ComputeStreakUseCase`, données via `watchEventsFrom` sur les événements
+- 🔥 **Badge de série (streak)** : un badge sous le titre dans la liste et le détail. Huit paliers de réussite, huit paliers d’occasions manquées et un badge « Reprise ». Les seuils dépendent de la fréquence du commandement.
 - 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `resetAuto`, `resetManual`) pour chaque commandement
 - 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
 - 🔍 **Recherche, filtres et tri** : fréquence, statut, tags, recherche texte en direct
@@ -280,9 +280,9 @@ lib/
 ## Série (streak) — résumé
 
 - **Où** : sous le titre sur la **carte** (liste) et dans la **carte d’en-tête** du **détail** ; style pill, couleurs sémantiques (succès / échec) via `AppSemanticColors`.
-- **Règle** : uniquement des cycles **passés** (le cycle courant non terminé n’entre pas dans la série de succès). La série s’appuie sur les **clés présentes** dans les événements groupés par `cycleKey` (pas d’inférence sur les jours sans aucun événement en base).
-- **Priorité d’un seul badge** : 1) reprise (succès ce cycle après échecs passés documentés) ; 2) série de succès ; 3) série d’échecs (affichée si ≥ 3 cycles consécutifs concernés) ; 4) aucun badge.
-- **Seuils succès (ex. quotidien / hebdo)** : paliers à 3 / 6 / 10 / 30 cycles réussis consécutifs (mensuel et annuel : seuils adaptés dans le use case).
+- **Règle** : seuls les cycles depuis la création et les jours planifiés comptent. Un cycle réussi compte dès sa validation. Un cycle sans réussite compte comme manqué après sa clôture.
+- **Priorité** : la première réussite après une occasion manquée affiche « Reprise » pour le cycle en cours. Les séries positives commencent à deux réussites et les séries négatives à une occasion manquée.
+- **Seuils quotidiens** : 2, 3, 5, 7, 14, 30, 60 et 100 réussites, ou 1, 2, 3, 5, 7, 10, 14 et 21 occasions manquées. Le badge affiche la longueur réelle de la série. Les autres fréquences ont leurs propres seuils.
 - **Fichiers principaux** : `lib/features/commands/domain/usecases/compute_streak_usecase.dart`, `presentation/widgets/command_streak_badge.dart`, `command_streak_from_repository.dart`, flux `CommandEventRepository.watchEventsFrom` dans `firestore_command_event_repository.dart`.
 - **Données de test** : script optionnel `tool/seed_streak_test_data.dart` (connexion Auth + écriture Firestore) — voir l’en-tête du fichier pour les variables d’environnement `SEED_EMAIL`, `SEED_PASSWORD`, `SEED_CLEAN`.
 
