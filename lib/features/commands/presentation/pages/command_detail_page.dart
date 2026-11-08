@@ -236,6 +236,7 @@ class _DetailContentState extends State<_DetailContent> {
   Widget build(BuildContext context) {
     final eventRepository = context.read<CommandEventRepository>();
     final command = widget.command;
+    final description = command.description.trim();
     final period = widget.period;
     final anchorUtc = widget.anchorUtc;
     final nextResetText = _nextResetText(
@@ -293,6 +294,13 @@ class _DetailContentState extends State<_DetailContent> {
                   compact: false,
                   titleIndent: 44,
                 ),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 DynamicProgressBar(
                   progress: command.progress,
