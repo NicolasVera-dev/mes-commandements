@@ -13,6 +13,7 @@ class MonthlyGrid extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -32,6 +33,7 @@ class MonthlyGrid extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -130,12 +132,15 @@ class MonthlyGrid extends StatelessWidget {
           month,
           1,
         ).isBefore(DateTime.utc(now.year, now.month, 1));
+        final paused = isCyclePaused?.call(cycleStart) ?? false;
         final status = statusForCycle(
+          isPaused: paused,
           isSuccess: success,
           isCurrent: isCurrent,
           isPast: isPast,
         );
-        final canCompletePastCycle = !success && !isCurrent && isPast;
+        final canCompletePastCycle =
+            !paused && !success && !isCurrent && isPast;
         final canUncompletePastCycle = success && !isCurrent && isPast;
         final style = styleForStatus(status, context);
         final textColor = accessibleForegroundColor(

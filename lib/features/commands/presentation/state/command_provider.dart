@@ -14,6 +14,7 @@ class CommandProvider extends ChangeNotifier {
   final FilterAndSortCommandsUseCase _filterAndSortCommandsUseCase;
   final NotificationScheduler _notificationScheduler;
   late StreamSubscription<List<Command>> _subscription;
+  Timer? _pauseTimer;
   List<Command> _commands = <Command>[];
   String _searchQuery = '';
   bool _isInitialLoading = true;
@@ -45,7 +46,17 @@ class CommandProvider extends ChangeNotifier {
 
     _subscription = _repository.watchAll().listen(
       (commands) {
+        final previousById = {
+          for (final command in _commands) command.id: command,
+        };
+        final pauseChanged = commands.any((command) {
+          final previous = previousById[command.id];
+          return previous != null &&
+              (previous.pauses.length != command.pauses.length ||
+                  previous.pauses.lastOrNull != command.pauses.lastOrNull);
+        });
         _commands = List<Command>.from(commands);
+        _schedulePauseEnd();
         _isInitialLoading = false;
         _syncErrorMessage = null;
 
@@ -57,7 +68,7 @@ class CommandProvider extends ChangeNotifier {
           _notificationReschedulePending = false;
           shouldReschedule = true;
         }
-        if (shouldReschedule) {
+        if (shouldReschedule || pauseChanged) {
           unawaited(_notificationScheduler.rescheduleAll(_commands));
         }
 
@@ -70,6 +81,7 @@ class CommandProvider extends ChangeNotifier {
         }
         // On évite d'afficher de potentielles données obsolètes.
         _commands = <Command>[];
+        _pauseTimer?.cancel();
         _isInitialLoading = false;
         _hasReceivedFirstCommandSnapshot = false;
         _syncErrorMessage =
@@ -124,23 +136,25 @@ class CommandProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _runMutationForId(
+  Future<bool> _runMutationForId(
     String commandId,
     Future<void> Function() mutation,
   ) async {
-    if (_mutatingIds.contains(commandId)) return;
+    if (_mutatingIds.contains(commandId)) return false;
     _mutatingIds.add(commandId);
     _syncErrorMessage = null;
     notifyListeners();
 
     try {
       await mutation();
+      return true;
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('Erreur mutation Firestore: $e');
         debugPrint('$st');
       }
       _syncErrorMessage = 'Une erreur est survenue lors de la modification.';
+      return false;
     } finally {
       _mutatingIds.remove(commandId);
       notifyListeners();
@@ -186,14 +200,49 @@ class CommandProvider extends ChangeNotifier {
     unawaited(_runMutation(() => _repository.update(updatedCommand)));
   }
 
-  void deleteCommand(String id) {
+  Future<bool> deleteCommand(String id) {
     _markCommandsChangedForNotifications();
-    unawaited(_runMutationForId(id, () => _repository.delete(id)));
+    return _runMutationForId(id, () => _repository.delete(id));
+  }
+
+  Future<void> pauseCommand(String id, {DateTime? untilUtc}) =>
+      _runMutationForId(id, () => _repository.pause(id, untilUtc: untilUtc));
+
+  Future<void> resumeCommand(String id, {required bool nextCycle}) =>
+      _runMutationForId(id, () => _repository.resume(id, nextCycle: nextCycle));
+
+  void _schedulePauseEnd() {
+    _pauseTimer?.cancel();
+    final now = DateTime.now().toUtc();
+    DateTime? firstEnd;
+    for (final command in _commands) {
+      final end = command.pauseAt(now)?.endUtc;
+      if (end != null && (firstEnd == null || end.isBefore(firstEnd))) {
+        firstEnd = end;
+      }
+    }
+    if (firstEnd == null) return;
+    _pauseTimer = Timer(firstEnd.difference(now), refreshAfterPause);
+  }
+
+  void refreshAfterPause() {
+    if (!_commands.any((command) => command.pauses.isNotEmpty)) return;
+    _schedulePauseEnd();
+    _markCommandsChangedForNotifications();
+    notifyListeners();
+    unawaited(_refreshPauseReminders());
+  }
+
+  Future<void> _refreshPauseReminders() async {
+    final report = await applyPendingAutoResetsSilently();
+    if (!report.hasResets) {
+      await _notificationScheduler.rescheduleAll(_commands);
+    }
   }
 
   void incrementProgress(String commandId) {
     final command = getById(commandId);
-    if (command == null) return;
+    if (command == null || command.isPausedAt(DateTime.now())) return;
 
     _markCommandsChangedForNotifications();
     unawaited(
@@ -204,13 +253,14 @@ class CommandProvider extends ChangeNotifier {
     );
   }
 
-  void resetProgress(String commandId) {
+  Future<bool> resetProgress(String commandId) async {
     final command = getById(commandId);
-    if (command == null) return;
+    if (command == null || command.isPausedAt(DateTime.now())) return false;
 
     _markCommandsChangedForNotifications();
-    unawaited(
-      _runMutationForId(commandId, () => _repository.resetProgress(commandId)),
+    return _runMutationForId(
+      commandId,
+      () => _repository.resetProgress(commandId),
     );
   }
 
@@ -331,6 +381,7 @@ class CommandProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _pauseTimer?.cancel();
     _subscription.cancel();
     super.dispose();
   }

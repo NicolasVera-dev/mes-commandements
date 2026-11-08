@@ -92,6 +92,7 @@ class ComputeStreakUseCase {
     ) {
       if (!command.isActiveOnDayUtc(cycle)) continue;
       final success = hasComplete(cycle);
+      if (!success && command.wasPausedAtCycleEnd(cycle)) continue;
       pastSuccess ??= success;
       if (success != pastSuccess) break;
       pastCount++;

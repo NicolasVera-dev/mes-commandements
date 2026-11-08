@@ -10,14 +10,18 @@ import '../state/command_provider.dart';
 import '../state/cycle_note_provider.dart';
 import '../utils/cycle_keys_for_detail_period.dart';
 import '../utils/cycle_visual_style.dart';
+import '../widgets/command_confirmation_dialogs.dart';
 import '../widgets/cycle_summary_card.dart';
 import '../widgets/cycle_visualizations/daily_calendar.dart';
 import '../widgets/cycle_visualizations/monthly_grid.dart';
 import '../widgets/cycle_visualizations/weekly_list.dart';
 import '../widgets/cycle_visualizations/yearly_bar.dart';
 import '../widgets/command_streak_from_repository.dart';
+import '../widgets/command_pause_dialog.dart';
 import '../widgets/dynamic_progress_bar.dart';
 import '../widgets/history_skeleton.dart';
+
+enum _CommandDetailAction { pause, reset, delete }
 
 class CommandDetailPage extends StatefulWidget {
   final String commandId;
@@ -88,9 +92,37 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
   Widget build(BuildContext context) {
     final provider = context.watch<CommandProvider>();
     final command = provider.getById(widget.commandId);
+    final now = DateTime.now().toUtc();
+    final isPaused = command?.isPausedAt(now) ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Détail du commandement')),
+      appBar: AppBar(
+        title: const Text('Détail du commandement'),
+        actions: [
+          if (command != null)
+            PopupMenuButton<_CommandDetailAction>(
+              tooltip: 'Actions du commandement',
+              enabled: !provider.isMutating,
+              onSelected: (action) => _handleAction(action, provider, command),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: _CommandDetailAction.pause,
+                  child: Text(isPaused ? 'Reprendre' : 'Mettre en pause'),
+                ),
+                if (!isPaused)
+                  PopupMenuItem(
+                    value: _CommandDetailAction.reset,
+                    enabled: command.isActiveOnDayUtc(now),
+                    child: const Text('Réinitialiser'),
+                  ),
+                const PopupMenuItem(
+                  value: _CommandDetailAction.delete,
+                  child: Text('Supprimer'),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: command == null
           ? Center(
               child: Text(
@@ -106,6 +138,39 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
               onNext: () => _goNext(command.frequency),
             ),
     );
+  }
+
+  Future<void> _handleAction(
+    _CommandDetailAction action,
+    CommandProvider provider,
+    Command command,
+  ) async {
+    if (action == _CommandDetailAction.pause) {
+      await showCommandPauseDialog(context, command);
+      return;
+    }
+    final deleting = action == _CommandDetailAction.delete;
+    final confirmed = deleting
+        ? await confirmCommandDeletion(context)
+        : await confirmCommandReset(context);
+    if (!confirmed || !mounted) return;
+
+    final success = deleting
+        ? await provider.deleteCommand(command.id)
+        : await provider.resetProgress(command.id);
+    if (!mounted) return;
+    if (success && deleting) {
+      await Navigator.of(context).maybePop();
+    } else if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.syncErrorMessage ??
+                'Cette action est indisponible pour le moment.',
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -239,6 +304,8 @@ class _DetailContentState extends State<_DetailContent> {
     final description = command.description.trim();
     final period = widget.period;
     final anchorUtc = widget.anchorUtc;
+    final now = DateTime.now().toUtc();
+    final isPaused = command.isPausedAt(now);
     final nextResetText = _nextResetText(
       command.frequency,
       DateTime.now().toUtc(),
@@ -310,10 +377,13 @@ class _DetailContentState extends State<_DetailContent> {
                       : Color(command.accentColorValue!),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  nextResetText,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (isPaused)
+                  CommandPauseStatus(command: command)
+                else
+                  Text(
+                    nextResetText,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
               ],
             ),
           ),
@@ -384,7 +454,11 @@ class _DetailContentState extends State<_DetailContent> {
                   final events = eventsSnapshot.data ?? const <CommandEvent>[];
                   final hasAnyEvent = events.isNotEmpty;
                   final grouped = _groupByCycle(events);
-                  final currentKey = command.cycleKeyAt(DateTime.now().toUtc());
+                  final currentKey = command.cycleKeyAt(now);
+                  bool isCyclePaused(DateTime start) =>
+                      command.cycleKeyAt(start) == currentKey
+                      ? isPaused
+                      : command.wasPausedAtCycleEnd(start);
                   final cycleNotes = context.watch<CycleNoteProvider>().notes;
 
                   final visualization = switch (command.frequency) {
@@ -394,6 +468,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       activeWeekdays: command.activeWeekdays,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
@@ -406,6 +481,7 @@ class _DetailContentState extends State<_DetailContent> {
                       target: command.target,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -416,6 +492,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -426,6 +503,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -439,6 +517,7 @@ class _DetailContentState extends State<_DetailContent> {
                     currentKey: currentKey,
                     createdAtUtc: effectiveCreatedAtUtc,
                     activeWeekdays: command.activeWeekdays,
+                    wasPausedAtCycleEnd: command.wasPausedAtCycleEnd,
                   );
 
                   return Column(

@@ -11,6 +11,7 @@ import 'package:rituel/features/commands/domain/entities/command.dart';
 import 'package:rituel/features/commands/domain/entities/command_event.dart';
 import 'package:rituel/features/commands/domain/entities/command_events_period.dart';
 import 'package:rituel/features/commands/domain/entities/command_position_update.dart';
+import 'package:rituel/features/commands/domain/entities/command_pause.dart';
 import 'package:rituel/features/commands/domain/entities/cycle_note.dart';
 import 'package:rituel/features/commands/domain/repositories/command_event_repository.dart';
 import 'package:rituel/features/commands/domain/repositories/command_repository.dart';
@@ -37,6 +38,9 @@ class _FakeCommandRepository implements CommandRepository {
   int incrementCalls = 0;
   int addCalls = 0;
   int updateCalls = 0;
+  bool? resumeNextCycle;
+  String? deletedId;
+  String? resetId;
 
   void emit(List<Command> commands) => controller.add(commands);
 
@@ -54,7 +58,9 @@ class _FakeCommandRepository implements CommandRepository {
   }
 
   @override
-  Future<void> delete(String commandId) async {}
+  Future<void> delete(String commandId) async {
+    deletedId = commandId;
+  }
 
   @override
   Future<void> incrementProgress(String commandId) async {
@@ -62,7 +68,17 @@ class _FakeCommandRepository implements CommandRepository {
   }
 
   @override
-  Future<void> resetProgress(String commandId) async {}
+  Future<void> resetProgress(String commandId) async {
+    resetId = commandId;
+  }
+
+  @override
+  Future<void> pause(String commandId, {DateTime? untilUtc}) async {}
+
+  @override
+  Future<void> resume(String commandId, {required bool nextCycle}) async {
+    resumeNextCycle = nextCycle;
+  }
 
   @override
   Future<void> completePastCycle({
@@ -302,6 +318,46 @@ void main() {
       repo.dispose();
     });
 
+    testWidgets('un commandement en pause ne progresse pas au toucher', (
+      tester,
+    ) async {
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+      addTearDown(repo.dispose);
+      addTearDown(provider.dispose);
+      final now = DateTime.now().toUtc();
+      final year = now.year + 1;
+      final command = _command(id: 'pause', progress: 1).copyWith(
+        pauses: [CommandPause(startUtc: now, endUtc: DateTime.utc(year, 11, 9))],
+      );
+      repo.emit([command]);
+
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          child: CommandCard(command: command),
+        ),
+      );
+      expect(
+        find.text('En pause · reprise le 9 novembre $year'),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Réinitialiser'), findsNothing);
+      await tester.tap(find.text('Commandement pause'));
+      await tester.pump();
+      expect(repo.incrementCalls, 0);
+
+      await tester.tap(find.byTooltip('Actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reprendre'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reprendre au prochain cycle'));
+      await tester.pumpAndSettle();
+      expect(repo.resumeNextCycle, isTrue);
+      repo.emit([]);
+      await tester.pump();
+    });
+
     testWidgets('affiche icône completed uniquement si target atteinte', (
       tester,
     ) async {
@@ -326,6 +382,81 @@ void main() {
   });
 
   group('Page détail', () {
+    testWidgets('confirme le reset et revient après suppression', (
+      tester,
+    ) async {
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+      final eventsRepo = _FakeCommandEventRepository();
+      addTearDown(repo.dispose);
+      addTearDown(provider.dispose);
+      addTearDown(eventsRepo.dispose);
+      repo.emit([_command(id: 'c-actions', progress: 1)]);
+
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          eventRepository: eventsRepo,
+          child: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const CommandDetailPage(commandId: 'c-actions'),
+                ),
+              ),
+              child: const Text('Ouvrir la fiche'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Ouvrir la fiche'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      eventsRepo.emit([]);
+      await tester.pumpAndSettle();
+
+      Future<void> selectAction(String label) async {
+        await tester.tap(find.byTooltip('Actions du commandement'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+      }
+
+      await selectAction('Réinitialiser');
+      expect(repo.resetId, isNull);
+      await tester.tap(find.text('Réinitialiser'));
+      await tester.pumpAndSettle();
+      expect(repo.resetId, 'c-actions');
+      expect(find.byType(CommandDetailPage), findsOneWidget);
+
+      repo.emit([
+        _command(id: 'c-actions', progress: 1).copyWith(
+          pauses: [CommandPause(startUtc: DateTime.now().toUtc())],
+        ),
+      ]);
+      await tester.pump();
+      await tester.pump();
+      eventsRepo.emit([]);
+      await tester.pump();
+      expect(find.byTooltip('Reprendre'), findsNothing);
+      await tester.tap(find.byTooltip('Actions du commandement'));
+      await tester.pumpAndSettle();
+      expect(find.text('Réinitialiser'), findsNothing);
+      expect(find.text('Reprendre'), findsOneWidget);
+      await tester.tap(find.text('Supprimer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Annuler'));
+      await tester.pumpAndSettle();
+      expect(repo.deletedId, isNull);
+
+      await selectAction('Supprimer');
+      await tester.tap(find.text('Supprimer'));
+      await tester.pumpAndSettle();
+      expect(repo.deletedId, 'c-actions');
+      expect(find.text('Ouvrir la fiche'), findsOneWidget);
+    });
+
     testWidgets('affiche la description longue sans limite de lignes', (
       tester,
     ) async {

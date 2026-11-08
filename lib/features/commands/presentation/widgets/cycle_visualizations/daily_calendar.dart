@@ -13,6 +13,7 @@ class DailyCalendar extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final List<int> activeWeekdays;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
@@ -33,6 +34,7 @@ class DailyCalendar extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.activeWeekdays = const <int>[],
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
@@ -137,7 +139,9 @@ class DailyCalendar extends StatelessWidget {
         final isPast = day.isBefore(DateTime.utc(now.year, now.month, now.day));
         final isActive =
             activeWeekdays.isEmpty || activeWeekdays.contains(day.weekday);
+        final paused = isCyclePaused?.call(day) ?? false;
         final status = statusForCycle(
+          isPaused: paused,
           isSuccess: success,
           isCurrent: isCurrent,
           isPast: isPast,
@@ -149,7 +153,7 @@ class DailyCalendar extends StatelessWidget {
           context: context,
         );
         final canCompletePastCycle =
-            isActive && !success && !isCurrent && isPast;
+            isActive && !paused && !success && !isCurrent && isPast;
         final canUncompletePastCycle =
             isActive && success && !isCurrent && isPast;
         final hasNote = notes.containsKey(key);
@@ -193,10 +197,10 @@ class DailyCalendar extends StatelessWidget {
                             '${day.day}',
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
-                              color: dayNumberColor,
-                              fontWeight: FontWeight.w700,
-                              height: 1,
-                            ),
+                                  color: dayNumberColor,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1,
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Container(

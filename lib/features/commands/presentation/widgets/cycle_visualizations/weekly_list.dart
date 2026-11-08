@@ -15,6 +15,7 @@ class WeeklyList extends StatelessWidget {
   final int target;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -35,6 +36,7 @@ class WeeklyList extends StatelessWidget {
     required this.target,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -149,12 +151,15 @@ class WeeklyList extends StatelessWidget {
                 ? 0.0
                 : (progress / target).clamp(0.0, 1.0);
             final success = hasComplete(events);
+            final paused = isCyclePaused?.call(weekStart) ?? false;
             final status = statusForCycle(
+              isPaused: paused,
               isSuccess: success,
               isCurrent: weekKey == currentKey,
               isPast: weekStart.isBefore(currentWeekStart),
             );
             final canCompletePastCycle =
+                !paused &&
                 !success &&
                 weekKey != currentKey &&
                 weekStart.isBefore(currentWeekStart);
@@ -218,9 +223,9 @@ class WeeklyList extends StatelessWidget {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 progressColorForRatio(context, progressRatio),
                               ),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHigh,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHigh,
                             ),
                             const SizedBox(height: 6),
                             Row(
@@ -242,9 +247,9 @@ class WeeklyList extends StatelessWidget {
                                       width: 8,
                                       height: 8,
                                       decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         shape: BoxShape.circle,
                                       ),
                                     ),

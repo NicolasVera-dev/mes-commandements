@@ -13,6 +13,7 @@ class YearlyBar extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -32,6 +33,7 @@ class YearlyBar extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -112,13 +114,15 @@ class YearlyBar extends StatelessWidget {
     final key = '$year';
     final success = hasComplete(grouped[key] ?? const <CommandEvent>[]);
     final nowYear = DateTime.now().toUtc().year;
+    final paused = isCyclePaused?.call(DateTime.utc(year)) ?? false;
     final status = statusForCycle(
+      isPaused: paused,
       isSuccess: success,
       isCurrent: key == currentKey,
       isPast: year < nowYear,
     );
     final canCompletePastCycle =
-        !success && key != currentKey && year < nowYear;
+        !paused && !success && key != currentKey && year < nowYear;
     final canUncompletePastCycle =
         success && key != currentKey && year < nowYear;
     final style = styleForStatus(status, context);

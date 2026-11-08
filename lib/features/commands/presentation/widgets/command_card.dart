@@ -10,6 +10,8 @@ import '../pages/command_detail_page.dart';
 import '../pages/edit_command_page.dart';
 import '../state/command_provider.dart';
 import 'command_streak_from_repository.dart';
+import 'command_confirmation_dialogs.dart';
+import 'command_pause_dialog.dart';
 import 'dynamic_progress_bar.dart';
 import 'increment_animation_overlay.dart';
 
@@ -23,40 +25,6 @@ class CommandCard extends StatefulWidget {
 }
 
 class _CommandCardState extends State<CommandCard> {
-  Future<void> _confirmAndDelete({
-    required BuildContext context,
-    required CommandProvider commandProvider,
-    required Command command,
-  }) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Supprimer le commandement ?'),
-          content: const Text('Cette action est irréversible.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-              ),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Supprimer'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm == true) {
-      commandProvider.deleteCommand(command.id);
-    }
-  }
-
   List<TextSpan> _buildHighlightedSpans({
     required String text,
     required String query,
@@ -126,7 +94,8 @@ class _CommandCardState extends State<CommandCard> {
     final nowUtc = DateTime.now().toUtc();
     final todayStartUtc = DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day);
     final isActiveToday = command.isActiveOnDayUtc(todayStartUtc);
-    final canTapToIncrement = isActiveToday && !isCompleted;
+    final isPaused = command.isPausedAt(nowUtc);
+    final canTapToIncrement = isActiveToday && !isCompleted && !isPaused;
     final scheme = Theme.of(context).colorScheme;
     final semanticColors = Theme.of(context).extension<AppSemanticColors>();
     final hasCustomAccent = command.accentColorValue != null;
@@ -176,7 +145,7 @@ class _CommandCardState extends State<CommandCard> {
     final emojiFontSize = compact ? 14.0 : 18.0;
     final titleMaxLines = compact ? 1 : 2;
 
-    return RepaintBoundary(
+    final card = RepaintBoundary(
       child: Material(
         type: MaterialType.card,
         elevation: isCompleted ? 4 : 2,
@@ -191,7 +160,7 @@ class _CommandCardState extends State<CommandCard> {
             child: AnimatedOpacity(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
-            opacity: (!isActiveToday && !isCompleted) ? 0.55 : 1,
+            opacity: (!isPaused && !isActiveToday && !isCompleted) ? 0.55 : 1,
             child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
@@ -367,17 +336,19 @@ class _CommandCardState extends State<CommandCard> {
                               ),
                             );
                             break;
+                          case _CommandCardMenuAction.pause:
+                            await showCommandPauseDialog(context, command);
+                            break;
                           case _CommandCardMenuAction.delete:
-                            await _confirmAndDelete(
-                              context: context,
-                              commandProvider: commandProvider,
-                              command: command,
-                            );
+                            if (await confirmCommandDeletion(context) &&
+                                context.mounted) {
+                              await commandProvider.deleteCommand(command.id);
+                            }
                             break;
                         }
                       },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem<_CommandCardMenuAction>(
+                      itemBuilder: (context) => [
+                        const PopupMenuItem<_CommandCardMenuAction>(
                           value: _CommandCardMenuAction.details,
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -385,7 +356,7 @@ class _CommandCardState extends State<CommandCard> {
                             title: Text('Voir le détail'),
                           ),
                         ),
-                        PopupMenuItem<_CommandCardMenuAction>(
+                        const PopupMenuItem<_CommandCardMenuAction>(
                           value: _CommandCardMenuAction.edit,
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -394,6 +365,16 @@ class _CommandCardState extends State<CommandCard> {
                           ),
                         ),
                         PopupMenuItem<_CommandCardMenuAction>(
+                          value: _CommandCardMenuAction.pause,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              isPaused ? Icons.play_arrow : Icons.pause,
+                            ),
+                            title: Text(isPaused ? 'Reprendre' : 'Mettre en pause'),
+                          ),
+                        ),
+                        const PopupMenuItem<_CommandCardMenuAction>(
                           value: _CommandCardMenuAction.delete,
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -405,6 +386,7 @@ class _CommandCardState extends State<CommandCard> {
                     ),
                   ],
                 ),
+              if (isPaused) CommandPauseStatus(command: command),
               CommandStreakFromRepository(
                 command: command,
                 compact: compact,
@@ -476,19 +458,21 @@ class _CommandCardState extends State<CommandCard> {
                           .toList(growable: false),
                     ),
                   ],
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      tooltip: 'Réinitialiser',
-                      color: actionIconColor,
-                      onPressed: isActiveToday
-                          ? () =>
-                                commandProvider.resetProgress(command.id)
-                          : null,
-                      icon: const Icon(Icons.refresh),
+                  if (!isPaused) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        tooltip: 'Réinitialiser',
+                        color: actionIconColor,
+                        onPressed: isActiveToday
+                            ? () =>
+                                  commandProvider.resetProgress(command.id)
+                            : null,
+                        icon: const Icon(Icons.refresh),
+                      ),
                     ),
-                  ),
+                  ],
                 ] else ...[
                   const SizedBox(height: 6),
                   Row(
@@ -508,21 +492,22 @@ class _CommandCardState extends State<CommandCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      IconButton(
-                        tooltip: 'Réinitialiser',
-                        color: actionIconColor,
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize: const Size(36, 36),
-                          padding: EdgeInsets.zero,
+                      if (!isPaused)
+                        IconButton(
+                          tooltip: 'Réinitialiser',
+                          color: actionIconColor,
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            minimumSize: const Size(36, 36),
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: isActiveToday
+                              ? () =>
+                                    commandProvider.resetProgress(command.id)
+                              : null,
+                          icon: const Icon(Icons.refresh, size: 20),
                         ),
-                        onPressed: isActiveToday
-                            ? () =>
-                                  commandProvider.resetProgress(command.id)
-                            : null,
-                        icon: const Icon(Icons.refresh, size: 20),
-                      ),
                     ],
                   ),
                   if (command.tags.isNotEmpty) ...[
@@ -539,6 +524,18 @@ class _CommandCardState extends State<CommandCard> {
           ),
         ),
       ),
+    );
+    if (!isPaused) return card;
+
+    return ColorFiltered(
+      // Désature les couleurs en conservant la luminance et l’opacité.
+      colorFilter: const ColorFilter.matrix([
+        0.2126, 0.7152, 0.0722, 0, 0,
+        0.2126, 0.7152, 0.0722, 0, 0,
+        0.2126, 0.7152, 0.0722, 0, 0,
+        0, 0, 0, 1, 0,
+      ]),
+      child: card,
     );
   }
 }
@@ -581,7 +578,7 @@ _CommandTagChipStyle _commandTagChipStyle({
   return const _CommandTagChipStyle();
 }
 
-enum _CommandCardMenuAction { details, edit, delete }
+enum _CommandCardMenuAction { details, edit, pause, delete }
 
 /// Libellés courts pour la ligne méta en mode compact.
 String _frequencyLabelCompact(Frequency frequency) {

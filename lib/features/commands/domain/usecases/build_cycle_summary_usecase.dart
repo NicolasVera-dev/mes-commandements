@@ -23,6 +23,7 @@ class BuildCycleSummaryUseCase {
     required DateTime createdAtUtc,
     List<int> activeWeekdays = const <int>[],
     DateTime? nowUtc,
+    bool Function(DateTime)? wasPausedAtCycleEnd,
   }) {
     final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     final cycleKeys = _cycleKeysForPeriod(
@@ -33,7 +34,7 @@ class BuildCycleSummaryUseCase {
 
     var success = 0;
     var failed = 0;
-    for (final key in cycleKeys) {
+    for (final MapEntry(key: key, value: start) in cycleKeys.entries) {
       if (frequency == Frequency.daily &&
           !_isActiveDailyCycle(cycleKey: key, activeWeekdays: activeWeekdays)) {
         continue;
@@ -43,6 +44,7 @@ class BuildCycleSummaryUseCase {
         success++;
         continue;
       }
+      if (wasPausedAtCycleEnd?.call(start) ?? false) continue;
       final isPast = switch (frequency) {
         Frequency.daily => DateTime.parse(
           '${key}T00:00:00Z',
@@ -58,12 +60,12 @@ class BuildCycleSummaryUseCase {
     return CycleSummary(success: success, failed: failed);
   }
 
-  List<String> _cycleKeysForPeriod({
+  Map<String, DateTime> _cycleKeysForPeriod({
     required Frequency frequency,
     required DateTime anchorUtc,
     required DateTime createdAtUtc,
   }) {
-    final keys = <String>[];
+    final keys = <String, DateTime>{};
     switch (frequency) {
       case Frequency.daily:
         final start = DateTime.utc(anchorUtc.year, anchorUtc.month, 1);
@@ -77,9 +79,11 @@ class BuildCycleSummaryUseCase {
             cycleStartUtc: d,
             createdAtUtc: createdAtUtc,
           )) {
-            keys.add(
-              '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}',
-            );
+            keys[CycleKeyGenerator.forFrequency(
+                  frequency: frequency,
+                  atUtc: d,
+                )] =
+                d;
           }
           d = d.add(const Duration(days: 1));
         }
@@ -104,7 +108,7 @@ class BuildCycleSummaryUseCase {
               frequency: Frequency.weekly,
               atUtc: cursor,
             );
-            if (!keys.contains(key)) keys.add(key);
+            keys[key] = weekStart;
           }
           cursor = cursor.add(const Duration(days: 7));
         }
@@ -117,7 +121,11 @@ class BuildCycleSummaryUseCase {
             cycleStartUtc: monthStart,
             createdAtUtc: createdAtUtc,
           )) {
-            keys.add('${anchorUtc.year}-${m.toString().padLeft(2, '0')}');
+            keys[CycleKeyGenerator.forFrequency(
+                  frequency: frequency,
+                  atUtc: monthStart,
+                )] =
+                monthStart;
           }
         }
         break;
@@ -127,7 +135,7 @@ class BuildCycleSummaryUseCase {
           cycleStartUtc: DateTime.utc(anchorUtc.year, 1, 1),
           createdAtUtc: createdAtUtc,
         )) {
-          keys.add('${anchorUtc.year}');
+          keys['${anchorUtc.year}'] = DateTime.utc(anchorUtc.year);
         }
         break;
     }

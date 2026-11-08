@@ -10,10 +10,7 @@ import '../state/command_provider.dart';
 class CommandResetLifecycleListener extends StatefulWidget {
   final Widget child;
 
-  const CommandResetLifecycleListener({
-    super.key,
-    required this.child,
-  });
+  const CommandResetLifecycleListener({super.key, required this.child});
 
   @override
   State<CommandResetLifecycleListener> createState() =>
@@ -46,13 +43,18 @@ class _CommandResetLifecycleListenerState
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     if (!mounted) return;
-    unawaited(
-      context.read<CommandProvider>().applyPendingAutoResetsSilently(),
-    );
+    final provider = context.read<CommandProvider>();
+    if (provider.commands.any((command) => command.pauses.isNotEmpty)) {
+      provider.refreshAfterPause();
+    } else {
+      unawaited(provider.applyPendingAutoResetsSilently());
+    }
   }
 
   Future<void> _runInitialResetWithFeedback() async {
-    final report = await context.read<CommandProvider>().applyPendingAutoResetsSilently();
+    final report = await context
+        .read<CommandProvider>()
+        .applyPendingAutoResetsSilently();
     if (!mounted || !report.hasResets) return;
     final message = _buildMessage(report.byFrequency);
     if (message == null) return;
