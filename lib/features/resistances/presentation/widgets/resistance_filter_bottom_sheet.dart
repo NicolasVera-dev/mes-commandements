@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/usecases/filter_and_sort_resistances_usecase.dart';
+import '../../../../app/localization/localization.dart';
 
 class ResistanceFilterSettings {
   final Set<String> selectedTags;
@@ -42,7 +43,8 @@ class _ResistanceFilterBottomSheet extends StatefulWidget {
       _ResistanceFilterBottomSheetState();
 }
 
-class _ResistanceFilterBottomSheetState extends State<_ResistanceFilterBottomSheet> {
+class _ResistanceFilterBottomSheetState
+    extends State<_ResistanceFilterBottomSheet> {
   late Set<String> _tags;
   late ResistanceSort _sort;
 
@@ -77,41 +79,43 @@ class _ResistanceFilterBottomSheetState extends State<_ResistanceFilterBottomShe
           children: [
             const SizedBox(height: 6),
             Text(
-              'Filtres',
+              context.l10n.filtres,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 18),
             Text(
-              'Tags',
+              context.l10n.tags,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
             if (widget.availableTags.isEmpty)
               Text(
-                'Aucun tag pour le moment.',
+                context.l10n.aucunTagPourLeMoment,
                 style: Theme.of(context).textTheme.bodySmall,
               )
             else
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
-                children: widget.availableTags.map((tag) {
-                  return FilterChip(
-                    label: Text(tag),
-                    selected: _tags.contains(tag),
-                    onSelected: (_) => setState(() {
-                      if (_tags.contains(tag)) {
-                        _tags.remove(tag);
-                      } else {
-                        _tags.add(tag);
-                      }
-                    }),
-                  );
-                }).toList(growable: false),
+                children: widget.availableTags
+                    .map((tag) {
+                      return FilterChip(
+                        label: Text(tag),
+                        selected: _tags.contains(tag),
+                        onSelected: (_) => setState(() {
+                          if (_tags.contains(tag)) {
+                            _tags.remove(tag);
+                          } else {
+                            _tags.add(tag);
+                          }
+                        }),
+                      );
+                    })
+                    .toList(growable: false),
               ),
             const SizedBox(height: 18),
             Text(
-              'Tri',
+              context.l10n.tri,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
@@ -120,19 +124,19 @@ class _ResistanceFilterBottomSheetState extends State<_ResistanceFilterBottomShe
               runSpacing: 6,
               children: [
                 FilterChip(
-                  label: const Text('Manuel'),
+                  label: Text(context.l10n.manuel),
                   selected: _sort == ResistanceSort.alpha,
                   onSelected: (_) =>
                       setState(() => _sort = ResistanceSort.alpha),
                 ),
                 FilterChip(
-                  label: const Text('Série ↓'),
+                  label: Text(context.l10n.serie2),
                   selected: _sort == ResistanceSort.streakHigh,
                   onSelected: (_) =>
                       setState(() => _sort = ResistanceSort.streakHigh),
                 ),
                 FilterChip(
-                  label: const Text('Série ↑'),
+                  label: Text(context.l10n.serie),
                   selected: _sort == ResistanceSort.streakLow,
                   onSelected: (_) =>
                       setState(() => _sort = ResistanceSort.streakLow),
@@ -145,7 +149,7 @@ class _ResistanceFilterBottomSheetState extends State<_ResistanceFilterBottomShe
                 Expanded(
                   child: OutlinedButton(
                     onPressed: _reset,
-                    child: const Text('Réinitialiser'),
+                    child: Text(context.l10n.reinitialiser),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -159,7 +163,7 @@ class _ResistanceFilterBottomSheetState extends State<_ResistanceFilterBottomShe
                         ),
                       );
                     },
-                    child: const Text('Valider'),
+                    child: Text(context.l10n.valider),
                   ),
                 ),
               ],

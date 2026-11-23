@@ -3,14 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../state/auth_provider.dart';
 import 'unauthenticated_flow.dart';
+import '../../../../app/localization/localization.dart';
 
 class AuthGate extends StatelessWidget {
   final Widget authenticatedChild;
 
-  const AuthGate({
-    super.key,
-    required this.authenticatedChild,
-  });
+  const AuthGate({super.key, required this.authenticatedChild});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +53,7 @@ class _AuthLoadingPage extends StatelessWidget {
             const CircularProgressIndicator(),
             const SizedBox(height: 12),
             Text(
-              'Vérification de la session...',
+              context.l10n.verificationDeLaSession,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],
@@ -64,4 +62,3 @@ class _AuthLoadingPage extends StatelessWidget {
     );
   }
 }
-

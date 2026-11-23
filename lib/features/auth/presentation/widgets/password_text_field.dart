@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/localization/localization.dart';
+
 class PasswordTextField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
@@ -41,7 +43,9 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final icon = _obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded;
+    final icon = _obscure
+        ? Icons.visibility_off_rounded
+        : Icons.visibility_rounded;
 
     return TextFormField(
       controller: widget.controller,
@@ -61,7 +65,7 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
         hintText: widget.hintText,
         errorText: widget.errorText,
         suffixIcon: IconButton(
-          tooltip: _obscure ? 'Afficher' : 'Masquer',
+          tooltip: _obscure ? context.l10n.afficher : context.l10n.masquer,
           icon: Icon(icon),
           onPressed: widget.enabled
               ? () => setState(() => _obscure = !_obscure)
@@ -71,4 +75,3 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
     );
   }
 }
-

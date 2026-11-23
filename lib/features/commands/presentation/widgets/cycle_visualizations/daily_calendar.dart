@@ -6,6 +6,7 @@ import '../../../domain/entities/cycle_note.dart';
 import '../../utils/cycle_visual_style.dart';
 import '../cycle_note_bottom_sheet.dart';
 import '../cycle_note_indicator.dart';
+import '../../../../../app/localization/localization.dart';
 
 class DailyCalendar extends StatelessWidget {
   final DateTime anchorUtc;
@@ -71,8 +72,8 @@ class DailyCalendar extends StatelessWidget {
                 ),
                 title: Text(
                   canCompletePastCycle
-                      ? 'Marquer comme complété'
-                      : 'Retirer la complétion',
+                      ? context.l10n.marquerCommeComplete
+                      : context.l10n.retirerLaCompletion,
                 ),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -91,7 +92,7 @@ class DailyCalendar extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
-                title: const Text('Ajouter/modifier une note'),
+                title: Text(context.l10n.ajouterModifierUneNote),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _openNote(context, cycleKey);
@@ -157,15 +158,22 @@ class DailyCalendar extends StatelessWidget {
         final canUncompletePastCycle =
             isActive && success && !isCurrent && isPast;
         final hasNote = notes.containsKey(key);
-        final semanticsNote = hasNote ? ', note enregistrée' : '';
-        final dayLabel = 'le ${day.day} ${monthLabel(day.month)} ${day.year}';
+        final semanticsNote = hasNote ? context.l10n.noteEnregistree : '';
+        final dayLabel =
+            'le ${day.day} ${monthLabel(day.month, strings: context.l10n)} ${day.year}';
         final semanticsAction = (canCompletePastCycle || canUncompletePastCycle)
-            ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
-            : 'Appuyez pour ajouter ou modifier une note.';
+            ? context.l10n.appuyezPourChoisirEntreCompleterOuAjouterUneNote
+            : context.l10n.appuyezPourAjouterOuModifierUneNote;
 
         return Semantics(
-          label:
-              'Jour ${day.day} ${monthLabel(day.month)} ${day.year} : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
+          label: context.l10n.jour(
+            day.day,
+            monthLabel(day.month),
+            day.year,
+            statusSemantics(status),
+            semanticsNote,
+            semanticsAction,
+          ),
           button: true,
           child: Material(
             color: Colors.transparent,

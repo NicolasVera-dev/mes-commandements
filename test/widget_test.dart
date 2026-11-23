@@ -9,6 +9,8 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+import 'package:rituel/app/localization/language_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:rituel/app/command_card_layout_service.dart';
@@ -26,8 +28,12 @@ import 'package:rituel/features/notifications/data/notification_preferences_serv
 import 'package:rituel/features/notifications/domain/notification_scheduler.dart';
 
 class _FakeAuthRepository implements AuthRepository {
+  _FakeAuthRepository({this.connected = false});
+  final bool connected;
   @override
-  Stream<AuthUser?> authStateChanges() => Stream<AuthUser?>.value(null);
+  Stream<AuthUser?> authStateChanges() => Stream<AuthUser?>.value(
+    connected ? const AuthUser(uid: 'u1', email: 'test@example.com') : null,
+  );
 
   @override
   Future<AuthUser> signUp({
@@ -45,9 +51,7 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> signOut() async {}
 
   @override
-  Future<void> sendPasswordResetEmail({
-    required String email,
-  }) async {}
+  Future<void> sendPasswordResetEmail({required String email}) async {}
 
   @override
   Future<void> updatePassword({
@@ -56,9 +60,7 @@ class _FakeAuthRepository implements AuthRepository {
   }) async {}
 
   @override
-  Future<void> deleteAccount({
-    required String currentPassword,
-  }) async {}
+  Future<void> deleteAccount({required String currentPassword}) async {}
 }
 
 class _FakeCommandEventRepository implements CommandEventRepository {
@@ -66,15 +68,13 @@ class _FakeCommandEventRepository implements CommandEventRepository {
   Stream<List<CommandEvent>> watchEvents(
     String commandId, {
     CommandEventsPeriod? period,
-  }) =>
-      const Stream<List<CommandEvent>>.empty();
+  }) => const Stream<List<CommandEvent>>.empty();
 
   @override
   Stream<List<CommandEvent>> watchEventsFrom(
     String commandId, {
     required DateTime startUtcInclusive,
-  }) =>
-      const Stream<List<CommandEvent>>.empty();
+  }) => const Stream<List<CommandEvent>>.empty();
 
   @override
   void addEventFireAndForget({
@@ -94,8 +94,7 @@ class _FakeCycleNoteRepository implements CycleNoteRepository {
   Stream<Map<String, CycleNote>> watchNotes(
     String commandId, {
     required Set<String> cycleKeys,
-  }) =>
-      Stream<Map<String, CycleNote>>.value(<String, CycleNote>{});
+  }) => Stream<Map<String, CycleNote>>.value(<String, CycleNote>{});
 
   @override
   Future<void> deleteAllNotes(String commandId) async {}
@@ -115,6 +114,53 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
     setupFirebaseCoreMocks();
     await Firebase.initializeApp();
+  });
+
+  testWidgets('language can be changed from actual account settings', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
+    final language = LanguageService(preferences: preferences);
+    final theme = ThemeService(prefs: preferences);
+    final layout = CommandCardLayoutService(prefs: preferences);
+    final firestore = FakeFirebaseFirestore();
+    await tester.pumpWidget(
+      MyApp(
+        authRepository: _FakeAuthRepository(connected: true),
+        commandEventRepository: _FakeCommandEventRepository(),
+        cycleNoteRepository: _FakeCycleNoteRepository(),
+        themeService: theme,
+        commandCardLayoutService: layout,
+        userPreferencesService: UserPreferencesService(
+          firestore: firestore,
+          themeService: theme,
+          commandCardLayoutService: layout,
+        ),
+        notificationScheduler: const NoOpNotificationScheduler(),
+        notificationPreferencesService: NotificationPreferencesService(
+          preferences,
+        ),
+        firestoreOverride: firestore,
+        languageService: language,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Paramètres du compte'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+    expect(find.text('Account settings'), findsOneWidget);
+    expect(find.text('Appearance'), findsOneWidget);
+    await tester.tap(find.text('Français'));
+    await tester.pumpAndSettle();
+    expect(find.text('Paramètres du compte'), findsOneWidget);
+    expect(find.text('Apparence'), findsOneWidget);
+    final restored = LanguageService(preferences: preferences);
+    expect(restored.locale.languageCode, 'fr');
+    restored.dispose();
+    await tester.pumpWidget(const SizedBox.shrink());
+    language.dispose();
   });
 
   testWidgets('Smoke test auth gate', (WidgetTester tester) async {

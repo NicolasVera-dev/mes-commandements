@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/app_theme.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/usecases/compute_streak_usecase.dart';
+import '../../../../app/localization/localization.dart';
 
 /// Badge pill emoji + libellé pour la série sous le titre.
 class CommandStreakBadge extends StatelessWidget {
@@ -37,10 +38,10 @@ class CommandStreakBadge extends StatelessWidget {
               Theme.of(context).colorScheme.onPrimaryContainer)
         : (semantic?.failedIndicator ?? Theme.of(context).colorScheme.error);
 
-    final (emoji, title) = _badgeContent(result.badge);
+    final (emoji, title) = _badgeContent(result.badge, strings: context.l10n);
     final label = result.badge == StreakBadge.recovered
         ? title
-        : '$title · ${_countLabel(result, frequency)}';
+        : '$title · ${_countLabel(result, frequency, strings: context.l10n)}';
     final fontSize = compact ? 11.5 : 12.5;
 
     return Padding(
@@ -80,46 +81,54 @@ class CommandStreakBadge extends StatelessWidget {
   }
 }
 
-(String, String) _badgeContent(StreakBadge badge) {
+(String, String) _badgeContent(StreakBadge badge, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   return switch (badge) {
     StreakBadge.none => ('', ''),
-    StreakBadge.recovered => ('✨', 'Reprise'),
-    StreakBadge.goodStart => ('🌱', 'Bon départ'),
-    StreakBadge.inRhythm => ('🔥', 'En rythme'),
-    StreakBadge.solidStreak => ('💪', 'Série solide'),
-    StreakBadge.consistent => ('⭐', 'Belle régularité'),
-    StreakBadge.momentum => ('🚀', 'Sur ta lancée'),
-    StreakBadge.milestone => ('🏅', 'Cap franchi'),
-    StreakBadge.established => ('👑', 'Habitude ancrée'),
-    StreakBadge.legendary => ('🏆', 'Série légendaire'),
-    StreakBadge.missedOccasion => ('🌥️', 'Faux pas'),
-    StreakBadge.setback => ('🟡', 'Ça coince'),
-    StreakBadge.findRhythm => ('🟠', 'Ça déraille'),
-    StreakBadge.slowingDown => ('🍂', 'Coup dur'),
-    StreakBadge.adjustGoal => ('🧭', 'Zone rouge'),
-    StreakBadge.smallStep => ('👣', 'Plus d’élan'),
-    StreakBadge.freshStart => ('🔄', 'Panne sèche'),
-    StreakBadge.rethinkDirection => ('🎯', 'Crash'),
+    StreakBadge.recovered => ('✨', l10n.reprise),
+    StreakBadge.goodStart => ('🌱', l10n.bonDepart),
+    StreakBadge.inRhythm => ('🔥', l10n.enRythme),
+    StreakBadge.solidStreak => ('💪', l10n.serieSolide),
+    StreakBadge.consistent => ('⭐', l10n.belleRegularite),
+    StreakBadge.momentum => ('🚀', l10n.surTaLancee),
+    StreakBadge.milestone => ('🏅', l10n.capFranchi),
+    StreakBadge.established => ('👑', l10n.habitudeAncree),
+    StreakBadge.legendary => ('🏆', l10n.serieLegendaire),
+    StreakBadge.missedOccasion => ('🌥️', l10n.fauxPas),
+    StreakBadge.setback => ('🟡', l10n.caCoince),
+    StreakBadge.findRhythm => ('🟠', l10n.caDeraille),
+    StreakBadge.slowingDown => ('🍂', l10n.coupDur),
+    StreakBadge.adjustGoal => ('🧭', l10n.zoneRouge),
+    StreakBadge.smallStep => ('👣', l10n.plusDelan),
+    StreakBadge.freshStart => ('🔄', l10n.panneSeche),
+    StreakBadge.rethinkDirection => ('🎯', l10n.crash),
   };
 }
 
-String _countLabel(StreakResult result, Frequency frequency) {
+String _countLabel(
+  StreakResult result,
+  Frequency frequency, {
+  AppLocalizations? strings,
+}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   final count = result.count;
   final single = count == 1;
   final negative = result.badge.isNegative;
   final description = switch ((frequency, negative, single)) {
-    (Frequency.daily, false, _) => 'jours réussis',
-    (Frequency.weekly, false, _) => 'semaines réussies',
-    (Frequency.monthly, false, _) => 'mois réussis',
-    (Frequency.yearly, false, _) => 'années réussies',
-    (Frequency.daily, true, true) => 'jour manqué',
-    (Frequency.daily, true, false) => 'jours manqués',
-    (Frequency.weekly, true, true) => 'semaine manquée',
-    (Frequency.weekly, true, false) => 'semaines manquées',
-    (Frequency.monthly, true, true) => 'mois manqué',
-    (Frequency.monthly, true, false) => 'mois manqués',
-    (Frequency.yearly, true, true) => 'année manquée',
-    (Frequency.yearly, true, false) => 'années manquées',
+    (Frequency.daily, false, _) => l10n.joursReussis,
+    (Frequency.weekly, false, _) => l10n.semainesReussies,
+    (Frequency.monthly, false, _) => l10n.moisReussis,
+    (Frequency.yearly, false, _) => l10n.anneesReussies,
+    (Frequency.daily, true, true) => l10n.jourManque,
+    (Frequency.daily, true, false) => l10n.joursManques,
+    (Frequency.weekly, true, true) => l10n.semaineManquee,
+    (Frequency.weekly, true, false) => l10n.semainesManquees,
+    (Frequency.monthly, true, true) => l10n.moisManque,
+    (Frequency.monthly, true, false) => l10n.moisManques,
+    (Frequency.yearly, true, true) => l10n.anneeManquee,
+    (Frequency.yearly, true, false) => l10n.anneesManquees,
   };
   return '$count $description';
 }

@@ -11,6 +11,8 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'app/app_root.dart';
+import 'app/localization/language_service.dart';
+import 'app/localization/localization.dart';
 import 'app/command_card_layout_service.dart';
 import 'app/theme_service.dart';
 import 'app/user_preferences_service.dart';
@@ -49,6 +51,7 @@ class MyApp extends StatelessWidget {
 
   /// Tests widget : même instance que [UserPreferencesService] pour éviter le vrai plugin.
   final FirebaseFirestore? firestoreOverride;
+  final LanguageService? languageService;
 
   const MyApp({
     super.key,
@@ -61,18 +64,19 @@ class MyApp extends StatelessWidget {
     required this.notificationScheduler,
     required this.notificationPreferencesService,
     this.firestoreOverride,
+    this.languageService,
   });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<CommandEventRepository>.value(
-          value: commandEventRepository,
-        ),
-        Provider<CycleNoteRepository>.value(
-          value: cycleNoteRepository,
-        ),
+        if (languageService != null)
+          ChangeNotifierProvider<LanguageService>.value(
+            value: languageService!,
+          ),
+        Provider<CommandEventRepository>.value(value: commandEventRepository),
+        Provider<CycleNoteRepository>.value(value: cycleNoteRepository),
         ChangeNotifierProvider(
           create: (_) => CycleNoteProvider(
             repository: cycleNoteRepository,
@@ -127,14 +131,24 @@ class MyApp extends StatelessWidget {
           },
         ),
       ],
-      child: Consumer<ThemeService>(
-        builder: (context, theme, _) {
-          return MaterialApp(
-            title: 'Mes commandements',
-            themeMode: theme.themeMode,
-            theme: theme.lightTheme,
-            darkTheme: theme.darkTheme,
-            home: const AppRoot(),
+      child: Builder(
+        builder: (context) {
+          final language = languageService == null
+              ? null
+              : context.watch<LanguageService>();
+          return Consumer<ThemeService>(
+            builder: (context, theme, _) {
+              return MaterialApp(
+                locale: language?.locale ?? const Locale('fr'),
+                supportedLocales: AppLocalizations.supportedLocales,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                onGenerateTitle: (context) => context.l10n.mesCommandements,
+                themeMode: theme.themeMode,
+                theme: theme.lightTheme,
+                darkTheme: theme.darkTheme,
+                home: const AppRoot(),
+              );
+            },
           );
         },
       ),
@@ -160,10 +174,9 @@ Future<void> main() async {
     }
   }
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final sharedPrefs = await SharedPreferences.getInstance();
+  final languageService = LanguageService(preferences: sharedPrefs);
   final themeService = ThemeService(prefs: sharedPrefs);
   await themeService.loadSavedTheme();
   final commandCardLayoutService = CommandCardLayoutService(prefs: sharedPrefs);
@@ -171,15 +184,18 @@ Future<void> main() async {
     themeService: themeService,
     commandCardLayoutService: commandCardLayoutService,
   );
-  final notificationPreferencesService =
-      NotificationPreferencesService(sharedPrefs);
+  final notificationPreferencesService = NotificationPreferencesService(
+    sharedPrefs,
+  );
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   await LocalNotificationScheduler.initializePlugin(
     flutterLocalNotificationsPlugin,
+    strings: lookupAppLocalizations(languageService.locale),
   );
   final notificationScheduler = LocalNotificationScheduler(
     plugin: flutterLocalNotificationsPlugin,
     preferences: notificationPreferencesService,
+    languageService: languageService,
   );
   final accountDataCleanupRepository = FirestoreAccountDataCleanupRepository();
   final authRepository = FirebaseAuthRepository(
@@ -198,6 +214,7 @@ Future<void> main() async {
       commandEventRepository: commandEventRepository,
       cycleNoteRepository: cycleNoteRepository,
       themeService: themeService,
+      languageService: languageService,
       commandCardLayoutService: commandCardLayoutService,
       userPreferencesService: userPreferencesService,
       notificationScheduler: notificationScheduler,

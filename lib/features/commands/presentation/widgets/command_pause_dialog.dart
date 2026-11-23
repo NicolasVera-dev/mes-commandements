@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
 import '../utils/cycle_visual_style.dart';
+import '../../../../app/localization/localization.dart';
 
 enum _PauseAction { indefinitely, untilDate, resumeNow, resumeNextCycle }
 
@@ -12,34 +13,36 @@ Future<void> showCommandPauseDialog(
   BuildContext context,
   Command command,
 ) async {
+  final l10n = context.l10n;
+
   final provider = context.read<CommandProvider>();
   final paused = command.isPausedAt(DateTime.now());
   final action = await showDialog<_PauseAction>(
     context: context,
     builder: (dialogContext) => SimpleDialog(
-      title: Text(paused ? 'Reprendre le commandement' : 'Mettre en pause'),
+      title: Text(paused ? l10n.reprendreLeCommandement : l10n.mettreEnPause),
       children: [
         if (paused) ...[
           SimpleDialogOption(
             onPressed: () =>
                 Navigator.pop(dialogContext, _PauseAction.resumeNow),
-            child: const Text('Reprendre ce cycle'),
+            child: Text(l10n.reprendreCeCycle),
           ),
           SimpleDialogOption(
             onPressed: () =>
                 Navigator.pop(dialogContext, _PauseAction.resumeNextCycle),
-            child: const Text('Reprendre au prochain cycle'),
+            child: Text(l10n.reprendreAuProchainCycle),
           ),
         ] else ...[
           SimpleDialogOption(
             onPressed: () =>
                 Navigator.pop(dialogContext, _PauseAction.indefinitely),
-            child: const Text('Jusqu’à ce que je reprenne'),
+            child: Text(l10n.jusquaCeQueJeReprenne),
           ),
           SimpleDialogOption(
             onPressed: () =>
                 Navigator.pop(dialogContext, _PauseAction.untilDate),
-            child: const Text('Choisir une date de reprise'),
+            child: Text(l10n.choisirUneDateDeReprise),
           ),
         ],
       ],
@@ -55,10 +58,10 @@ Future<void> showCommandPauseDialog(
       final tomorrow = DateTime(now.year, now.month, now.day + 1);
       final date = await showDatePicker(
         context: context,
-        helpText: 'Date de reprise',
+        helpText: l10n.dateDeReprise,
         builder: (context, child) => Localizations.override(
           context: context,
-          locale: const Locale('fr', 'FR'),
+          locale: Locale(l10n.localeName),
           delegates: GlobalMaterialLocalizations.delegates,
           child: child,
         ),
@@ -80,7 +83,9 @@ Future<void> showCommandPauseDialog(
   if (!context.mounted) return;
   final error = provider.syncErrorMessage;
   if (error != null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.systemMessage(error))));
   }
 }
 
@@ -96,9 +101,9 @@ class CommandPauseStatus extends StatelessWidget {
     final end = pause.endUtc;
     final date = end == null
         ? null
-        : '${end.day} ${monthLabel(end.month)} ${end.year}';
+        : '${end.day} ${monthLabel(end.month, strings: context.l10n)} ${end.year}';
     return Text(
-      date == null ? 'En pause' : 'En pause · reprise le $date',
+      date == null ? context.l10n.enPause : context.l10n.enPauseRepriseLe(date),
       style: Theme.of(context).textTheme.labelMedium,
     );
   }

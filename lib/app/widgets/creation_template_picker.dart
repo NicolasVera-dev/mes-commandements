@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../localization/localization.dart';
+
 /// Ligne de chips horizontales scrollables pour appliquer un modèle au formulaire.
 ///
 /// [onChipSelection] reçoit l’index et si la chip est sélectionnée après le tap
@@ -21,12 +23,12 @@ class SuggestionTemplateChips extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Semantics(
-      label: 'Suggestions rapides',
+      label: context.l10n.suggestionsRapides,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Suggestions',
+            context.l10n.suggestions,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 8),
@@ -49,8 +51,9 @@ class SuggestionTemplateChips extends StatelessWidget {
                       selected: selectedIndex == i,
                       showCheckmark: false,
                       visualDensity: VisualDensity.compact,
-                      selectedColor:
-                          scheme.primaryContainer.withValues(alpha: 0.65),
+                      selectedColor: scheme.primaryContainer.withValues(
+                        alpha: 0.65,
+                      ),
                       checkmarkColor: scheme.onPrimaryContainer,
                       onSelected: (selected) => onChipSelection(i, selected),
                     ),

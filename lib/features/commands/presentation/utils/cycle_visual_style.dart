@@ -6,6 +6,7 @@ import '../../../../app/app_theme.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/entities/command_event.dart';
 import '../../domain/services/cycle_key_generator.dart';
+import '../../../../app/localization/localization.dart';
 
 enum CycleVisualStatus { success, failed, current, inactive, paused }
 
@@ -88,18 +89,20 @@ CycleStyle styleForStatus(CycleVisualStatus status, BuildContext context) {
   }
 }
 
-String statusSemantics(CycleVisualStatus status) {
+String statusSemantics(CycleVisualStatus status, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (status) {
     case CycleVisualStatus.success:
-      return 'objectif atteint';
+      return l10n.objectifAtteint;
     case CycleVisualStatus.failed:
-      return 'objectif non atteint';
+      return l10n.objectifNonAtteint;
     case CycleVisualStatus.current:
-      return 'en cours';
+      return l10n.enCours2;
     case CycleVisualStatus.inactive:
-      return 'jour inactif';
+      return l10n.jourInactif;
     case CycleVisualStatus.paused:
-      return 'en pause';
+      return l10n.enPause2;
   }
 }
 
@@ -165,33 +168,37 @@ bool hasComplete(List<CommandEvent> events) {
   return events.any((e) => e.type == CommandEventType.complete);
 }
 
-String frequencyLabel(Frequency frequency) {
+String frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }
 
-String monthLabel(int month) {
-  const labels = <String>[
-    'janvier',
-    'février',
-    'mars',
-    'avril',
-    'mai',
-    'juin',
-    'juillet',
-    'août',
-    'septembre',
-    'octobre',
-    'novembre',
-    'décembre',
+String monthLabel(int month, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
+  final labels = <String>[
+    l10n.janvier,
+    l10n.fevrier,
+    l10n.mars,
+    l10n.avril,
+    l10n.mai,
+    l10n.juin,
+    l10n.juillet,
+    l10n.aout,
+    l10n.septembre,
+    l10n.octobre,
+    l10n.novembre,
+    l10n.decembre,
   ];
   return labels[month - 1];
 }

@@ -2,14 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../app/localization/localization.dart';
+
 /// Accueil hors-ligne pour utilisateurs non connectés (aucune persistance « déjà vu »).
 class OnboardingWelcomePage extends StatefulWidget {
   final VoidCallback onCommencer;
 
-  const OnboardingWelcomePage({
-    super.key,
-    required this.onCommencer,
-  });
+  const OnboardingWelcomePage({super.key, required this.onCommencer});
 
   @override
   State<OnboardingWelcomePage> createState() => _OnboardingWelcomePageState();
@@ -23,22 +22,19 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
     _SlideData(
       icon: Icons.waving_hand_rounded,
       title: 'Bienvenue dans Rituel',
-      body:
-          'Construis des routines qui te ressemblent et défais celles qui te freinent. Un seul endroit pour avancer à ton rythme.',
+      body: 'Construis des routines qui te ressemblent et défais celles qui te freinent. Un seul endroit pour avancer à ton rythme.',
       quote: 'Nous sommes le reflet de nos habitudes',
     ),
     _SlideData(
       icon: Icons.track_changes_rounded,
       title: 'Suis ta progression',
-      body:
-          'Fixe des objectifs par jour, semaine, mois ou année. Visualise ta régularité, célèbre tes séries et identifie où tu peux faire mieux.',
+      body: 'Fixe des objectifs par jour, semaine, mois ou année. Visualise ta régularité, célèbre tes séries et identifie où tu peux faire mieux.',
       quote: "Ce n'est pas l'intensité qui compte, c'est la constance.",
     ),
     _SlideData(
       icon: Icons.shield_rounded,
       title: 'Face aux addictions',
-      body:
-        "Alcool, tabac, écrans ou jeux… Pose un nom sur ce qui te tient, note tes jours de liberté, et reprends le fil si tu trébuches.",
+      body: "Alcool, tabac, écrans ou jeux… Pose un nom sur ce qui te tient, note tes jours de liberté, et reprends le fil si tu trébuches.",
       quote: "La chute n'est pas un échec. L'échec, c'est de rester là où on est tombé.",
     ),
   ];
@@ -55,14 +51,19 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
     super.dispose();
   }
 
-  static String _semanticLabelForSlide(
+  String _semanticLabelForSlide(
     _SlideData data, {
     required int page,
     required int total,
   }) {
-    final base = 'Page $page sur $total. ${data.title}. ${data.body}';
+    final base = context.l10n.pageSur2(
+      page,
+      total,
+      context.l10n.systemMessage(data.title),
+      context.l10n.systemMessage(data.body),
+    );
     if (data.quote == null || data.quote!.isEmpty) return base;
-    return '$base. Citation : ${data.quote}';
+    return '$base. ${context.l10n.systemMessage(data.quote!)}';
   }
 
   @override
@@ -120,24 +121,26 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
                   child: Semantics(
                     button: true,
-                    label: 'Commencer dès maintenant',
+                    label: context.l10n.commencerDesMaintenant,
                     child: FilledButton(
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(double.infinity, 52),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         backgroundColor: scheme.primary,
                         foregroundColor: scheme.onPrimary,
-                        disabledBackgroundColor:
-                            scheme.onSurface.withValues(alpha: 0.12),
-                        disabledForegroundColor:
-                            scheme.onSurface.withValues(alpha: 0.38),
+                        disabledBackgroundColor: scheme.onSurface.withValues(
+                          alpha: 0.12,
+                        ),
+                        disabledForegroundColor: scheme.onSurface.withValues(
+                          alpha: 0.38,
+                        ),
                         elevation: 0,
                         shadowColor: Colors.transparent,
                         surfaceTintColor: Colors.transparent,
                       ),
                       onPressed: widget.onCommencer,
                       child: Text(
-                        'Commencer dès maintenant',
+                        context.l10n.commencerDesMaintenant,
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         style: textTheme.titleSmall?.copyWith(
@@ -177,10 +180,7 @@ class _OnboardingSlide extends StatelessWidget {
   final _SlideData data;
   final String semanticPageLabel;
 
-  const _OnboardingSlide({
-    required this.data,
-    required this.semanticPageLabel,
-  });
+  const _OnboardingSlide({required this.data, required this.semanticPageLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -196,15 +196,11 @@ class _OnboardingSlide extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ExcludeSemantics(
-              child: Icon(
-                data.icon,
-                size: 88,
-                color: scheme.primary,
-              ),
+              child: Icon(data.icon, size: 88, color: scheme.primary),
             ),
             const SizedBox(height: 32),
             Text(
-              data.title,
+              context.l10n.systemMessage(data.title),
               textAlign: TextAlign.center,
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
@@ -214,7 +210,7 @@ class _OnboardingSlide extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              data.body,
+              context.l10n.systemMessage(data.body),
               textAlign: TextAlign.center,
               style: textTheme.bodyLarge?.copyWith(
                 height: 1.45,
@@ -224,7 +220,7 @@ class _OnboardingSlide extends StatelessWidget {
             if (data.quote != null && data.quote!.isNotEmpty) ...[
               const SizedBox(height: 28),
               Text(
-                '« ${data.quote} »',
+                '« ${context.l10n.systemMessage(data.quote!)} »',
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
                   height: 1.4,
@@ -255,7 +251,7 @@ class _PageDots extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Page ${index + 1} sur $count',
+      label: context.l10n.pageSur(index + 1, count),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(count, (i) {

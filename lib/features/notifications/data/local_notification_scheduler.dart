@@ -1,4 +1,8 @@
 import 'package:flutter/foundation.dart';
+
+import '../../../app/localization/language_service.dart';
+import '../../../app/localization/localization.dart';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -14,13 +18,18 @@ class LocalNotificationScheduler implements NotificationScheduler {
     required FlutterLocalNotificationsPlugin plugin,
     required NotificationPreferencesService preferences,
     ReminderSlotCalculator calculator = const ReminderSlotCalculator(),
+    LanguageService? languageService,
   }) : _plugin = plugin,
        _preferences = preferences,
-       _calculator = calculator;
+       _calculator = calculator,
+       _languageService = languageService;
 
   final FlutterLocalNotificationsPlugin _plugin;
   final NotificationPreferencesService _preferences;
   final ReminderSlotCalculator _calculator;
+  final LanguageService? _languageService;
+  AppLocalizations get _strings =>
+      lookupAppLocalizations(_languageService?.locale ?? const Locale('fr'));
 
   static const AndroidNotificationChannel _androidChannel =
       AndroidNotificationChannel(
@@ -31,8 +40,9 @@ class LocalNotificationScheduler implements NotificationScheduler {
       );
 
   static Future<void> initializePlugin(
-    FlutterLocalNotificationsPlugin plugin,
-  ) async {
+    FlutterLocalNotificationsPlugin plugin, {
+    AppLocalizations? strings,
+  }) async {
     await plugin.initialize(
       settings: InitializationSettings(
         android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -52,7 +62,16 @@ class LocalNotificationScheduler implements NotificationScheduler {
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    await android?.createNotificationChannel(_androidChannel);
+    await android?.createNotificationChannel(
+      AndroidNotificationChannel(
+        _androidChannel.id,
+        strings?.rappels ?? _androidChannel.name,
+        description:
+            strings?.rappelsDiscretsPourVosCommandementsEnCours ??
+            _androidChannel.description,
+        importance: _androidChannel.importance,
+      ),
+    );
   }
 
   bool get _canSchedule {
@@ -241,8 +260,8 @@ class LocalNotificationScheduler implements NotificationScheduler {
     return NotificationDetails(
       android: AndroidNotificationDetails(
         _androidChannel.id,
-        _androidChannel.name,
-        channelDescription: _androidChannel.description,
+        _strings.rappels,
+        channelDescription: _strings.rappelsDiscretsPourVosCommandementsEnCours,
         importance: _androidChannel.importance,
       ),
       iOS: const DarwinNotificationDetails(),
@@ -257,16 +276,16 @@ class LocalNotificationScheduler implements NotificationScheduler {
   }
 
   String _messageBody(Frequency frequency, int count) {
-    final noun = count == 1 ? 'commandement' : 'commandements';
+    final noun = count == 1 ? _strings.commandement : _strings.commandements2;
     switch (frequency) {
       case Frequency.daily:
-        return '$count $noun à compléter aujourd’hui — chaque petit pas compte.';
+        return _strings.aCompleterAujourdhuiChaquePetitPasCompte(count, noun);
       case Frequency.weekly:
-        return '$count $noun à compléter cette semaine — vous y êtes presque.';
+        return _strings.aCompleterCetteSemaineVousYEtesPresque(count, noun);
       case Frequency.monthly:
-        return '$count $noun à compléter d’ici la fin du mois — continuez comme ça.';
+        return _strings.aCompleterDiciLaFinDuMoisContinuezComme(count, noun);
       case Frequency.yearly:
-        return '$count $noun à compléter sur l’année — un rythme régulier, ça paie.';
+        return _strings.aCompleterSurLanneeUnRythmeRegulierCaPaie(count, noun);
     }
   }
 }

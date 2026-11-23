@@ -14,6 +14,7 @@ import 'command_confirmation_dialogs.dart';
 import 'command_pause_dialog.dart';
 import 'dynamic_progress_bar.dart';
 import 'increment_animation_overlay.dart';
+import '../../../../app/localization/localization.dart';
 
 class CommandCard extends StatefulWidget {
   final Command command;
@@ -137,8 +138,8 @@ class _CommandCardState extends State<CommandCard> {
             alpha: 0.28,
           )
         : hasCustomAccent
-            ? accentColor.withValues(alpha: 0.2)
-            : Theme.of(context).colorScheme.surfaceContainerHigh;
+        ? accentColor.withValues(alpha: 0.2)
+        : Theme.of(context).colorScheme.surfaceContainerHigh;
 
     final cardRadius = compact ? 12.0 : 16.0;
     final emojiBox = compact ? 28.0 : 34.0;
@@ -157,38 +158,90 @@ class _CommandCardState extends State<CommandCard> {
             commandProvider.incrementProgress(command.id);
           },
           borderRadius: BorderRadius.circular(cardRadius),
-            child: AnimatedOpacity(
+          child: AnimatedOpacity(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
             opacity: (!isPaused && !isActiveToday && !isCompleted) ? 0.55 : 1,
             child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            decoration: BoxDecoration(
-              color: cardBackgroundColor,
-              border: Border.all(color: borderColor, width: 1),
-              borderRadius: BorderRadius.circular(cardRadius),
-            ),
-            padding: EdgeInsets.all(compact ? 8 : 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Builder(
-                        builder: (_) {
-                          final baseStyle = compact
-                              ? Theme.of(
-                                  context,
-                                ).textTheme.titleSmall?.copyWith(fontSize: 13)
-                              : Theme.of(context).textTheme.titleMedium;
-                          if (baseStyle == null) {
-                            return Text(command.title);
-                          }
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                color: cardBackgroundColor,
+                border: Border.all(color: borderColor, width: 1),
+                borderRadius: BorderRadius.circular(cardRadius),
+              ),
+              padding: EdgeInsets.all(compact ? 8 : 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Builder(
+                          builder: (_) {
+                            final baseStyle = compact
+                                ? Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontSize: 13)
+                                : Theme.of(context).textTheme.titleMedium;
+                            if (baseStyle == null) {
+                              return Text(command.title);
+                            }
 
-                          final q = searchQuery.trim();
-                          if (q.isEmpty) {
+                            final q = searchQuery.trim();
+                            if (q.isEmpty) {
+                              return Row(
+                                children: [
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 260),
+                                    curve: Curves.easeOut,
+                                    width: emojiBox,
+                                    height: emojiBox,
+                                    decoration: BoxDecoration(
+                                      color: emojiCircleColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Hero(
+                                      tag: 'command-emoji-${command.id}',
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: Text(
+                                          command.emoji,
+                                          style: TextStyle(
+                                            fontSize: emojiFontSize,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      command.title,
+                                      style: baseStyle,
+                                      maxLines: titleMaxLines,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+
+                            final highlightStyle = baseStyle.copyWith(
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.22),
+                              fontWeight: FontWeight.w600,
+                            );
+
+                            final spans = _buildHighlightedSpans(
+                              text: command.title,
+                              query: q,
+                              baseStyle: baseStyle,
+                              highlightStyle: highlightStyle,
+                            );
+
                             return Row(
                               children: [
                                 AnimatedContainer(
@@ -216,310 +269,270 @@ class _CommandCardState extends State<CommandCard> {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    command.title,
-                                    style: baseStyle,
+                                  child: RichText(
+                                    text: TextSpan(children: spans),
                                     maxLines: titleMaxLines,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
                             );
-                          }
-
-                          final highlightStyle = baseStyle.copyWith(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.22),
-                            fontWeight: FontWeight.w600,
+                          },
+                        ),
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        transitionBuilder: (child, animation) {
+                          final curved = CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOut,
                           );
-
-                          final spans = _buildHighlightedSpans(
-                            text: command.title,
-                            query: q,
-                            baseStyle: baseStyle,
-                            highlightStyle: highlightStyle,
-                          );
-
-                          return Row(
-                            children: [
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 260),
-                                curve: Curves.easeOut,
-                                width: emojiBox,
-                                height: emojiBox,
-                                decoration: BoxDecoration(
-                                  color: emojiCircleColor,
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: Hero(
-                                  tag: 'command-emoji-${command.id}',
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: Text(
-                                      command.emoji,
-                                      style: TextStyle(fontSize: emojiFontSize),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: RichText(
-                                  text: TextSpan(children: spans),
-                                  maxLines: titleMaxLines,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+                          return FadeTransition(
+                            opacity: curved,
+                            child: ScaleTransition(
+                              scale: Tween<double>(
+                                begin: 0.8,
+                                end: 1,
+                              ).animate(curved),
+                              child: child,
+                            ),
                           );
                         },
-                      ),
-                    ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) {
-                        final curved = CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOut,
-                        );
-                        return FadeTransition(
-                          opacity: curved,
-                          child: ScaleTransition(
-                            scale: Tween<double>(
-                              begin: 0.8,
-                              end: 1,
-                            ).animate(curved),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: isCompleted
-                          ? Icon(
-                              Icons.check_circle_rounded,
-                              key: const ValueKey('completed'),
-                              size: compact ? 22 : 24,
-                              color:
-                                  semanticColors?.completedCardIcon ??
-                                  scheme.primary,
-                            )
-                          : const SizedBox.shrink(key: ValueKey('incomplete')),
-                    ),
-                    PopupMenuButton<_CommandCardMenuAction>(
-                      tooltip: 'Actions',
-                      icon: const Icon(Icons.more_vert_rounded),
-                      iconColor: actionIconColor,
-                      constraints: const BoxConstraints(minWidth: 190),
-                      style: IconButton.styleFrom(
-                        minimumSize: Size(compact ? 40 : 44, compact ? 40 : 44),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: compact
-                            ? VisualDensity.compact
-                            : VisualDensity.standard,
-                      ),
-                      onSelected: (action) async {
-                        switch (action) {
-                          case _CommandCardMenuAction.details:
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) =>
-                                    CommandDetailPage(commandId: command.id),
+                        child: isCompleted
+                            ? Icon(
+                                Icons.check_circle_rounded,
+                                key: const ValueKey('completed'),
+                                size: compact ? 22 : 24,
+                                color:
+                                    semanticColors?.completedCardIcon ??
+                                    scheme.primary,
+                              )
+                            : const SizedBox.shrink(
+                                key: ValueKey('incomplete'),
                               ),
-                            );
-                            break;
-                          case _CommandCardMenuAction.edit:
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) =>
-                                    EditCommandPage(commandId: command.id),
-                              ),
-                            );
-                            break;
-                          case _CommandCardMenuAction.pause:
-                            await showCommandPauseDialog(context, command);
-                            break;
-                          case _CommandCardMenuAction.delete:
-                            if (await confirmCommandDeletion(context) &&
-                                context.mounted) {
-                              await commandProvider.deleteCommand(command.id);
-                            }
-                            break;
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem<_CommandCardMenuAction>(
-                          value: _CommandCardMenuAction.details,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(Icons.info_outline_rounded),
-                            title: Text('Voir le détail'),
+                      ),
+                      PopupMenuButton<_CommandCardMenuAction>(
+                        tooltip: context.l10n.actions,
+                        icon: const Icon(Icons.more_vert_rounded),
+                        iconColor: actionIconColor,
+                        constraints: const BoxConstraints(minWidth: 190),
+                        style: IconButton.styleFrom(
+                          minimumSize: Size(
+                            compact ? 40 : 44,
+                            compact ? 40 : 44,
                           ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: compact
+                              ? VisualDensity.compact
+                              : VisualDensity.standard,
                         ),
-                        const PopupMenuItem<_CommandCardMenuAction>(
-                          value: _CommandCardMenuAction.edit,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(Icons.edit_outlined),
-                            title: Text('Modifier'),
-                          ),
-                        ),
-                        PopupMenuItem<_CommandCardMenuAction>(
-                          value: _CommandCardMenuAction.pause,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(
-                              isPaused ? Icons.play_arrow : Icons.pause,
+                        onSelected: (action) async {
+                          switch (action) {
+                            case _CommandCardMenuAction.details:
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      CommandDetailPage(commandId: command.id),
+                                ),
+                              );
+                              break;
+                            case _CommandCardMenuAction.edit:
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      EditCommandPage(commandId: command.id),
+                                ),
+                              );
+                              break;
+                            case _CommandCardMenuAction.pause:
+                              await showCommandPauseDialog(context, command);
+                              break;
+                            case _CommandCardMenuAction.delete:
+                              if (await confirmCommandDeletion(context) &&
+                                  context.mounted) {
+                                await commandProvider.deleteCommand(command.id);
+                              }
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem<_CommandCardMenuAction>(
+                            value: _CommandCardMenuAction.details,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.info_outline_rounded),
+                              title: Text(context.l10n.voirLeDetail),
                             ),
-                            title: Text(isPaused ? 'Reprendre' : 'Mettre en pause'),
                           ),
-                        ),
-                        const PopupMenuItem<_CommandCardMenuAction>(
-                          value: _CommandCardMenuAction.delete,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(Icons.delete_outline_rounded),
-                            title: Text('Supprimer'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              if (isPaused) CommandPauseStatus(command: command),
-              CommandStreakFromRepository(
-                command: command,
-                compact: compact,
-                titleIndent: emojiBox + 8,
-              ),
-                if (command.description.trim().isNotEmpty) ...[
-                  SizedBox(height: compact ? 2 : 4),
-                  Text(
-                    command.description.trim(),
-                    maxLines: compact ? 1 : 2,
-                    overflow: TextOverflow.ellipsis,
-                    style:
-                        (compact
-                                ? Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(fontSize: 12)
-                                : Theme.of(context).textTheme.bodyMedium)
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                          PopupMenuItem<_CommandCardMenuAction>(
+                            value: _CommandCardMenuAction.edit,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.edit_outlined),
+                              title: Text(context.l10n.modifier),
                             ),
-                  ),
-                ],
-                SizedBox(height: compact ? 6 : 8),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: DynamicProgressBar(
-                    key: ValueKey<String>(
-                      'progress-${command.progress}-${command.target}-$compact',
-                    ),
-                    progress: command.progress,
-                    target: command.target,
-                    accentTintColor: hasCustomAccent ? accentColor : null,
-                    compact: compact,
-                  ),
-                ),
-                if (!compact) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Fréquence: ${_frequencyLabel(command.frequency)}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  if (command.tags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: command.tags
-                          .map(
-                            (tag) => Chip(
-                              label: Text(
-                                '#$tag',
-                                style: tagChipStyle.labelColor != null
-                                    ? Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: tagChipStyle.labelColor,
-                                          fontWeight: FontWeight.w500,
-                                        )
-                                    : null,
-                              ),
-                              visualDensity: VisualDensity.compact,
-                              side: tagChipStyle.side,
-                              backgroundColor: tagChipStyle.backgroundColor,
-                            ),
-                          )
-                          .toList(growable: false),
-                    ),
-                  ],
-                  if (!isPaused) ...[
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        tooltip: 'Réinitialiser',
-                        color: actionIconColor,
-                        onPressed: isActiveToday
-                            ? () =>
-                                  commandProvider.resetProgress(command.id)
-                            : null,
-                        icon: const Icon(Icons.refresh),
-                      ),
-                    ),
-                  ],
-                ] else ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _frequencyLabelCompact(command.frequency),
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                fontSize: 11,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (!isPaused)
-                        IconButton(
-                          tooltip: 'Réinitialiser',
-                          color: actionIconColor,
-                          visualDensity: VisualDensity.compact,
-                          style: IconButton.styleFrom(
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            minimumSize: const Size(36, 36),
-                            padding: EdgeInsets.zero,
                           ),
-                          onPressed: isActiveToday
-                              ? () =>
-                                    commandProvider.resetProgress(command.id)
-                              : null,
-                          icon: const Icon(Icons.refresh, size: 20),
-                        ),
+                          PopupMenuItem<_CommandCardMenuAction>(
+                            value: _CommandCardMenuAction.pause,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                isPaused ? Icons.play_arrow : Icons.pause,
+                              ),
+                              title: Text(
+                                isPaused
+                                    ? context.l10n.reprendre
+                                    : context.l10n.mettreEnPause,
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem<_CommandCardMenuAction>(
+                            value: _CommandCardMenuAction.delete,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.delete_outline_rounded),
+                              title: Text(context.l10n.supprimer),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  if (command.tags.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    _CompactTagsRow(
-                      tags: command.tags,
-                      tagChipStyle: tagChipStyle,
+                  if (isPaused) CommandPauseStatus(command: command),
+                  CommandStreakFromRepository(
+                    command: command,
+                    compact: compact,
+                    titleIndent: emojiBox + 8,
+                  ),
+                  if (command.description.trim().isNotEmpty) ...[
+                    SizedBox(height: compact ? 2 : 4),
+                    Text(
+                      command.description.trim(),
+                      maxLines: compact ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          (compact
+                                  ? Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(fontSize: 12)
+                                  : Theme.of(context).textTheme.bodyMedium)
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
                     ),
                   ],
+                  SizedBox(height: compact ? 6 : 8),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: DynamicProgressBar(
+                      key: ValueKey<String>(
+                        'progress-${command.progress}-${command.target}-$compact',
+                      ),
+                      progress: command.progress,
+                      target: command.target,
+                      accentTintColor: hasCustomAccent ? accentColor : null,
+                      compact: compact,
+                    ),
+                  ),
+                  if (!compact) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      context.l10n.frequence2(
+                        _frequencyLabel(command.frequency),
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (command.tags.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: command.tags
+                            .map(
+                              (tag) => Chip(
+                                label: Text(
+                                  '#$tag',
+                                  style: tagChipStyle.labelColor != null
+                                      ? Theme.of(context).textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: tagChipStyle.labelColor,
+                                              fontWeight: FontWeight.w500,
+                                            )
+                                      : null,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                side: tagChipStyle.side,
+                                backgroundColor: tagChipStyle.backgroundColor,
+                              ),
+                            )
+                            .toList(growable: false),
+                      ),
+                    ],
+                    if (!isPaused) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          tooltip: context.l10n.reinitialiser,
+                          color: actionIconColor,
+                          onPressed: isActiveToday
+                              ? () => commandProvider.resetProgress(command.id)
+                              : null,
+                          icon: const Icon(Icons.refresh),
+                        ),
+                      ),
+                    ],
+                  ] else ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _frequencyLabelCompact(
+                              command.frequency,
+                              strings: context.l10n,
+                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  fontSize: 11,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (!isPaused)
+                          IconButton(
+                            tooltip: context.l10n.reinitialiser,
+                            color: actionIconColor,
+                            visualDensity: VisualDensity.compact,
+                            style: IconButton.styleFrom(
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              minimumSize: const Size(36, 36),
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: isActiveToday
+                                ? () =>
+                                      commandProvider.resetProgress(command.id)
+                                : null,
+                            icon: const Icon(Icons.refresh, size: 20),
+                          ),
+                      ],
+                    ),
+                    if (command.tags.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      _CompactTagsRow(
+                        tags: command.tags,
+                        tagChipStyle: tagChipStyle,
+                      ),
+                    ],
+                  ],
                 ],
-              ],
-            ),
+              ),
             ),
           ),
         ),
@@ -530,10 +543,26 @@ class _CommandCardState extends State<CommandCard> {
     return ColorFiltered(
       // Désature les couleurs en conservant la luminance et l’opacité.
       colorFilter: const ColorFilter.matrix([
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0, 0, 0, 1, 0,
+        0.2126,
+        0.7152,
+        0.0722,
+        0,
+        0,
+        0.2126,
+        0.7152,
+        0.0722,
+        0,
+        0,
+        0.2126,
+        0.7152,
+        0.0722,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
       ]),
       child: card,
     );
@@ -581,24 +610,26 @@ _CommandTagChipStyle _commandTagChipStyle({
 enum _CommandCardMenuAction { details, edit, pause, delete }
 
 /// Libellés courts pour la ligne méta en mode compact.
-String _frequencyLabelCompact(Frequency frequency) {
+String _frequencyLabelCompact(
+  Frequency frequency, {
+  AppLocalizations? strings,
+}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotid.';
+      return l10n.quotid;
     case Frequency.weekly:
-      return 'Hebd.';
+      return l10n.hebd;
     case Frequency.monthly:
-      return 'Mens.';
+      return l10n.mens;
     case Frequency.yearly:
-      return 'Ann.';
+      return l10n.ann;
   }
 }
 
 class _CompactTagsRow extends StatelessWidget {
-  const _CompactTagsRow({
-    required this.tags,
-    required this.tagChipStyle,
-  });
+  const _CompactTagsRow({required this.tags, required this.tagChipStyle});
 
   final List<String> tags;
   final _CommandTagChipStyle tagChipStyle;
@@ -620,9 +651,9 @@ class _CompactTagsRow extends StatelessWidget {
               '#$tag',
               style: tagChipStyle.labelColor != null
                   ? Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: tagChipStyle.labelColor,
-                        fontWeight: FontWeight.w500,
-                      )
+                      color: tagChipStyle.labelColor,
+                      fontWeight: FontWeight.w500,
+                    )
                   : Theme.of(context).textTheme.labelSmall,
             ),
             visualDensity: VisualDensity.compact,
@@ -639,9 +670,9 @@ class _CompactTagsRow extends StatelessWidget {
               '+$extra',
               style: tagChipStyle.labelColor != null
                   ? Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: tagChipStyle.labelColor,
-                        fontWeight: FontWeight.w500,
-                      )
+                      color: tagChipStyle.labelColor,
+                      fontWeight: FontWeight.w500,
+                    )
                   : Theme.of(context).textTheme.labelSmall,
             ),
             visualDensity: VisualDensity.compact,
@@ -655,15 +686,17 @@ class _CompactTagsRow extends StatelessWidget {
   }
 }
 
-String _frequencyLabel(Frequency frequency) {
+String _frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }

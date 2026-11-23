@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/localization/localization.dart';
+
 Future<bool> confirmCommandDeletion(BuildContext context) =>
     _confirmCommandAction(
       context,
-      title: 'Supprimer le commandement ?',
-      message: 'Le commandement et son historique seront supprimés.',
-      action: 'Supprimer',
+      title: context.l10n.supprimerLeCommandement,
+      message: context.l10n.leCommandementEtSonHistoriqueSerontSupprimes,
+      action: context.l10n.supprimer,
     );
 
 Future<bool> confirmCommandReset(BuildContext context) => _confirmCommandAction(
   context,
-  title: 'Réinitialiser le cycle ?',
-  message: 'La progression du cycle en cours sera remise à zéro.',
-  action: 'Réinitialiser',
+  title: context.l10n.reinitialiserLeCycle,
+  message: context.l10n.laProgressionDuCycleEnCoursSeraRemiseA,
+  action: context.l10n.reinitialiser,
 );
 
 Future<bool> _confirmCommandAction(
@@ -31,7 +33,7 @@ Future<bool> _confirmCommandAction(
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Annuler'),
+                child: Text(context.l10n.annuler),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(

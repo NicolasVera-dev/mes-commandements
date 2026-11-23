@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/validators/password_validator.dart';
+import '../../../../app/localization/localization.dart';
 
 class PasswordStrengthIndicator extends StatelessWidget {
   final PasswordValidationResult result;
@@ -36,7 +37,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Force : ${result.strengthLabel}',
+          context.l10n.force(context.l10n.systemMessage(result.strengthLabel)),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
@@ -66,13 +67,13 @@ class PasswordStrengthIndicator extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    rule.label,
+                    context.l10n.systemMessage(rule.label),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: rule.isValid
-                              ? Theme.of(context).colorScheme.onSurfaceVariant
-                              : Theme.of(context).colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.85),
-                        ),
+                      color: rule.isValid
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                          : Theme.of(context).colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.85),
+                    ),
                   ),
                 ),
               ],
@@ -85,10 +86,8 @@ class PasswordStrengthIndicator extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              firstErrorMessage,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
+              context.l10n.systemMessage(firstErrorMessage),
+              style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -96,4 +95,3 @@ class PasswordStrengthIndicator extends StatelessWidget {
     );
   }
 }
-

@@ -6,6 +6,7 @@ import '../../../domain/entities/cycle_note.dart';
 import '../../utils/cycle_visual_style.dart';
 import '../cycle_note_bottom_sheet.dart';
 import '../cycle_note_indicator.dart';
+import '../../../../../app/localization/localization.dart';
 
 class MonthlyGrid extends StatelessWidget {
   final int year;
@@ -69,8 +70,8 @@ class MonthlyGrid extends StatelessWidget {
                 ),
                 title: Text(
                   canCompletePastCycle
-                      ? 'Marquer comme complété'
-                      : 'Retirer la complétion',
+                      ? context.l10n.marquerCommeComplete
+                      : context.l10n.retirerLaCompletion,
                 ),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -89,7 +90,7 @@ class MonthlyGrid extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
-                title: const Text('Ajouter/modifier une note'),
+                title: Text(context.l10n.ajouterModifierUneNote),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _openNote(context, cycleKey);
@@ -148,15 +149,15 @@ class MonthlyGrid extends StatelessWidget {
           context: context,
         );
         final hasNote = notes.containsKey(key);
-        final semanticsNote = hasNote ? ', note enregistrée' : '';
-        final cycleLabel = '${monthLabel(month)} $year';
+        final semanticsNote = hasNote ? context.l10n.noteEnregistree : '';
+        final cycleLabel = '${monthLabel(month, strings: context.l10n)} $year';
         final semanticsAction = (canCompletePastCycle || canUncompletePastCycle)
-            ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
-            : 'Appuyez pour ajouter ou modifier une note.';
+            ? context.l10n.appuyezPourChoisirEntreCompleterOuAjouterUneNote
+            : context.l10n.appuyezPourAjouterOuModifierUneNote;
 
         return Semantics(
           label:
-              '$cycleLabel : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
+              '$cycleLabel : ${statusSemantics(status, strings: context.l10n)}$semanticsNote. $semanticsAction',
           button: true,
           child: Material(
             color: Colors.transparent,
