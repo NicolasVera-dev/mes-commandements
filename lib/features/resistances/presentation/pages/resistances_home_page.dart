@@ -12,6 +12,7 @@ import '../widgets/resistance_filter_bottom_sheet.dart';
 import '../widgets/resistance_filter_chips_bar.dart';
 import '../../../../app/command_card_display_mode.dart';
 import '../../../../app/command_card_layout_service.dart';
+import '../../../../app/localization/localization.dart';
 
 class ResistancesHomePage extends StatefulWidget {
   const ResistancesHomePage({super.key});
@@ -56,14 +57,14 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
         toolbarHeight: 68,
         titleSpacing: 8,
         title: ExpandableSearchBar(
-          collapsedTitle: 'Mes résistances',
+          collapsedTitle: context.l10n.mesResistances,
           searchQuery: provider.searchQuery,
           onSearchQueryChanged: provider.setSearchQuery,
-          hintText: 'Rechercher une résistance…',
+          hintText: context.l10n.rechercherUneResistance,
         ),
         actions: [
           IconButton(
-            tooltip: 'Filtres',
+            tooltip: context.l10n.filtres,
             onPressed: () async {
               final initial = ResistanceFilterSettings(
                 selectedTags: _selectedTags,
@@ -91,7 +92,7 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
           ),
           if (!auth.isInitialLoading && auth.isConnected)
             IconButton(
-              tooltip: 'Paramètres du compte',
+              tooltip: context.l10n.parametresDuCompte,
               icon: const Icon(Icons.settings_outlined),
               onPressed: () {
                 Navigator.of(context).push(
@@ -162,7 +163,9 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Le réordonnancement est disponible uniquement en mode Manuel, sans filtre ni recherche.',
+                                context
+                                    .l10n
+                                    .leReordonnancementEstDisponibleUniquementEnModeManuelSans,
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ),
@@ -199,13 +202,15 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    provider.syncErrorMessage!,
+                                    context.l10n.systemMessage(
+                                      provider.syncErrorMessage!,
+                                    ),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 12),
                                   FilledButton.tonal(
                                     onPressed: () => provider.retrySync(),
-                                    child: const Text('Réessayer'),
+                                    child: Text(context.l10n.reessayer),
                                   ),
                                 ],
                               ),
@@ -224,7 +229,9 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'Aucune résistance pour le moment.\nAjoutez ce que vous voulez arrêter !',
+                                    context
+                                        .l10n
+                                        .aucuneResistancePourLeMomentAjoutezCeQueVous,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge,
@@ -249,7 +256,7 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'Aucune résistance trouvée',
+                                    context.l10n.aucuneResistanceTrouvee,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge,
@@ -338,7 +345,7 @@ class _ResistancesHomePageState extends State<ResistancesHomePage> {
             ? () => showCreateResistanceSheet(context: context)
             : null,
         icon: const Icon(Icons.add),
-        label: const Text('Nouvelle résistance'),
+        label: Text(context.l10n.nouvelleResistance),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

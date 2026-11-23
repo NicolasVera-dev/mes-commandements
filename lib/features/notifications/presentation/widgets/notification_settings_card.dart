@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../commands/presentation/state/command_provider.dart';
 import '../../data/notification_preferences_service.dart';
 import '../../domain/notification_scheduler.dart';
+import '../../../../app/localization/localization.dart';
 
 /// Réglages des rappels locaux (activation + heure).
 class NotificationSettingsCard extends StatefulWidget {
@@ -56,17 +57,15 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Rappels',
-              style: theme.textTheme.titleMedium,
-            ),
+            Text(context.l10n.rappels, style: theme.textTheme.titleMedium),
             const SizedBox(height: 10),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Activer les rappels'),
+              title: Text(context.l10n.activerLesRappels),
               subtitle: Text(
-                'Une notification par type de fréquence (quotidien, hebdo, mensuel, annuel) '
-                'lorsqu’il reste au moins un commandement non terminé pour la période en cours.',
+                context
+                    .l10n
+                    .uneNotificationParTypeDeFrequenceQuotidienHebdoMensuel,
                 style: theme.textTheme.bodySmall,
               ),
               value: _enabled,
@@ -78,8 +77,7 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
                     return;
                   }
                   setState(() => _enabled = true);
-                  final commands =
-                      context.read<CommandProvider>().commands;
+                  final commands = context.read<CommandProvider>().commands;
                   unawaited(_scheduler.rescheduleAll(commands));
                 } else {
                   await _prefs.setRemindersEnabled(false);
@@ -95,9 +93,11 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Heure du rappel'),
+                title: Text(context.l10n.heureDuRappel),
                 subtitle: Text(
-                  'Tous les créneaux utilisent cette heure (locale). Touchez pour modifier.',
+                  context
+                      .l10n
+                      .tousLesCreneauxUtilisentCetteHeureLocaleTouchezPour,
                   style: theme.textTheme.bodySmall,
                 ),
                 trailing: Text(
@@ -112,7 +112,10 @@ class _NotificationSettingsCardState extends State<NotificationSettingsCard> {
                   if (picked == null || !context.mounted) {
                     return;
                   }
-                  await _prefs.setReminderHourMinute(picked.hour, picked.minute);
+                  await _prefs.setReminderHourMinute(
+                    picked.hour,
+                    picked.minute,
+                  );
                   setState(() {
                     _hour = picked.hour;
                     _minute = picked.minute;

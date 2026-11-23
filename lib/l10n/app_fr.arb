@@ -1,0 +1,796 @@
+{
+  "@@locale": "fr",
+  "noteEnregistree": ", note enregistrée",
+  "message10MinDeMeditation": "10 min de méditation",
+  "message10MinutesDePleineConscienceParJourReduisentSignificativement": "10 minutes de pleine conscience par jour réduisent significativement le stress et améliorent la régulation émotionnelle (Harvard Medical School).",
+  "message12CaracteresMinimum": "12 caractères minimum",
+  "message2GrandsFilmsDuCinema": "2 grands films du cinéma",
+  "message3SeancesDeSport": "3 séances de sport",
+  "message8000PasParJour": "8 000 pas par jour",
+  "acquerirUneNouvelleCompetenceChaqueAnneeLangueInstrumentProgrammation": "Acquérir une nouvelle compétence chaque année — langue, instrument, programmation — entretient la neuroplasticité et élargit les opportunités.",
+  "actions": "Actions",
+  "actionsDuCommandement": "Actions du commandement",
+  "activerLesRappels": "Activer les rappels",
+  "activiteCreative": "Activité créative",
+  "affichageDesCartes": "Affichage des cartes",
+  "afficher": "Afficher",
+  "ajouterLeTag": "Ajouter le tag",
+  "ajouterUnTagAutocompletion": "Ajouter un tag (autocomplétion)",
+  "ajouterModifierUneNote": "Ajouter/modifier une note",
+  "alcool": "Alcool",
+  "alcoolTabacEcransOuJeuxPoseUnNomSur": "Alcool, tabac, écrans ou jeux… Pose un nom sur ce qui te tient, note tes jours de liberté, et reprends le fil si tu trébuches.",
+  "ann": "Ann.",
+  "annuel": "Annuel",
+  "annuler": "Annuler",
+  "annee": "Année {p0}",
+  "@annee": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "annee2": "Année {p0} : {p1}{p2}. {p3}",
+  "@annee2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      },
+      "p2": {
+        "type": "Object"
+      },
+      "p3": {
+        "type": "Object"
+      }
+    }
+  },
+  "apercu": "Aperçu",
+  "apercuDuCommandement": "Aperçu du commandement",
+  "apparence": "Apparence",
+  "appelerUnProche": "Appeler un proche",
+  "apprendreQuelqueChoseDeNouveau": "Apprendre quelque chose de nouveau",
+  "appuyezPourAjouterOuModifierUneNote": "Appuyez pour ajouter ou modifier une note.",
+  "appuyezPourChoisirEntreCompleterOuAjouterUneNote": "Appuyez pour choisir entre compléter ou ajouter une note.",
+  "apres72hSansFumerLesBronchesCommencentASe": "Après 72h sans fumer, les bronches commencent à se régénérer. Après 1 an, le risque d'infarctus est divisé par deux.",
+  "arreterDeFumer": "Arrêter de fumer",
+  "arreterLesEcransApres21h": "Arrêter les écrans après 21h",
+  "auLitAvant23h": "Au lit avant 23h",
+  "auMoinsUnCaractereSpecial": "Au moins un caractère spécial",
+  "auMoinsUnChiffre": "Au moins un chiffre",
+  "auMoinsUneMajuscule": "Au moins une majuscule",
+  "auMoinsUneMinuscule": "Au moins une minuscule",
+  "aucunCommandementTrouve": "Aucun commandement trouvé",
+  "aucunHistoriquePourCeCommandementPourLeMomentContinuez": "Aucun historique pour ce commandement pour le moment. Continuez, chaque action compte !",
+  "aucunHistoriquePourCettePeriodeContinuezChaqueActionCompte": "Aucun historique pour cette période. Continuez, chaque action compte !",
+  "aucunTagDisponiblePourLeMoment": "Aucun tag disponible pour le moment.",
+  "aucunTagPourLeMoment": "Aucun tag pour le moment.",
+  "aucuneRechuteEnregistreeContinuezCommeCa": "Aucune rechute enregistrée. Continuez comme ça !",
+  "aucuneResistancePourLeMomentAjoutezCeQueVous": "Aucune résistance pour le moment.\nAjoutez ce que vous voulez arrêter !",
+  "aucuneResistanceTrouvee": "Aucune résistance trouvée",
+  "automatique": "Automatique",
+  "autres": "Autres",
+  "belleRegularite": "Belle régularité",
+  "bienvenueDansRituel": "Bienvenue dans Rituel",
+  "boire15lDEau": "Boire 1,5L d'eau",
+  "bonDepart": "Bon départ",
+  "capFranchi": "Cap franchi",
+  "ceChampEstObligatoire": "Ce champ est obligatoire",
+  "ceNEstPasLIntensiteQuiCompteC": "Ce n'est pas l'intensité qui compte, c'est la constance.",
+  "ceTagExisteDeja": "Ce tag existe déjà.",
+  "cetUtilisateurAEteDesactive": "Cet utilisateur a été désactivé.",
+  "cetteActionEstIndisponiblePourLeMoment": "Cette action est indisponible pour le moment.",
+  "cetteActionEstIrreversible": "Cette action est irréversible.",
+  "cetteActionEstIrreversibleConfirmezLaSuppression": "Cette action est irréversible. Confirmez la suppression.",
+  "cetteAdresseEmailEstDejaUtilisee": "Cette adresse email est déjà utilisée.",
+  "chaqueTagNeDoitPasDepasserCaracteres": "Chaque tag ne doit pas dépasser {p0} caractères.",
+  "@chaqueTagNeDoitPasDepasserCaracteres": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "choisirUnEmoji": "Choisir un emoji",
+  "choisirUneCouleurDaccent": "Choisir une couleur d’accent",
+  "choisirUneDateDeReprise": "Choisir une date de reprise",
+  "clair": "Clair",
+  "commandementIntrouvable": "Commandement introuvable.",
+  "commandements": "Commandements",
+  "commandementsEtResistancesDetailParDefaut": "Commandements et résistances — détail par défaut",
+  "commandementsEtResistancesListePlusDense": "Commandements et résistances — liste plus dense",
+  "commencerDesMaintenant": "Commencer dès maintenant",
+  "compact": "Compact",
+  "completion": "Complétion: {p0}%",
+  "@completion": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "confirmation": "Confirmation",
+  "confirmer": "Confirmer",
+  "confirmerLaRechute": "Confirmer la rechute ?",
+  "confirmerLeMotDePasse": "Confirmer le mot de passe",
+  "confirmerLeNouveauMotDePasse": "Confirmer le nouveau mot de passe",
+  "connexion": "Connexion",
+  "construisDesRoutinesQuiTeRessemblentEtDefaisCelles": "Construis des routines qui te ressemblent et défais celles qui te freinent. Un seul endroit pour avancer à ton rythme.",
+  "contenuSensible": "Contenu sensible",
+  "contrasteFaibleDetecteWcagAaVousPouvezContinuerMais": "Contraste faible détecté (WCAG AA). Vous pouvez continuer, mais la lisibilité peut être réduite.",
+  "couleurDaccent": "Couleur d’accent",
+  "couleurParDefautTheme": "Couleur par défaut (thème)",
+  "coupDur": "Coup dur",
+  "crash": "Crash",
+  "creativite": "Créativité",
+  "creerLeCompte": "Créer le compte",
+  "creerUnCommandement": "Créer un commandement",
+  "creerUnCompte": "Créer un compte",
+  "creezVotreCompte": "Créez votre compte",
+  "dateDeReprise": "Date de reprise",
+  "description": "Description",
+  "descriptionOptionnelle": "Description (optionnelle)",
+  "dimanche": "Dimanche",
+  "detailDuCommandement": "Détail du commandement",
+  "details": "Détails",
+  "effacer": "Effacer",
+  "email": "Email",
+  "emoji": "Emoji",
+  "emojiSelectionne": "Emoji sélectionné",
+  "enCours": "En cours",
+  "enPause": "En pause",
+  "enPauseRepriseLe": "En pause · reprise le {p0}",
+  "@enPauseRepriseLe": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "enRythme": "En rythme",
+  "enregistrer": "Enregistrer",
+  "entrezVotreEmail": "Entrez votre email",
+  "envoyerLemail": "Envoyer l’email",
+  "essentiel": "Essentiel",
+  "ex10": "Ex: 10",
+  "exEtudierDart": "Ex: Étudier Dart",
+  "faceAuxAddictions": "Face aux addictions",
+  "faible": "Faible",
+  "fauxPas": "Faux pas",
+  "fermer": "Fermer",
+  "filtres": "Filtres",
+  "finirUnLivre": "Finir un livre",
+  "fixeDesObjectifsParJourSemaineMoisOuAnnee": "Fixe des objectifs par jour, semaine, mois ou année. Visualise ta régularité, célèbre tes séries et identifie où tu peux faire mieux.",
+  "force": "Force : {p0}",
+  "@force": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "fort": "Fort",
+  "frequence": "Fréquence",
+  "frequence2": "Fréquence: {p0}",
+  "@frequence2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "habitudeAncree": "Habitude ancrée",
+  "hebd": "Hebd.",
+  "hebdomadaire": "Hebdomadaire",
+  "heureDuRappel": "Heure du rappel",
+  "historiqueDesRechutes": "Historique des rechutes",
+  "iconesFrequentesPourLesHabitudesAArreter": "Icônes fréquentes pour les habitudes à arrêter",
+  "identifiantsInvalides": "Identifiants invalides.",
+  "impossibleDeChargerLhistorique": "Impossible de charger l’historique.",
+  "impossibleDeModifierLeMotDePassePourCet": "Impossible de modifier le mot de passe pour cet utilisateur.",
+  "impossibleDeSupprimerLeComptePourCetUtilisateur": "Impossible de supprimer le compte pour cet utilisateur.",
+  "inscription": "Inscription",
+  "jeudi": "Jeudi",
+  "jeuxParis": "Jeux & paris",
+  "jour": "Jour {p0} {p1} {p2} : {p3}{p4}. {p5}",
+  "@jour": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      },
+      "p2": {
+        "type": "Object"
+      },
+      "p3": {
+        "type": "Object"
+      },
+      "p4": {
+        "type": "Object"
+      },
+      "p5": {
+        "type": "Object"
+      }
+    }
+  },
+  "joursActifs": "Jours actifs",
+  "jusquaCeQueJeReprenne": "Jusqu’à ce que je reprenne",
+  "jaiCraque": "J’ai craqué",
+  "jaiCraque2": "J’ai craqué 😔",
+  "jaiDejaUnCompte": "J’ai déjà un compte",
+  "lOmsRecommande150MinDActiviteModereePar": "L'OMS recommande 150 min d'activité modérée par semaine. 3 séances suffisent pour atteindre ce seuil et améliorer durablement santé cardiaque et humeur.",
+  "lAdresseEmailNEstPasValide": "L'adresse email n'est pas valide.",
+  "lInscriptionAvecEmailEtMotDePasseN": "L'inscription avec email et mot de passe n'est pas autorisée.",
+  "laChuteNEstPasUnEchecLEchec": "La chute n'est pas un échec. L'échec, c'est de rester là où on est tombé.",
+  "laDescriptionNeDoitPasDepasserCaracteres": "La description ne doit pas dépasser {p0} caractères.",
+  "@laDescriptionNeDoitPasDepasserCaracteres": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "laLumiereBleueBloqueLaMelatonineEtRetardeL": "La lumière bleue bloque la mélatonine et retarde l'endormissement de 1 à 3h. Couper les écrans le soir améliore profondément le sommeil.",
+  "laNoteNePeutPasDepasserCaracteres": "La note ne peut pas dépasser {p0} caractères.",
+  "@laNoteNePeutPasDepasserCaracteres": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "laProgressionDuCycleEnCoursSeraRemiseA": "La progression du cycle en cours sera remise à zéro.",
+  "laProgressionNePeutPasDepasserLobjectif": "La progression ne peut pas dépasser l’objectif",
+  "leCommandementEtSonHistoriqueSerontSupprimes": "Le commandement et son historique seront supprimés.",
+  "leMotDePasseDoitContenirAuMoins12": "Le mot de passe doit contenir au moins 12 caractères.",
+  "leMotDePasseDoitContenirAuMoinsUn": "Le mot de passe doit contenir au moins un caractère spécial parmi : ! @ # $ % ^ & * ( ) , . ? : | < >",
+  "leMotDePasseDoitContenirAuMoinsUn2": "Le mot de passe doit contenir au moins un chiffre.",
+  "leMotDePasseDoitContenirAuMoinsUne": "Le mot de passe doit contenir au moins une lettre majuscule.",
+  "leMotDePasseDoitContenirAuMoinsUne2": "Le mot de passe doit contenir au moins une lettre minuscule.",
+  "leMotDePasseEstTropFaibleOuTrop": "Le mot de passe est trop faible ou trop court.",
+  "leMotDePasseNeDoitPasContenirPlus": "Le mot de passe ne doit pas contenir plus de 2 caractères identiques consécutifs.",
+  "leNombreDeTagsNeDoitPasDepasser": "Le nombre de tags ne doit pas dépasser {p0}.",
+  "@leNombreDeTagsNeDoitPasDepasser": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "leNouvelOrdreNaPasPuEtreSynchronisePour": "Le nouvel ordre n’a pas pu être synchronisé pour le moment.",
+  "leReordonnancementEstDisponibleUniquementEnModeManuelSans": "Le réordonnancement est disponible uniquement en mode Manuel, sans filtre ni recherche.",
+  "leTitreEstObligatoire": "Le titre est obligatoire",
+  "leTitreNeDoitPasDepasserCaracteres": "Le titre ne doit pas dépasser {p0} caractères",
+  "@leTitreNeDoitPasDepasserCaracteres": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "leTitreNeDoitPasDepasserCaracteres2": "Le titre ne doit pas dépasser {p0} caractères.",
+  "@leTitreNeDoitPasDepasserCaracteres2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "leTitreNeDoitPasEtreVide": "Le titre ne doit pas être vide.",
+  "lesEspacesNeSontPasAutorisesDansLeMot": "Les espaces ne sont pas autorisés dans le mot de passe.",
+  "lesJoursActifsDoiventEtreComprisEntre1Lundi": "Les jours actifs doivent être compris entre 1 (lundi) et 7 (dimanche).",
+  "lesJoursActifsNeDoiventPasContenirDeDoublons": "Les jours actifs ne doivent pas contenir de doublons.",
+  "lesMotsDePasseNeCorrespondentPas": "Les mots de passe ne correspondent pas.",
+  "lesEtudesMontrentQuAtteindre8000PasJour": "Les études montrent qu'atteindre 8 000 pas/jour réduit de 51 % le risque de mortalité prématurée (JAMA, 2021).",
+  "lire20Minutes": "Lire 20 minutes",
+  "lireQuotidiennementReduitLeStressDe68En6": "Lire quotidiennement réduit le stress de 68 % en 6 minutes selon une étude de l'Université de Sussex. 20 minutes suffisent pour progresser durablement.",
+  "lireUnLivreParMoisRepresente12LivresPar": "Lire un livre par mois représente 12 livres par an. Les grands lecteurs développent un vocabulaire, une mémoire et une empathie supérieurs.",
+  "lundi": "Lundi",
+  "ma": "Ma",
+  "maintenirDesLiensSociauxFortsEstLUnDes": "Maintenir des liens sociaux forts est l'un des meilleurs prédicteurs de longévité et de bonheur (étude Harvard sur 80 ans).",
+  "manuel": "Manuel",
+  "mardi": "Mardi",
+  "marquerCommeComplete": "Marquer comme complété",
+  "marquerCommeComplete2": "Marquer {p0} comme complété ?",
+  "@marquerCommeComplete2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "masquer": "Masquer",
+  "maximumTagsParCommandement": "Maximum {p0} tags par commandement.",
+  "@maximumTagsParCommandement": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "me": "Me",
+  "mens": "Mens.",
+  "mensuel": "Mensuel",
+  "mercredi": "Mercredi",
+  "mesCommandements": "Mes commandements",
+  "mesResistances": "Mes résistances",
+  "mettreEnPause": "Mettre en pause",
+  "mettreAJour": "Mettre à jour",
+  "modificationDuMotDePasse": "Modification du mot de passe",
+  "modifier": "Modifier",
+  "modifierLaResistance": "Modifier la résistance",
+  "modifierLeCommandement": "Modifier le commandement",
+  "motDePasse": "Mot de passe",
+  "motDePasseActuel": "Mot de passe actuel",
+  "motDePasseIncorrect": "Mot de passe incorrect.",
+  "motDePasseMisAJour": "Mot de passe mis à jour.",
+  "motDePasseOublie": "Mot de passe oublié",
+  "moyen": "Moyen",
+  "nonDemarres": "Non démarrés",
+  "nonTerminesDAbord": "Non terminés d'abord",
+  "noteOptionnelle": "Note (optionnelle)",
+  "note": "Note — {p0}",
+  "@note": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "nourriture": "Nourriture",
+  "nousSommesLeRefletDeNosHabitudes": "Nous sommes le reflet de nos habitudes",
+  "nouveauCommandement": "Nouveau commandement",
+  "nouveauMotDePasse": "Nouveau mot de passe",
+  "nouvelleResistance": "Nouvelle résistance",
+  "objectif": "Objectif",
+  "organisation": "Organisation",
+  "pageSur": "Page {p0} sur {p1}",
+  "@pageSur": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "pageSur2": "Page {p0} sur {p1}. {p2}. {p3}",
+  "@pageSur2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      },
+      "p2": {
+        "type": "Object"
+      },
+      "p3": {
+        "type": "Object"
+      }
+    }
+  },
+  "panneSeche": "Panne sèche",
+  "parametresDuCompte": "Paramètres du compte",
+  "partirEnVoyage": "Partir en voyage",
+  "pasDeRepetitionDePlusDe2": "Pas de répétition de plus de 2",
+  "peindreDessinerEcrireLaPratiqueCreativeReguliereReduitLe": "Peindre, dessiner, écrire… La pratique créative régulière réduit le cortisol et stimule la neuroplasticité.",
+  "personnalisationVisuelle": "Personnalisation visuelle",
+  "personnaliserLaCouleurDuCommandement": "Personnaliser la couleur du commandement",
+  "personnaliserLiconeDuCommandement": "Personnaliser l’icône du commandement",
+  "plusDelan": "Plus d’élan",
+  "progression": "Progression",
+  "progression2": "Progression ↑",
+  "progression3": "Progression ↓",
+  "periodePrecedente": "Période précédente",
+  "periodeSuivante": "Période suivante",
+  "quotid": "Quotid.",
+  "quotidien": "Quotidien",
+  "rappels": "Rappels",
+  "rappelsDiscretsPourVosCommandementsEnCours": "Rappels discrets pour vos commandements en cours",
+  "rechercher": "Rechercher",
+  "rechercherUnCommandement": "Rechercher un commandement…",
+  "rechercherUnEmoji": "Rechercher un emoji...",
+  "rechercherUneResistance": "Rechercher une résistance…",
+  "rechercher2": "Rechercher…",
+  "recordJour": "Record : {p0} jour{p1}",
+  "@recordJour": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "releverUnDefiPhysique": "Relever un défi physique",
+  "reprendre": "Reprendre",
+  "reprendreAuProchainCycle": "Reprendre au prochain cycle",
+  "reprendreCeCycle": "Reprendre ce cycle",
+  "reprendreLeCommandement": "Reprendre le commandement",
+  "reprise": "Reprise",
+  "resetDemain": "Reset demain",
+  "resetDemainAMinuitUtc": "Reset demain à minuit UTC",
+  "resetLe1erJanvier": "Reset le 1er janvier {p0}",
+  "@resetLe1erJanvier": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "resetLe1er": "Reset le 1er {p0}",
+  "@resetLe1er": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "resetLeLundi": "Reset le lundi {p0} {p1}",
+  "@resetLeLundi": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "retirerLaCompletion": "Retirer la complétion",
+  "retirerLaCompletion2": "Retirer la complétion {p0} ?",
+  "@retirerLaCompletion2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "retour": "Retour",
+  "retourALaConnexion": "Retour à la connexion",
+  "retrouvezVosCommandements": "Retrouvez vos commandements",
+  "rituel": "Rituel",
+  "reduire": "Réduire",
+  "reessayer": "Réessayer",
+  "reinitialisationDuMotDePasse": "Réinitialisation du mot de passe",
+  "reinitialiser": "Réinitialiser",
+  "reinitialiserLeCycle": "Réinitialiser le cycle ?",
+  "resistance": "Résistance",
+  "resistanceIntrouvable": "Résistance introuvable.",
+  "resistances": "Résistances",
+  "sExposerRegulierementADesUvresMarquantesElargitL": "S'exposer régulièrement à des œuvres marquantes élargit l'empathie, la culture générale et la capacité d'analyse.",
+  "sExposerALaNature2hParSemaineEst": "S'exposer à la nature 2h par semaine est associé à un meilleur bien-être physique et mental (Nature, 2019).",
+  "samedi": "Samedi",
+  "sansEspace": "Sans espace",
+  "sansTitre": "Sans titre",
+  "sante": "Santé",
+  "seConnecter": "Se connecter",
+  "seDeconnecter": "Se déconnecter",
+  "seFixerUnDefiSportifAnnuelMarathonRandonneeTriathlon": "Se fixer un défi sportif annuel — marathon, randonnée, triathlon — structure la motivation sur le long terme et renforce la confiance en soi.",
+  "semaine": "Semaine {p0} ({p1})",
+  "@semaine": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "semaine2": "Semaine {p0} : {p1}{p2}. {p3}",
+  "@semaine2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      },
+      "p2": {
+        "type": "Object"
+      },
+      "p3": {
+        "type": "Object"
+      }
+    }
+  },
+  "social": "Social",
+  "sombre": "Sombre",
+  "sortieDansLaNature": "Sortie dans la nature",
+  "sport": "Sport",
+  "standard": "Standard",
+  "statut": "Statut",
+  "substances": "Substances",
+  "suggestions": "Suggestions",
+  "suggestionsRapides": "Suggestions rapides",
+  "suisTaProgression": "Suis ta progression",
+  "suppressionDuCompte": "Suppression du compte",
+  "supprimer": "Supprimer",
+  "supprimerLaNote": "Supprimer la note ?",
+  "supprimerLaResistance": "Supprimer la résistance ?",
+  "supprimerLeCommandement": "Supprimer le commandement ?",
+  "supprimerLeCompte": "Supprimer le compte",
+  "supprimerLeCompte2": "Supprimer le compte ?",
+  "surTaLancee": "Sur ta lancée",
+  "serieLegendaire": "Série légendaire",
+  "seriePerdueJour": "Série perdue : {p0} jour{p1}",
+  "@seriePerdueJour": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "serieSolide": "Série solide",
+  "serie": "Série ↑",
+  "serie2": "Série ↓",
+  "tabacVape": "Tabac & vape",
+  "tags": "Tags",
+  "termines": "Terminés",
+  "terminesDAbord": "Terminés d'abord",
+  "titre": "Titre",
+  "tous": "Tous",
+  "tousLesCreneauxUtilisentCetteHeureLocaleTouchezPour": "Tous les créneaux utilisent cette heure (locale). Touchez pour modifier.",
+  "toutes": "Toutes",
+  "travail": "Travail",
+  "tri": "Tri",
+  "tropDeTentativesVeuillezReessayerPlusTard": "Trop de tentatives. Veuillez réessayer plus tard.",
+  "tresFort": "Très fort",
+  "unEmailDeReinitialisationAEteEnvoyeSiLadresse": "Un email de réinitialisation a été envoyé (si l’adresse existe).",
+  "unSommeilRegulierAvantMinuitAmelioreLaQualiteDes": "Un sommeil régulier avant minuit améliore la qualité des cycles de sommeil profond, essentiels à la mémoire et à la récupération.",
+  "unTagNePeutPasDepasserCaracteres": "Un tag ne peut pas dépasser {p0} caractères.",
+  "@unTagNePeutPasDepasserCaracteres": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "uneErreurEstSurvenueLorsDeLAuthentificationVeuillez": "Une erreur est survenue lors de l'authentification. Veuillez réessayer.",
+  "uneErreurEstSurvenueLorsDeLaModification": "Une erreur est survenue lors de la modification.",
+  "uneErreurEstSurvenueLorsDeLaSynchronisation": "Une erreur est survenue lors de la synchronisation.",
+  "uneErreurEstSurvenueVeuillezReessayer": "Une erreur est survenue. Veuillez réessayer.",
+  "uneHydratationSuffisanteAmelioreLaConcentrationLEnergieEt": "Une hydratation suffisante améliore la concentration, l'énergie et la digestion. L'OMS recommande 1,5 à 2L par jour.",
+  "uneNotificationParTypeDeFrequenceQuotidienHebdoMensuel": "Une notification par type de fréquence (quotidien, hebdo, mensuel, annuel) lorsqu’il reste au moins un commandement non terminé pour la période en cours.",
+  "utilisateurConnecte": "Utilisateur connecté{p0}",
+  "@utilisateurConnecte": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "utilisateurIntrouvable": "Utilisateur introuvable.",
+  "valider": "Valider",
+  "vendredi": "Vendredi",
+  "veuillezEntrerUnNombreValide": "Veuillez entrer un nombre valide",
+  "veuillezEntrerUnTitreMin2": "Veuillez entrer un titre (min. 2)",
+  "veuillezEntrerUneAdresseEmailValide": "Veuillez entrer une adresse email valide",
+  "veuillezRespecterToutesLesReglesDuMotDePasse": "Veuillez respecter toutes les règles du mot de passe.",
+  "veuillezVousConnecterAvantDeModifierLeMotDe": "Veuillez vous connecter avant de modifier le mot de passe.",
+  "veuillezVousConnecterAvantDeSupprimerLeCompte": "Veuillez vous connecter avant de supprimer le compte.",
+  "veuillezVousReconnecterAvantDeModifierLeMotDe": "Veuillez vous reconnecter avant de modifier le mot de passe ou de supprimer le compte.",
+  "voirLaNote": "Voir la note",
+  "voirLaNoteDuCycle": "Voir la note du cycle",
+  "voirLeDetail": "Voir le détail",
+  "voirPlus": "Voir plus",
+  "vousAllezRemettreAZeroVotreSerieDeJour": "Vous allez remettre à zéro votre série de {p0} jour{p1}.",
+  "@vousAllezRemettreAZeroVotreSerieDeJour": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "voyagerAuMoinsUneFoisParAnExposeA": "Voyager au moins une fois par an expose à de nouvelles cultures, stimule la curiosité et renforce la résilience face à l'imprévu.",
+  "verificationDeLaSession": "Vérification de la session...",
+  "verifiezVotreConnexionInternetPuisReessayez": "Vérifiez votre connexion internet puis réessayez.",
+  "zoneRouge": "Zone rouge",
+  "anneeManquee": "année manquée",
+  "anneesManquees": "années manquées",
+  "anneesReussies": "années réussies",
+  "deLa": "de la {p0}",
+  "@deLa": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "decembre": "décembre",
+  "enCours2": "en cours",
+  "enPause2": "en pause",
+  "fevrier": "février",
+  "jourInactif": "jour inactif",
+  "jourManque": "jour manqué",
+  "jourSansCraquer": "jour sans craquer",
+  "joursManques": "jours manqués",
+  "joursReussis": "jours réussis",
+  "joursSansCraquer": "jours sans craquer",
+  "laSemaine": "la semaine {p0} ({p1})",
+  "@laSemaine": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "lannee": "l’année {p0}",
+  "@lannee": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "moisManque": "mois manqué",
+  "moisManques": "mois manqués",
+  "moisReussis": "mois réussis",
+  "objectifAtteint": "objectif atteint",
+  "objectifNonAtteint": "objectif non atteint",
+  "semaineManquee": "semaine manquée",
+  "semainesManquees": "semaines manquées",
+  "semainesReussies": "semaines réussies",
+  "remisAZero": "{p0} {p1} remis à zéro",
+  "@remisAZero": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "remisAZero2": "{p0} {p1} {p2} remis à zéro",
+  "@remisAZero2": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      },
+      "p2": {
+        "type": "Object"
+      }
+    }
+  },
+  "aCompleterAujourdhuiChaquePetitPasCompte": "{p0} {p1} à compléter aujourd’hui — chaque petit pas compte.",
+  "@aCompleterAujourdhuiChaquePetitPasCompte": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "aCompleterCetteSemaineVousYEtesPresque": "{p0} {p1} à compléter cette semaine — vous y êtes presque.",
+  "@aCompleterCetteSemaineVousYEtesPresque": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "aCompleterDiciLaFinDuMoisContinuezComme": "{p0} {p1} à compléter d’ici la fin du mois — continuez comme ça.",
+  "@aCompleterDiciLaFinDuMoisContinuezComme": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "aCompleterSurLanneeUnRythmeRegulierCaPaie": "{p0} {p1} à compléter sur l’année — un rythme régulier, ça paie.",
+  "@aCompleterSurLanneeUnRythmeRegulierCaPaie": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsCaracteresMax": "{p0}/{p1} tags • {p2} caractères max",
+  "@tagsCaracteresMax": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      },
+      "p1": {
+        "type": "Object"
+      },
+      "p2": {
+        "type": "Object"
+      }
+    }
+  },
+  "caCoince": "Ça coince",
+  "caDeraille": "Ça déraille",
+  "ecransWeb": "Écrans & web",
+  "ecrivezUneNotePourCeCycle": "Écrivez une note pour ce cycle…",
+  "ecrivezUneNotePourCetteJournee": "Écrivez une note pour cette journée…",
+  "cyclesEchoues": "🔴 {p0} cycles échoués",
+  "@cyclesEchoues": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "cyclesReussis": "🟢 {p0} cycles réussis",
+  "@cyclesReussis": {
+    "placeholders": {
+      "p0": {
+        "type": "Object"
+      }
+    }
+  },
+  "janvier": "janvier",
+  "mars": "mars",
+  "avril": "avril",
+  "mai": "mai",
+  "juin": "juin",
+  "juillet": "juillet",
+  "aout": "août",
+  "septembre": "septembre",
+  "octobre": "octobre",
+  "novembre": "novembre",
+  "lu": "Lu",
+  "je": "Je",
+  "ve": "Ve",
+  "sa": "Sa",
+  "di": "Di",
+  "fevrier2": "Février",
+  "quotidien2": "quotidien",
+  "quotidiens": "quotidiens",
+  "hebdomadaire2": "hebdomadaire",
+  "hebdomadaires": "hebdomadaires",
+  "mensuel2": "mensuel",
+  "mensuels": "mensuels",
+  "annuel2": "annuel",
+  "annuels": "annuels",
+  "commandement": "commandement",
+  "commandements2": "commandements",
+  "langue": "Langue",
+  "francais": "Français",
+  "anglais": "Anglais",
+  "laLangueNaPasPuEtreEnregistree": "La langue n’a pas pu être enregistrée.",
+  "jourCourtLundi": "L",
+  "jourCourtMardi": "Ma",
+  "jourCourtMercredi": "Me",
+  "jourCourtJeudi": "J",
+  "jourCourtVendredi": "V",
+  "jourCourtSamedi": "S",
+  "jourCourtDimanche": "D",
+  "erreurEnregistrementNote": "Impossible d’enregistrer la note. Veuillez réessayer.",
+  "notePermissionSave": "Sauvegarde refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules",
+  "notePermissionDelete": "Suppression refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules"
+}

@@ -9,6 +9,7 @@ import '../../../commands/presentation/widgets/tag_input_field.dart';
 import '../../domain/entities/resistance.dart';
 import '../state/resistance_provider.dart';
 import 'resistance_creation_templates.dart';
+import '../../../../app/localization/localization.dart';
 
 Future<void> showCreateResistanceSheet({required BuildContext context}) {
   return showModalBottomSheet<void>(
@@ -37,8 +38,8 @@ class _CreateResistanceSheetState extends State<_CreateResistanceSheet> {
   int? _selectedSuggestionIndex;
   bool _suppressSuggestionClear = false;
 
-  static final List<String> _suggestionLabels = kResistanceCreationTemplates
-      .map((t) => t.title)
+  List<String> get _suggestionLabels => kResistanceCreationTemplates
+      .map((t) => context.l10n.systemMessage(t.title))
       .toList(growable: false);
 
   @override
@@ -65,8 +66,8 @@ class _CreateResistanceSheetState extends State<_CreateResistanceSheet> {
   void _applySuggestion(int index) {
     final t = kResistanceCreationTemplates[index];
     _suppressSuggestionClear = true;
-    _titleController.text = t.title;
-    _descriptionController.text = t.description;
+    _titleController.text = context.l10n.systemMessage(t.title);
+    _descriptionController.text = context.l10n.systemMessage(t.description);
     setState(() {
       _emoji = t.emoji;
       _selectedSuggestionIndex = index;
@@ -87,8 +88,7 @@ class _CreateResistanceSheetState extends State<_CreateResistanceSheet> {
           top: 12,
         ),
         child: SingleChildScrollView(
-          keyboardDismissBehavior:
-              ScrollViewKeyboardDismissBehavior.onDrag,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: _ResistanceFormBody(
             formKey: _formKey,
             titleController: _titleController,
@@ -186,7 +186,7 @@ class _ResistanceFormBody extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Nouvelle résistance',
+            context.l10n.nouvelleResistance,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
@@ -196,14 +196,14 @@ class _ResistanceFormBody extends StatelessWidget {
             controller: titleController,
             textCapitalization: TextCapitalization.sentences,
             onChanged: (_) => onManualTextEdit(),
-            decoration: const InputDecoration(
-              labelText: 'Titre',
+            decoration: InputDecoration(
+              labelText: context.l10n.titre,
               border: OutlineInputBorder(),
             ),
             maxLength: Resistance.maxTitleLength,
             validator: (v) {
               final t = (v ?? '').trim();
-              if (t.isEmpty) return 'Le titre est obligatoire';
+              if (t.isEmpty) return context.l10n.leTitreEstObligatoire;
               return null;
             },
           ),
@@ -212,8 +212,8 @@ class _ResistanceFormBody extends StatelessWidget {
             controller: descriptionController,
             textCapitalization: TextCapitalization.sentences,
             onChanged: (_) => onManualTextEdit(),
-            decoration: const InputDecoration(
-              labelText: 'Description',
+            decoration: InputDecoration(
+              labelText: context.l10n.description,
               border: OutlineInputBorder(),
               alignLabelWithHint: true,
             ),
@@ -244,7 +244,7 @@ class _ResistanceFormBody extends StatelessWidget {
             width: double.infinity,
             child: FilledButton(
               onPressed: onSubmit,
-              child: const Text('Enregistrer'),
+              child: Text(context.l10n.enregistrer),
             ),
           ),
           const SizedBox(height: 10),
@@ -252,7 +252,7 @@ class _ResistanceFormBody extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: onCancel,
-              child: const Text('Annuler'),
+              child: Text(context.l10n.annuler),
             ),
           ),
           const SizedBox(height: 8),

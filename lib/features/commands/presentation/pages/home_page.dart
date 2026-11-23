@@ -14,6 +14,7 @@ import '../../../../app/command_card_display_mode.dart';
 import '../../../../app/command_card_layout_service.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/account_settings_page.dart';
+import '../../../../app/localization/localization.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -104,14 +105,14 @@ class _HomePageState extends State<HomePage> {
         toolbarHeight: 68,
         titleSpacing: 8,
         title: ExpandableSearchBar(
-          collapsedTitle: 'Mes commandements',
+          collapsedTitle: context.l10n.mesCommandements,
           searchQuery: commandProvider.searchQuery,
           onSearchQueryChanged: commandProvider.setSearchQuery,
-          hintText: 'Rechercher un commandement…',
+          hintText: context.l10n.rechercherUnCommandement,
         ),
         actions: [
           IconButton(
-            tooltip: 'Filtres',
+            tooltip: context.l10n.filtres,
             onPressed: () async {
               final initial = FilterSettings(
                 selectedFrequencies: _selectedFrequencies,
@@ -146,7 +147,7 @@ class _HomePageState extends State<HomePage> {
           ),
           if (!authProvider.isInitialLoading && authProvider.isConnected)
             IconButton(
-              tooltip: 'Paramètres du compte',
+              tooltip: context.l10n.parametresDuCompte,
               icon: const Icon(Icons.settings_outlined),
               onPressed: () {
                 Navigator.of(context).push(
@@ -228,7 +229,9 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Le réordonnancement est disponible uniquement en mode Manuel, sans filtre ni recherche.',
+                                context
+                                    .l10n
+                                    .leReordonnancementEstDisponibleUniquementEnModeManuelSans,
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ),
@@ -259,7 +262,9 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    commandProvider.syncErrorMessage!,
+                                    context.l10n.systemMessage(
+                                      commandProvider.syncErrorMessage!,
+                                    ),
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge,
@@ -270,7 +275,7 @@ class _HomePageState extends State<HomePage> {
                                     onPressed: () {
                                       commandProvider.retrySync();
                                     },
-                                    child: const Text('Réessayer'),
+                                    child: Text(context.l10n.reessayer),
                                   ),
                                 ],
                               ),
@@ -292,7 +297,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Aucun commandement trouvé',
+                                  context.l10n.aucunCommandementTrouve,
                                   style: Theme.of(context).textTheme.bodyLarge,
                                   textAlign: TextAlign.center,
                                 ),
@@ -403,7 +408,7 @@ class _HomePageState extends State<HomePage> {
               }
             : null,
         icon: const Icon(Icons.add),
-        label: const Text('Nouveau commandement'),
+        label: Text(context.l10n.nouveauCommandement),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

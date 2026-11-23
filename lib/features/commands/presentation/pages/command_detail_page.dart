@@ -20,6 +20,7 @@ import '../widgets/command_streak_from_repository.dart';
 import '../widgets/command_pause_dialog.dart';
 import '../widgets/dynamic_progress_bar.dart';
 import '../widgets/history_skeleton.dart';
+import '../../../../app/localization/localization.dart';
 
 enum _CommandDetailAction { pause, reset, delete }
 
@@ -97,27 +98,31 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Détail du commandement'),
+        title: Text(context.l10n.detailDuCommandement),
         actions: [
           if (command != null)
             PopupMenuButton<_CommandDetailAction>(
-              tooltip: 'Actions du commandement',
+              tooltip: context.l10n.actionsDuCommandement,
               enabled: !provider.isMutating,
               onSelected: (action) => _handleAction(action, provider, command),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: _CommandDetailAction.pause,
-                  child: Text(isPaused ? 'Reprendre' : 'Mettre en pause'),
+                  child: Text(
+                    isPaused
+                        ? context.l10n.reprendre
+                        : context.l10n.mettreEnPause,
+                  ),
                 ),
                 if (!isPaused)
                   PopupMenuItem(
                     value: _CommandDetailAction.reset,
                     enabled: command.isActiveOnDayUtc(now),
-                    child: const Text('Réinitialiser'),
+                    child: Text(context.l10n.reinitialiser),
                   ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: _CommandDetailAction.delete,
-                  child: Text('Supprimer'),
+                  child: Text(context.l10n.supprimer),
                 ),
               ],
             ),
@@ -126,7 +131,7 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
       body: command == null
           ? Center(
               child: Text(
-                'Commandement introuvable.',
+                context.l10n.commandementIntrouvable,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             )
@@ -165,8 +170,10 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            provider.syncErrorMessage ??
-                'Cette action est indisponible pour le moment.',
+            context.l10n.systemMessage(
+              provider.syncErrorMessage ??
+                  context.l10n.cetteActionEstIndisponiblePourLeMoment,
+            ),
           ),
         ),
       );
@@ -203,16 +210,16 @@ class _DetailContentState extends State<_DetailContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: Text('Marquer $cycleLabel comme complété ?'),
+        title: Text(context.l10n.confirmation),
+        content: Text(context.l10n.marquerCommeComplete2(cycleLabel)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmer'),
+            child: Text(context.l10n.confirmer),
           ),
         ],
       ),
@@ -232,16 +239,18 @@ class _DetailContentState extends State<_DetailContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: Text('Retirer la complétion $cycleLabelWithPreposition ?'),
+        title: Text(context.l10n.confirmation),
+        content: Text(
+          context.l10n.retirerLaCompletion2(cycleLabelWithPreposition),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmer'),
+            child: Text(context.l10n.confirmer),
           ),
         ],
       ),
@@ -254,6 +263,7 @@ class _DetailContentState extends State<_DetailContent> {
   }
 
   String _withDePrefix(String label) {
+    if (context.l10n.localeName.startsWith('en')) return label;
     final trimmed = label.trimLeft();
     if (trimmed.startsWith('le ')) {
       return 'du ${trimmed.substring(3)}';
@@ -262,7 +272,7 @@ class _DetailContentState extends State<_DetailContent> {
       return 'des ${trimmed.substring(4)}';
     }
     if (trimmed.startsWith('la ')) {
-      return 'de la ${trimmed.substring(3)}';
+      return context.l10n.deLa(trimmed.substring(3));
     }
     if (trimmed.startsWith("l'") || trimmed.startsWith('l’')) {
       return 'de $trimmed';
@@ -309,12 +319,13 @@ class _DetailContentState extends State<_DetailContent> {
     final nextResetText = _nextResetText(
       command.frequency,
       DateTime.now().toUtc(),
+      strings: context.l10n,
     );
     final periodLabel =
         (command.frequency == Frequency.monthly ||
             command.frequency == Frequency.yearly)
         ? '${anchorUtc.year}'
-        : '${monthLabel(anchorUtc.month)} ${anchorUtc.year}';
+        : '${monthLabel(anchorUtc.month, strings: context.l10n)} ${anchorUtc.year}';
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -347,7 +358,7 @@ class _DetailContentState extends State<_DetailContent> {
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           Text(
-                            '${frequencyLabel(command.frequency)} · objectif ${command.target}',
+                            '${frequencyLabel(command.frequency, strings: context.l10n)} · objectif ${command.target}',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -394,7 +405,7 @@ class _DetailContentState extends State<_DetailContent> {
             IconButton(
               onPressed: widget.onPrevious,
               icon: const Icon(Icons.chevron_left_rounded),
-              tooltip: 'Période précédente',
+              tooltip: context.l10n.periodePrecedente,
             ),
             Expanded(
               child: Text(
@@ -406,7 +417,7 @@ class _DetailContentState extends State<_DetailContent> {
             IconButton(
               onPressed: widget.onNext,
               icon: const Icon(Icons.chevron_right_rounded),
-              tooltip: 'Période suivante',
+              tooltip: context.l10n.periodeSuivante,
             ),
           ],
         ),
@@ -419,7 +430,7 @@ class _DetailContentState extends State<_DetailContent> {
             }
             if (snapshot.hasError) {
               return Text(
-                'Impossible de charger l’historique.',
+                context.l10n.impossibleDeChargerLhistorique,
                 style: Theme.of(context).textTheme.bodyMedium,
               );
             }
@@ -427,7 +438,9 @@ class _DetailContentState extends State<_DetailContent> {
             final effectiveCreatedAtUtc = snapshot.data?.toUtc();
             if (effectiveCreatedAtUtc == null) {
               return Text(
-                'Aucun historique pour ce commandement pour le moment. Continuez, chaque action compte !',
+                context
+                    .l10n
+                    .aucunHistoriquePourCeCommandementPourLeMomentContinuez,
                 style: Theme.of(context).textTheme.bodyMedium,
               );
             }
@@ -446,7 +459,7 @@ class _DetailContentState extends State<_DetailContent> {
                   }
                   if (eventsSnapshot.hasError) {
                     return Text(
-                      'Impossible de charger l’historique.',
+                      context.l10n.impossibleDeChargerLhistorique,
                       style: Theme.of(context).textTheme.bodyMedium,
                     );
                   }
@@ -527,7 +540,9 @@ class _DetailContentState extends State<_DetailContent> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
-                            'Aucun historique pour cette période. Continuez, chaque action compte !',
+                            context
+                                .l10n
+                                .aucunHistoriquePourCettePeriodeContinuezChaqueActionCompte,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
@@ -623,26 +638,32 @@ Map<String, List<CommandEvent>> _groupByCycle(List<CommandEvent> events) {
   return map;
 }
 
-String _nextResetText(Frequency frequency, DateTime nowUtc) {
+String _nextResetText(
+  Frequency frequency,
+  DateTime nowUtc, {
+  AppLocalizations? strings,
+}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   final utc = nowUtc.toUtc();
   switch (frequency) {
     case Frequency.daily:
       if (utc.toLocal().hour >= 22) {
-        return 'Reset demain';
+        return l10n.resetDemain;
       }
-      return 'Reset demain à minuit UTC';
+      return l10n.resetDemainAMinuitUtc;
     case Frequency.weekly:
       final dayStart = DateTime.utc(utc.year, utc.month, utc.day);
       final offset = dayStart.weekday - DateTime.monday;
       final thisMonday = dayStart.subtract(Duration(days: offset));
       final nextMonday = thisMonday.add(const Duration(days: 7));
-      return 'Reset le lundi ${nextMonday.day} ${monthLabel(nextMonday.month)}';
+      return l10n.resetLeLundi(nextMonday.day, monthLabel(nextMonday.month));
     case Frequency.monthly:
       final nextFirst = utc.month == 12
           ? DateTime.utc(utc.year + 1, 1, 1)
           : DateTime.utc(utc.year, utc.month + 1, 1);
-      return 'Reset le 1er ${monthLabel(nextFirst.month)}';
+      return l10n.resetLe1er(monthLabel(nextFirst.month));
     case Frequency.yearly:
-      return 'Reset le 1er janvier ${utc.year + 1}';
+      return l10n.resetLe1erJanvier(utc.year + 1);
   }
 }

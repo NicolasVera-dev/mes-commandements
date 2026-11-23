@@ -7,6 +7,7 @@ import '../../../domain/services/cycle_key_generator.dart';
 import '../../utils/cycle_visual_style.dart';
 import '../cycle_note_bottom_sheet.dart';
 import '../cycle_note_indicator.dart';
+import '../../../../../app/localization/localization.dart';
 
 class WeeklyList extends StatelessWidget {
   final DateTime anchorUtc;
@@ -72,8 +73,8 @@ class WeeklyList extends StatelessWidget {
                 ),
                 title: Text(
                   canCompletePastCycle
-                      ? 'Marquer comme complété'
-                      : 'Retirer la complétion',
+                      ? context.l10n.marquerCommeComplete
+                      : context.l10n.retirerLaCompletion,
                 ),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -92,7 +93,7 @@ class WeeklyList extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
-                title: const Text('Ajouter/modifier une note'),
+                title: Text(context.l10n.ajouterModifierUneNote),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _openNote(context, cycleKey);
@@ -174,17 +175,23 @@ class WeeklyList extends StatelessWidget {
             );
             final weekNumber = _weekNumberFromCycleKey(weekKey);
             final hasNote = notes.containsKey(weekKey);
-            final semanticsNote = hasNote ? ', note enregistrée' : '';
-            final cycleLabel =
-                'la semaine $weekNumber (${weekKey.substring(0, 4)})';
+            final semanticsNote = hasNote ? context.l10n.noteEnregistree : '';
+            final cycleLabel = context.l10n.laSemaine(
+              weekNumber,
+              weekKey.substring(0, 4),
+            );
             final semanticsAction =
                 (canCompletePastCycle || canUncompletePastCycle)
-                ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
-                : 'Appuyez pour ajouter ou modifier une note.';
+                ? context.l10n.appuyezPourChoisirEntreCompleterOuAjouterUneNote
+                : context.l10n.appuyezPourAjouterOuModifierUneNote;
 
             return Semantics(
-              label:
-                  'Semaine $weekNumber : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
+              label: context.l10n.semaine2(
+                weekNumber,
+                statusSemantics(status),
+                semanticsNote,
+                semanticsAction,
+              ),
               button: true,
               child: Card(
                 margin: const EdgeInsets.only(bottom: 8),

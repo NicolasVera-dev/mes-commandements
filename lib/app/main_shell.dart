@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../features/commands/presentation/pages/home_page.dart';
 import '../features/resistances/presentation/pages/resistances_home_page.dart';
+import 'localization/localization.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -59,16 +60,16 @@ class _MainShellState extends State<MainShell> {
         bottomNavigationBar: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: _goToPage,
-          destinations: const [
+          destinations: [
             NavigationDestination(
               icon: Icon(Icons.track_changes_outlined),
               selectedIcon: Icon(Icons.track_changes_rounded),
-              label: 'Commandements',
+              label: context.l10n.commandements,
             ),
             NavigationDestination(
               icon: Icon(Icons.shield_outlined),
               selectedIcon: Icon(Icons.shield_rounded),
-              label: 'Résistances',
+              label: context.l10n.resistances,
             ),
           ],
         ),

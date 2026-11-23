@@ -11,6 +11,7 @@ import '../pages/resistance_detail_page.dart';
 import '../state/resistance_provider.dart';
 import '../utils/resistance_streak_color.dart';
 import 'resistance_relapse_dialog.dart';
+import '../../../../app/localization/localization.dart';
 
 List<TextSpan> _titleHighlightSpans({
   required String text,
@@ -33,25 +34,21 @@ List<TextSpan> _titleHighlightSpans({
     final idx = lowerText.indexOf(lowerQuery, start);
     if (idx == -1) {
       if (start < text.length) {
-        spans.add(TextSpan(
-          text: text.substring(start),
-          style: baseStyle,
-        ));
+        spans.add(TextSpan(text: text.substring(start), style: baseStyle));
       }
       break;
     }
 
     if (idx > start) {
-      spans.add(TextSpan(
-        text: text.substring(start, idx),
-        style: baseStyle,
-      ));
+      spans.add(TextSpan(text: text.substring(start, idx), style: baseStyle));
     }
 
-    spans.add(TextSpan(
-      text: text.substring(idx, idx + q.length),
-      style: highlightStyle,
-    ));
+    spans.add(
+      TextSpan(
+        text: text.substring(idx, idx + q.length),
+        style: highlightStyle,
+      ),
+    );
 
     start = idx + q.length;
     if (start >= text.length) break;
@@ -63,10 +60,7 @@ List<TextSpan> _titleHighlightSpans({
 class ResistanceCard extends StatelessWidget {
   final Resistance resistance;
 
-  const ResistanceCard({
-    super.key,
-    required this.resistance,
-  });
+  const ResistanceCard({super.key, required this.resistance});
 
   static const _streakUseCase = ComputeResistanceStreakUseCase();
 
@@ -82,21 +76,21 @@ class ResistanceCard extends StatelessWidget {
     );
     if (!context.mounted || note == null) return;
     await context.read<ResistanceProvider>().recordRelapse(
-          resistanceId: resistance.id,
-          note: note.isEmpty ? null : note,
-        );
+      resistanceId: resistance.id,
+      note: note.isEmpty ? null : note,
+    );
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer la résistance ?'),
-        content: const Text('Cette action est irréversible.'),
+        title: Text(context.l10n.supprimerLaResistance),
+        content: Text(context.l10n.cetteActionEstIrreversible),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -104,7 +98,7 @@ class ResistanceCard extends StatelessWidget {
               foregroundColor: Theme.of(ctx).colorScheme.onErrorContainer,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.supprimer),
           ),
         ],
       ),
@@ -118,7 +112,8 @@ class ResistanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final semanticColors = Theme.of(context).extension<AppSemanticColors>();
-    final compact = context.watch<CommandCardLayoutService>().displayMode ==
+    final compact =
+        context.watch<CommandCardLayoutService>().displayMode ==
         CommandCardDisplayMode.compact;
     final searchQuery = context.select<ResistanceProvider, String>(
       (p) => p.searchQuery,
@@ -128,10 +123,14 @@ class ResistanceCard extends StatelessWidget {
       resistance: resistance,
       nowUtc: DateTime.now().toUtc(),
     );
-    final streakColor =
-        resistanceStreakColor(streakDays: streak, context: context);
+    final streakColor = resistanceStreakColor(
+      streakDays: streak,
+      context: context,
+    );
     final hasAccent = resistance.accentColorValue != null;
-    final accent = hasAccent ? Color(resistance.accentColorValue!) : scheme.primary;
+    final accent = hasAccent
+        ? Color(resistance.accentColorValue!)
+        : scheme.primary;
 
     final background = hasAccent
         ? Color.alphaBlend(
@@ -220,8 +219,9 @@ class ResistanceCard extends StatelessWidget {
                                 );
                               }
                               final highlightStyle = baseTitleStyle.copyWith(
-                                backgroundColor: scheme.primary
-                                    .withValues(alpha: 0.22),
+                                backgroundColor: scheme.primary.withValues(
+                                  alpha: 0.22,
+                                ),
                                 fontWeight: FontWeight.w600,
                               );
                               return RichText(
@@ -241,7 +241,7 @@ class ResistanceCard extends StatelessWidget {
                   ),
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert_rounded),
-                    tooltip: 'Actions',
+                    tooltip: context.l10n.actions,
                     style: IconButton.styleFrom(
                       minimumSize: Size(compact ? 40 : 44, compact ? 40 : 44),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -264,17 +264,17 @@ class ResistanceCard extends StatelessWidget {
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
-                        child: Text('Modifier'),
+                        child: Text(context.l10n.modifier),
                       ),
                       PopupMenuItem(
                         value: 'delete',
                         child: Text(
-                          'Supprimer',
+                          context.l10n.supprimer,
                           style: TextStyle(
-                            color: semanticColors?.failedIndicator ??
-                                scheme.error,
+                            color:
+                                semanticColors?.failedIndicator ?? scheme.error,
                           ),
                         ),
                       ),
@@ -288,23 +288,24 @@ class ResistanceCard extends StatelessWidget {
                   children: [
                     Text(
                       '$streak',
-                      style: (compact
-                              ? Theme.of(context).textTheme.headlineLarge
-                              : Theme.of(context).textTheme.displaySmall)
-                          ?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: streakColor,
-                            height: 1.05,
-                          ),
+                      style:
+                          (compact
+                                  ? Theme.of(context).textTheme.headlineLarge
+                                  : Theme.of(context).textTheme.displaySmall)
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: streakColor,
+                                height: 1.05,
+                              ),
                     ),
                     Text(
                       streak == 1
-                          ? 'jour sans craquer'
-                          : 'jours sans craquer',
+                          ? context.l10n.jourSansCraquer
+                          : context.l10n.joursSansCraquer,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontSize: compact ? 12 : null,
-                          ),
+                        color: scheme.onSurfaceVariant,
+                        fontSize: compact ? 12 : null,
+                      ),
                     ),
                   ],
                 ),
@@ -322,12 +323,18 @@ class ResistanceCard extends StatelessWidget {
                         ? VisualDensity.compact
                         : VisualDensity.standard,
                     padding: compact
-                        ? const EdgeInsets.symmetric(vertical: 10, horizontal: 16)
-                        : const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                        ? const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 16,
+                          )
+                        : const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 20,
+                          ),
                   ),
                   onPressed: () => _onRelapse(context),
                   child: Text(
-                    'J’ai craqué 😔',
+                    context.l10n.jaiCraque2,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.2,

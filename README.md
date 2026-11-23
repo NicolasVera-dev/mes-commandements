@@ -7,6 +7,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 ## Fonctionnalités
 
 - 🔐 **Authentification complète** : inscription, connexion, réinitialisation de mot de passe, paramètres de compte
+- 🌐 **Langue de l’application** : français ou anglais depuis les paramètres, avec mémorisation du choix sur l’appareil
 - ✅ **Gestion des commandements** : création, édition, suppression, reset manuel
 - 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel

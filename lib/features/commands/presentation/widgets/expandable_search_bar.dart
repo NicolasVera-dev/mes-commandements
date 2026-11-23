@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../app/localization/localization.dart';
+
 /// Barre de recherche repliable (titres [collapsedTitle] + champ étendu).
 /// La requête est pilotée par le parent ([searchQuery] / [onSearchQueryChanged]).
 class ExpandableSearchBar extends StatefulWidget {
@@ -171,7 +173,7 @@ class _CollapsedTitle extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.search_rounded),
-          tooltip: 'Rechercher',
+          tooltip: context.l10n.rechercher,
           onPressed: onSearchTap,
         ),
       ],
@@ -243,12 +245,12 @@ class _SearchField extends StatelessWidget {
               prefixIcon: const Icon(Icons.search_rounded, size: 20),
               suffixIcon: hasText
                   ? IconButton(
-                      tooltip: 'Effacer',
+                      tooltip: context.l10n.effacer,
                       icon: const Icon(Icons.clear_rounded, size: 20),
                       onPressed: onClear,
                     )
                   : IconButton(
-                      tooltip: 'Fermer',
+                      tooltip: context.l10n.fermer,
                       icon: const Icon(Icons.close_rounded, size: 20),
                       onPressed: onClose,
                     ),

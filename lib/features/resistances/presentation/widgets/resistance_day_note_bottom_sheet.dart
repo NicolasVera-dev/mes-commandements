@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/resistance_day_note.dart';
 import '../state/resistance_day_note_provider.dart';
 import '../utils/resistance_day_keys.dart';
+import '../../../../app/localization/localization.dart';
 
 Future<void> showResistanceDayNoteEditorSheet(
   BuildContext context, {
@@ -36,7 +37,8 @@ class _ResistanceDayNoteEditorBody extends StatefulWidget {
       _ResistanceDayNoteEditorBodyState();
 }
 
-class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBody> {
+class _ResistanceDayNoteEditorBodyState
+    extends State<_ResistanceDayNoteEditorBody> {
   late final TextEditingController _controller;
   late String _initialTrimmed;
 
@@ -72,8 +74,10 @@ class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBo
       );
       if (!mounted) return;
       navigator.pop();
-    } on ArgumentError catch (e) {
-      messenger?.showSnackBar(SnackBar(content: Text('$e')));
+    } on ArgumentError {
+      messenger?.showSnackBar(
+        SnackBar(content: Text(context.l10n.erreurEnregistrementNote)),
+      );
     }
   }
 
@@ -83,16 +87,16 @@ class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBo
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer la note ?'),
-        content: const Text('Cette action est irréversible.'),
+        title: Text(context.l10n.supprimerLaNote),
+        content: Text(context.l10n.cetteActionEstIrreversible),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.supprimer),
           ),
         ],
       ),
@@ -110,7 +114,7 @@ class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBo
 
   @override
   Widget build(BuildContext context) {
-    final label = resistanceDayLabelFr(widget.dayKey);
+    final label = resistanceDayLabelFr(widget.dayKey, strings: context.l10n);
     final provider = context.watch<ResistanceDayNoteProvider>();
     final saving = provider.isSaving;
     final length = _controller.text.characters.length;
@@ -128,7 +132,7 @@ class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBo
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Note — $label',
+              context.l10n.note(label),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
@@ -138,13 +142,14 @@ class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBo
               minLines: 3,
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
-                LengthLimitingTextInputFormatter(ResistanceDayNote.maxContentLength),
+                LengthLimitingTextInputFormatter(
+                  ResistanceDayNote.maxContentLength,
+                ),
               ],
               decoration: InputDecoration(
-                hintText: 'Écrivez une note pour cette journée…',
+                hintText: context.l10n.ecrivezUneNotePourCetteJournee,
                 border: const OutlineInputBorder(),
-                counterText:
-                    '$length / ${ResistanceDayNote.maxContentLength}',
+                counterText: '$length / ${ResistanceDayNote.maxContentLength}',
               ),
             ),
             const SizedBox(height: 16),
@@ -153,22 +158,22 @@ class _ResistanceDayNoteEditorBodyState extends State<_ResistanceDayNoteEditorBo
                 if (_hasExisting)
                   TextButton(
                     onPressed: saving ? null : _confirmDelete,
-                    child: const Text('Supprimer'),
+                    child: Text(context.l10n.supprimer),
                   ),
                 const Spacer(),
                 FilledButton(
                   onPressed: saving
                       ? null
                       : canSubmit
-                          ? _save
-                          : null,
+                      ? _save
+                      : null,
                   child: saving
                       ? const SizedBox(
                           width: 22,
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Enregistrer'),
+                      : Text(context.l10n.enregistrer),
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/usecases/filter_and_sort_resistances_usecase.dart';
 import 'resistance_filter_bottom_sheet.dart';
+import '../../../../app/localization/localization.dart';
 
 class ResistanceFilterChipsBar extends StatefulWidget {
   final ResistanceFilterSettings current;
@@ -42,7 +43,7 @@ class _ResistanceFilterChipsBarState extends State<ResistanceFilterChipsBar> {
     if (widget.current.sort != ResistanceSort.alpha) {
       chips.add(
         _ActiveChip(
-          label: _sortLabel(widget.current.sort),
+          label: _sortLabel(widget.current.sort, strings: context.l10n),
           onRemove: () => widget.onSortChanged(ResistanceSort.alpha),
         ),
       );
@@ -75,7 +76,9 @@ class _ResistanceFilterChipsBarState extends State<ResistanceFilterChipsBar> {
             ),
             if (hasMore)
               ActionChip(
-                label: Text(_expanded ? 'Réduire' : '+${chips.length - 3}'),
+                label: Text(
+                  _expanded ? context.l10n.reduire : '+${chips.length - 3}',
+                ),
                 onPressed: () => setState(() => _expanded = !_expanded),
                 visualDensity: VisualDensity.compact,
               ),
@@ -93,13 +96,15 @@ class _ActiveChip {
   _ActiveChip({required this.label, required this.onRemove});
 }
 
-String _sortLabel(ResistanceSort sort) {
+String _sortLabel(ResistanceSort sort, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (sort) {
     case ResistanceSort.alpha:
-      return 'Manuel';
+      return l10n.manuel;
     case ResistanceSort.streakHigh:
-      return 'Série ↓';
+      return l10n.serie2;
     case ResistanceSort.streakLow:
-      return 'Série ↑';
+      return l10n.serie;
   }
 }

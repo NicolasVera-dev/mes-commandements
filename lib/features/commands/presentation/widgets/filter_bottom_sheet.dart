@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/command.dart';
 import '../../domain/usecases/filter_and_sort_commands_usecase.dart';
+import '../../../../app/localization/localization.dart';
 
 class FilterSettings {
   /// null => "Toutes" (no frequency filtering).
   final Set<Frequency>? selectedFrequencies;
+
   /// empty => "Tous" (no status filtering)
   final Set<CommandStatusFilter> selectedStatuses;
   final Set<String> selectedTags;
@@ -29,10 +31,7 @@ Future<FilterSettings?> showFilterBottomSheet({
     showDragHandle: true,
     isScrollControlled: true,
     builder: (context) {
-      return _FilterBottomSheet(
-        initial: initial,
-        availableTags: availableTags,
-      );
+      return _FilterBottomSheet(initial: initial, availableTags: availableTags);
     },
   );
 }
@@ -95,25 +94,29 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             children: [
               const SizedBox(height: 6),
               Text(
-                'Filtres',
+                context.l10n.filtres,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 18),
-              _SectionTitle('Fréquence'),
+              _SectionTitle(context.l10n.frequence),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
                 children: [
                   FilterChip(
-                    label: const Text('Toutes'),
+                    label: Text(context.l10n.toutes),
                     selected: _frequencies == null,
                     onSelected: (_) => setState(() => _frequencies = null),
                   ),
                   ...Frequency.values.map((frequency) {
                     return FilterChip(
-                      label: Text(_frequencyLabel(frequency)),
-                      selected: _frequencies != null && _frequencies!.contains(frequency),
+                      label: Text(
+                        _frequencyLabel(frequency, strings: context.l10n),
+                      ),
+                      selected:
+                          _frequencies != null &&
+                          _frequencies!.contains(frequency),
                       onSelected: (_) => setState(() {
                         if (_frequencies == null) {
                           _frequencies = <Frequency>{frequency};
@@ -135,20 +138,23 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 ],
               ),
               const SizedBox(height: 18),
-              _SectionTitle('Statut'),
+              _SectionTitle(context.l10n.statut),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
                 children: [
                   FilterChip(
-                    label: const Text('Tous'),
+                    label: Text(context.l10n.tous),
                     selected: _statuses.isEmpty,
-                    onSelected: (_) => setState(() => _statuses = <CommandStatusFilter>{}),
+                    onSelected: (_) =>
+                        setState(() => _statuses = <CommandStatusFilter>{}),
                   ),
                   FilterChip(
-                    label: const Text('Non démarrés'),
-                    selected: _statuses.contains(CommandStatusFilter.notStarted),
+                    label: Text(context.l10n.nonDemarres),
+                    selected: _statuses.contains(
+                      CommandStatusFilter.notStarted,
+                    ),
                     onSelected: (_) => setState(() {
                       final next = Set<CommandStatusFilter>.from(_statuses);
                       if (next.contains(CommandStatusFilter.notStarted)) {
@@ -160,7 +166,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     }),
                   ),
                   FilterChip(
-                    label: const Text('En cours'),
+                    label: Text(context.l10n.enCours),
                     selected: _statuses.contains(CommandStatusFilter.started),
                     onSelected: (_) => setState(() {
                       final next = Set<CommandStatusFilter>.from(_statuses);
@@ -173,7 +179,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     }),
                   ),
                   FilterChip(
-                    label: const Text('Terminés'),
+                    label: Text(context.l10n.termines),
                     selected: _statuses.contains(CommandStatusFilter.completed),
                     onSelected: (_) => setState(() {
                       final next = Set<CommandStatusFilter>.from(_statuses);
@@ -188,64 +194,64 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 ],
               ),
               const SizedBox(height: 18),
-              _SectionTitle('Tags'),
+              _SectionTitle(context.l10n.tags),
               const SizedBox(height: 10),
               if (widget.availableTags.isEmpty)
                 Text(
-                  'Aucun tag disponible pour le moment.',
+                  context.l10n.aucunTagDisponiblePourLeMoment,
                   style: Theme.of(context).textTheme.bodySmall,
                 )
               else
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
-                  children: widget.availableTags.map((tag) {
-                    return FilterChip(
-                      label: Text(tag),
-                      selected: _tags.contains(tag),
-                      onSelected: (_) => setState(() {
-                        if (_tags.contains(tag)) {
-                          _tags.remove(tag);
-                        } else {
-                          _tags.add(tag);
-                        }
-                      }),
-                    );
-                  }).toList(growable: false),
+                  children: widget.availableTags
+                      .map((tag) {
+                        return FilterChip(
+                          label: Text(tag),
+                          selected: _tags.contains(tag),
+                          onSelected: (_) => setState(() {
+                            if (_tags.contains(tag)) {
+                              _tags.remove(tag);
+                            } else {
+                              _tags.add(tag);
+                            }
+                          }),
+                        );
+                      })
+                      .toList(growable: false),
                 ),
               const SizedBox(height: 18),
-              _SectionTitle('Tri'),
+              _SectionTitle(context.l10n.tri),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
                 children: [
                   FilterChip(
-                    label: const Text('Manuel'),
+                    label: Text(context.l10n.manuel),
                     selected: _sort == CommandSort.alpha,
                     onSelected: (_) =>
                         setState(() => _sort = CommandSort.alpha),
                   ),
                   FilterChip(
-                    label: const Text('Progression ↑'),
+                    label: Text(context.l10n.progression2),
                     selected: _sort == CommandSort.lowestProgressFirst,
-                    onSelected: (_) => setState(
-                      () => _sort = CommandSort.lowestProgressFirst,
-                    ),
+                    onSelected: (_) =>
+                        setState(() => _sort = CommandSort.lowestProgressFirst),
                   ),
                   FilterChip(
-                    label: const Text('Progression ↓'),
+                    label: Text(context.l10n.progression3),
                     selected: _sort == CommandSort.highestProgressFirst,
                     onSelected: (_) => setState(
                       () => _sort = CommandSort.highestProgressFirst,
                     ),
                   ),
                   FilterChip(
-                    label: const Text("Terminés d'abord"),
+                    label: Text(context.l10n.terminesDAbord),
                     selected: _sort == CommandSort.completedFirst,
-                    onSelected: (_) => setState(
-                      () => _sort = CommandSort.completedFirst,
-                    ),
+                    onSelected: (_) =>
+                        setState(() => _sort = CommandSort.completedFirst),
                   ),
                 ],
               ),
@@ -255,7 +261,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _reset,
-                      child: const Text('Réinitialiser'),
+                      child: Text(context.l10n.reinitialiser),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -270,7 +276,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         );
                         Navigator.of(context).pop(settings);
                       },
-                      child: const Text('Valider'),
+                      child: Text(context.l10n.valider),
                     ),
                   ),
                 ],
@@ -291,23 +297,21 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.titleMedium,
-    );
+    return Text(label, style: Theme.of(context).textTheme.titleMedium);
   }
 }
 
-String _frequencyLabel(Frequency frequency) {
+String _frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }
-

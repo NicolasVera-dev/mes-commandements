@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/command.dart';
+import '../../../../app/localization/localization.dart';
 
 typedef TagsChanged = void Function(List<String> tags);
 
@@ -46,19 +47,21 @@ class _TagInputFieldState extends State<TagInputField> {
     if (tag.isEmpty) return;
     if (tag.length > Command.maxTagLength) {
       setState(
-        () => _inputError =
-            'Un tag ne peut pas dépasser ${Command.maxTagLength} caractères.',
+        () => _inputError = context.l10n.unTagNePeutPasDepasserCaracteres(
+          Command.maxTagLength,
+        ),
       );
       return;
     }
     if (_tags.contains(tag)) {
-      setState(() => _inputError = 'Ce tag existe déjà.');
+      setState(() => _inputError = context.l10n.ceTagExisteDeja);
       return;
     }
     if (_tags.length >= Command.maxTagsCount) {
       setState(
-        () => _inputError =
-            'Maximum ${Command.maxTagsCount} tags par commandement.',
+        () => _inputError = context.l10n.maximumTagsParCommandement(
+          Command.maxTagsCount,
+        ),
       );
       return;
     }
@@ -100,37 +103,36 @@ class _TagInputFieldState extends State<TagInputField> {
                 .take(8);
           },
           onSelected: _addTag,
-          fieldViewBuilder: (
-            context,
-            textEditingController,
-            focusNode,
-            onFieldSubmitted,
-          ) {
-            _inputController = textEditingController;
-            return TextField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              textCapitalization: TextCapitalization.none,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) {
-                onFieldSubmitted();
-                _addTag(textEditingController.text);
+          fieldViewBuilder:
+              (context, textEditingController, focusNode, onFieldSubmitted) {
+                _inputController = textEditingController;
+                return TextField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  textCapitalization: TextCapitalization.none,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) {
+                    onFieldSubmitted();
+                    _addTag(textEditingController.text);
+                  },
+                  decoration: InputDecoration(
+                    labelText: context.l10n.tags,
+                    hintText: context.l10n.ajouterUnTagAutocompletion,
+                    prefixIcon: const Icon(Icons.sell_outlined),
+                    errorText: _inputError,
+                    helperText: context.l10n.tagsCaracteresMax(
+                      _tags.length,
+                      Command.maxTagsCount,
+                      Command.maxTagLength,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add_rounded),
+                      onPressed: () => _addTag(textEditingController.text),
+                      tooltip: context.l10n.ajouterLeTag,
+                    ),
+                  ),
+                );
               },
-              decoration: InputDecoration(
-                labelText: 'Tags',
-                hintText: 'Ajouter un tag (autocomplétion)',
-                prefixIcon: const Icon(Icons.sell_outlined),
-                errorText: _inputError,
-                helperText:
-                    '${_tags.length}/${Command.maxTagsCount} tags • ${Command.maxTagLength} caractères max',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.add_rounded),
-                  onPressed: () => _addTag(textEditingController.text),
-                  tooltip: 'Ajouter le tag',
-                ),
-              ),
-            );
-          },
           optionsViewBuilder: (context, onSelected, options) {
             return Align(
               alignment: Alignment.topLeft,
@@ -138,7 +140,10 @@ class _TagInputFieldState extends State<TagInputField> {
                 elevation: 8,
                 borderRadius: BorderRadius.circular(12),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360, maxHeight: 220),
+                  constraints: const BoxConstraints(
+                    maxWidth: 360,
+                    maxHeight: 220,
+                  ),
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: options.length,
@@ -176,7 +181,7 @@ class _TagInputFieldState extends State<TagInputField> {
         if (suggestions.isNotEmpty) ...[
           const SizedBox(height: 10),
           Text(
-            'Suggestions',
+            context.l10n.suggestions,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 6),

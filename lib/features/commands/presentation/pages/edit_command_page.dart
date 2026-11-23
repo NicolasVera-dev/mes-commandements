@@ -11,6 +11,7 @@ import '../widgets/emoji_picker_field.dart';
 import '../widgets/tag_input_field.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../../app/localization/localization.dart';
 
 class EditCommandPage extends StatefulWidget {
   final String commandId;
@@ -89,7 +90,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
               const CircularProgressIndicator(),
               const SizedBox(height: 12),
               Text(
-                'Vérification de la session...',
+                context.l10n.verificationDeLaSession,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
@@ -109,7 +110,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Modifier le commandement',
+            context.l10n.modifierLeCommandement,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleMedium,
@@ -118,7 +119,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
         body: command == null
             ? Center(
                 child: Text(
-                  'Commandement introuvable.',
+                  context.l10n.commandementIntrouvable,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               )
@@ -135,12 +136,12 @@ class _EditCommandPageState extends State<EditCommandPage> {
                           ScrollViewKeyboardDismissBehavior.onDrag,
                       children: [
                         Text(
-                          'Détails',
+                          context.l10n.details,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Essentiel',
+                          context.l10n.essentiel,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 8),
@@ -149,17 +150,20 @@ class _EditCommandPageState extends State<EditCommandPage> {
                           maxLength: Command.maxTitleLength,
                           textCapitalization: TextCapitalization.sentences,
                           textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            labelText: 'Titre',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.titre,
                             prefixIcon: Icon(Icons.title),
                           ),
                           validator: (value) {
                             final v = value?.trim() ?? '';
                             if (v.length < 2) {
-                              return 'Veuillez entrer un titre (min. 2)';
+                              return context.l10n.veuillezEntrerUnTitreMin2;
                             }
                             if (v.length > Command.maxTitleLength) {
-                              return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
+                              return context.l10n
+                                  .leTitreNeDoitPasDepasserCaracteres(
+                                    Command.maxTitleLength,
+                                  );
                             }
                             return null;
                           },
@@ -167,15 +171,20 @@ class _EditCommandPageState extends State<EditCommandPage> {
                         const SizedBox(height: 12),
                         DropdownButtonFormField<Frequency>(
                           initialValue: _frequency,
-                          decoration: const InputDecoration(
-                            labelText: 'Fréquence',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.frequence,
                             prefixIcon: Icon(Icons.schedule),
                           ),
                           items: Frequency.values
                               .map((frequency) {
                                 return DropdownMenuItem<Frequency>(
                                   value: frequency,
-                                  child: Text(_frequencyLabel(frequency)),
+                                  child: Text(
+                                    _frequencyLabel(
+                                      frequency,
+                                      strings: context.l10n,
+                                    ),
+                                  ),
                                 );
                               })
                               .toList(growable: false),
@@ -201,11 +210,14 @@ class _EditCommandPageState extends State<EditCommandPage> {
                             FilteringTextInputFormatter.digitsOnly,
                           ],
                           textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            labelText: 'Objectif',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.objectif,
                             prefixIcon: Icon(Icons.flag),
                           ),
-                          validator: validateRequiredPositiveInt,
+                          validator: (value) => validateRequiredPositiveInt(
+                            value,
+                            strings: context.l10n,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -215,19 +227,21 @@ class _EditCommandPageState extends State<EditCommandPage> {
                             FilteringTextInputFormatter.digitsOnly,
                           ],
                           textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            labelText: 'Progression',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.progression,
                             prefixIcon: Icon(Icons.timeline),
                           ),
                           validator: (value) {
                             final p = parseNonNegativeInt(value ?? '');
                             if (p == null) {
-                              return 'Veuillez entrer un nombre valide';
+                              return context.l10n.veuillezEntrerUnNombreValide;
                             }
 
                             final t = parsePositiveInt(_targetController.text);
                             if (t != null && p > t) {
-                              return 'La progression ne peut pas dépasser l’objectif';
+                              return context
+                                  .l10n
+                                  .laProgressionNePeutPasDepasserLobjectif;
                             }
                             return null;
                           },
@@ -240,16 +254,16 @@ class _EditCommandPageState extends State<EditCommandPage> {
                           maxLength: Command.maxDescriptionLength,
                           textCapitalization: TextCapitalization.sentences,
                           textInputAction: TextInputAction.newline,
-                          decoration: const InputDecoration(
-                            labelText: 'Description',
-                            hintText: 'Description (optionnelle)',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.description,
+                            hintText: context.l10n.descriptionOptionnelle,
                             alignLabelWithHint: true,
                             prefixIcon: Icon(Icons.notes_rounded),
                           ),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Personnalisation visuelle',
+                          context.l10n.personnalisationVisuelle,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 8),
@@ -265,7 +279,7 @@ class _EditCommandPageState extends State<EditCommandPage> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Organisation',
+                          context.l10n.organisation,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 8),
@@ -327,12 +341,12 @@ class _EditCommandPageState extends State<EditCommandPage> {
 
                             Navigator.of(context).pop();
                           },
-                          child: const Text('Enregistrer'),
+                          child: Text(context.l10n.enregistrer),
                         ),
                         const SizedBox(height: 12),
                         OutlinedButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Annuler'),
+                          child: Text(context.l10n.annuler),
                         ),
                       ],
                     ),
@@ -344,16 +358,18 @@ class _EditCommandPageState extends State<EditCommandPage> {
   }
 }
 
-String _frequencyLabel(Frequency frequency) {
+String _frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }
 
@@ -365,16 +381,6 @@ class _DailyActiveWeekdaysField extends StatelessWidget {
     required this.selectedWeekdays,
     required this.onChanged,
   });
-
-  static const _labels = <int, String>{
-    DateTime.monday: 'L',
-    DateTime.tuesday: 'Ma',
-    DateTime.wednesday: 'Me',
-    DateTime.thursday: 'J',
-    DateTime.friday: 'V',
-    DateTime.saturday: 'S',
-    DateTime.sunday: 'D',
-  };
 
   static const _tooltips = <int, String>{
     DateTime.monday: 'Lundi',
@@ -391,7 +397,10 @@ class _DailyActiveWeekdaysField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Jours actifs', style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          context.l10n.joursActifs,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -400,10 +409,20 @@ class _DailyActiveWeekdaysField extends StatelessWidget {
               .map((weekday) {
                 final selected = selectedWeekdays.contains(weekday);
                 return Tooltip(
-                  message: _tooltips[weekday]!,
+                  message: context.l10n.systemMessage(_tooltips[weekday]!),
                   child: FilterChip(
                     selected: selected,
-                    label: Text(_labels[weekday]!),
+                    label: Text(
+                      [
+                        context.l10n.jourCourtLundi,
+                        context.l10n.jourCourtMardi,
+                        context.l10n.jourCourtMercredi,
+                        context.l10n.jourCourtJeudi,
+                        context.l10n.jourCourtVendredi,
+                        context.l10n.jourCourtSamedi,
+                        context.l10n.jourCourtDimanche,
+                      ][weekday - 1],
+                    ),
                     onSelected: (isSelected) {
                       final next = Set<int>.from(selectedWeekdays);
                       if (isSelected) {

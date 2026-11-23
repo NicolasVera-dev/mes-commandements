@@ -1,3 +1,5 @@
+import '../../../../app/localization/localization.dart';
+
 int? parsePositiveInt(String raw) {
   final value = raw.trim();
   if (value.isEmpty) return null;
@@ -6,14 +8,19 @@ int? parsePositiveInt(String raw) {
   return parsed;
 }
 
-String? validateRequiredPositiveInt(String? value) {
+String? validateRequiredPositiveInt(
+  String? value, {
+  AppLocalizations? strings,
+}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   final raw = (value ?? '').trim();
   if (raw.isEmpty) {
-    return 'Ce champ est obligatoire';
+    return l10n.ceChampEstObligatoire;
   }
   final parsed = int.tryParse(raw);
   if (parsed == null || parsed <= 0) {
-    return 'Veuillez entrer un nombre valide';
+    return l10n.veuillezEntrerUnNombreValide;
   }
   return null;
 }
@@ -25,4 +32,3 @@ int? parseNonNegativeInt(String raw) {
   if (parsed == null || parsed < 0) return null;
   return parsed;
 }
-

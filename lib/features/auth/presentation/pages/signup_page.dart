@@ -8,6 +8,7 @@ import '../widgets/password_text_field.dart';
 import '../state/auth_provider.dart';
 import '../../domain/validators/password_validator.dart';
 import 'login_page.dart';
+import '../../../../app/localization/localization.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -29,8 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isSubmitting = false;
   String? _errorMessage;
 
-  PasswordValidationResult _passwordResult =
-      PasswordValidator.validate('');
+  PasswordValidationResult _passwordResult = PasswordValidator.validate('');
 
   bool get _passwordsMatch =>
       _passwordController.text == _confirmController.text &&
@@ -94,13 +94,15 @@ class _SignUpPageState extends State<SignUpPage> {
       setState(() {
         _errorMessage = _passwordResult.errorMessages.isNotEmpty
             ? _passwordResult.errorMessages.first
-            : 'Veuillez respecter toutes les règles du mot de passe.';
+            : context.l10n.veuillezRespecterToutesLesReglesDuMotDePasse;
       });
       return;
     }
 
     if (_passwordController.text != _confirmController.text) {
-      setState(() => _errorMessage = 'Les mots de passe ne correspondent pas.');
+      setState(
+        () => _errorMessage = context.l10n.lesMotsDePasseNeCorrespondentPas,
+      );
       return;
     }
 
@@ -128,18 +130,11 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inscription'),
-      ),
+      appBar: AppBar(title: Text(context.l10n.inscription)),
       body: DismissKeyboardOnTap(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: 16,
-            ),
+            padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 16),
             child: AutofillGroup(
               child: Form(
                 key: _formKey,
@@ -148,108 +143,119 @@ class _SignUpPageState extends State<SignUpPage> {
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
-                Text(
-                  'Créez votre compte',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _emailController,
-                  focusNode: _emailFocus,
-                  enabled: !_isSubmitting,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const <String>[AutofillHints.username, AutofillHints.email],
-                  onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (value) {
-                    final v = value?.trim() ?? '';
-                    if (v.isEmpty) return 'Ce champ est obligatoire';
-                    if (!_emailValid) {
-                      return 'Veuillez entrer une adresse email valide';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                PasswordTextField(
-                  controller: _passwordController,
-                  focusNode: _passwordFocus,
-                  enabled: !_isSubmitting,
-                  labelText: 'Mot de passe',
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const <String>[AutofillHints.newPassword],
-                  onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
-                  onChanged: (_) {
-                    if (_errorMessage != null) setState(() => _errorMessage = null);
-                  },
-                ),
-                const SizedBox(height: 10),
-                PasswordStrengthIndicator(result: _passwordResult),
-                const SizedBox(height: 12),
-                PasswordTextField(
-                  controller: _confirmController,
-                  focusNode: _confirmFocus,
-                  enabled: !_isSubmitting,
-                  labelText: 'Confirmer le mot de passe',
-                  textInputAction: TextInputAction.done,
-                  autofillHints: const <String>[AutofillHints.newPassword],
-                  onFieldSubmitted: (_) => _submit(),
-                  onChanged: (_) {
-                    if (_errorMessage != null) setState(() => _errorMessage = null);
-                    setState(() {});
-                  },
-                ),
-                if (_confirmController.text.isNotEmpty &&
-                    _passwordController.text != _confirmController.text)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      'Les mots de passe ne correspondent pas.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                    Text(
+                      context.l10n.creezVotreCompte,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                  ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _errorMessage!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _emailController,
+                      focusNode: _emailFocus,
+                      enabled: !_isSubmitting,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const <String>[
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.email,
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                      validator: (value) {
+                        final v = value?.trim() ?? '';
+                        if (v.isEmpty)
+                          return context.l10n.ceChampEstObligatoire;
+                        if (!_emailValid) {
+                          return context
+                              .l10n
+                              .veuillezEntrerUneAdresseEmailValide;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    PasswordTextField(
+                      controller: _passwordController,
+                      focusNode: _passwordFocus,
+                      enabled: !_isSubmitting,
+                      labelText: context.l10n.motDePasse,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const <String>[AutofillHints.newPassword],
+                      onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
+                      onChanged: (_) {
+                        if (_errorMessage != null)
+                          setState(() => _errorMessage = null);
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    PasswordStrengthIndicator(result: _passwordResult),
+                    const SizedBox(height: 12),
+                    PasswordTextField(
+                      controller: _confirmController,
+                      focusNode: _confirmFocus,
+                      enabled: !_isSubmitting,
+                      labelText: context.l10n.confirmerLeMotDePasse,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const <String>[AutofillHints.newPassword],
+                      onFieldSubmitted: (_) => _submit(),
+                      onChanged: (_) {
+                        if (_errorMessage != null)
+                          setState(() => _errorMessage = null);
+                        setState(() {});
+                      },
+                    ),
+                    if (_confirmController.text.isNotEmpty &&
+                        _passwordController.text != _confirmController.text)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          context.l10n.lesMotsDePasseNeCorrespondentPas,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                        ),
+                      ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        context.l10n.systemMessage(_errorMessage!),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                         ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 48,
-                  child: FilledButton(
-                    onPressed: _canSubmit ? _submit : null,
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text("Créer le compte"),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: _isSubmitting
-                      ? null
-                      : () {
-                          Navigator.of(context).push(
-                            FadeScalePageRoute(
-                              pageBuilder: (_) => const LoginPage(),
-                            ),
-                          );
-                        },
-                  child: const Text('J’ai déjà un compte'),
-                ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 48,
+                      child: FilledButton(
+                        onPressed: _canSubmit ? _submit : null,
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(context.l10n.creerLeCompte),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: _isSubmitting
+                          ? null
+                          : () {
+                              Navigator.of(context).push(
+                                FadeScalePageRoute(
+                                  pageBuilder: (_) => const LoginPage(),
+                                ),
+                              );
+                            },
+                      child: Text(context.l10n.jaiDejaUnCompte),
+                    ),
                   ],
                 ),
               ),

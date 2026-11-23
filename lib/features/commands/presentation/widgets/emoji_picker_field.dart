@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/localization/localization.dart';
+
 typedef EmojiChanged = void Function(String emoji);
 
 /// Jeu d’emojis proposés dans la feuille (commandements vs résistances / addictions).
-enum EmojiPickerPreset {
-  commands,
-  resistanceAddictions,
-}
+enum EmojiPickerPreset { commands, resistanceAddictions }
 
 class EmojiPickerField extends StatelessWidget {
   final String selectedEmoji;
@@ -23,18 +22,15 @@ class EmojiPickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitle = preset == EmojiPickerPreset.resistanceAddictions
-        ? 'Icônes fréquentes pour les habitudes à arrêter'
-        : 'Personnaliser l’icône du commandement';
+        ? context.l10n.iconesFrequentesPourLesHabitudesAArreter
+        : context.l10n.personnaliserLiconeDuCommandement;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
-        child: Text(
-          selectedEmoji,
-          style: const TextStyle(fontSize: 20),
-        ),
+        child: Text(selectedEmoji, style: const TextStyle(fontSize: 20)),
       ),
-      title: const Text('Emoji'),
+      title: Text(context.l10n.emoji),
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () async {
@@ -42,10 +38,8 @@ class EmojiPickerField extends StatelessWidget {
           context: context,
           isScrollControlled: true,
           showDragHandle: true,
-          builder: (_) => _EmojiPickerSheet(
-            initialEmoji: selectedEmoji,
-            preset: preset,
-          ),
+          builder: (_) =>
+              _EmojiPickerSheet(initialEmoji: selectedEmoji, preset: preset),
         );
         if (selected == null) return;
         onChanged(selected);
@@ -58,10 +52,7 @@ class _EmojiPickerSheet extends StatefulWidget {
   final String initialEmoji;
   final EmojiPickerPreset preset;
 
-  const _EmojiPickerSheet({
-    required this.initialEmoji,
-    required this.preset,
-  });
+  const _EmojiPickerSheet({required this.initialEmoji, required this.preset});
 
   @override
   State<_EmojiPickerSheet> createState() => _EmojiPickerSheetState();
@@ -73,26 +64,38 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
 
   static const Map<String, List<String>> _commandCategories =
       <String, List<String>>{
-    'Sport': <String>['🏃', '🏋️', '🚴', '⚽', '🏀', '🥇', '🧘', '🎾'],
-    'Santé': <String>['💧', '🥗', '💊', '😴', '🫀', '🧠', '🚶', '🩺'],
-    'Travail': <String>['💼', '🗂️', '🧑‍💻', '📚', '📝', '📈', '✅', '🧾'],
-    'Créativité': <String>['🎨', '🎵', '🧵', '📷', '✍️', '🧩', '🎬', '🛠️'],
-    'Social': <String>['👨‍👩‍👧', '🤝', '☎️', '💬', '🎉', '❤️', '🙏', '☕'],
-    'Autres': <String>['🎯', '⭐', '🔥', '🌱', '🚀', '⏱️', '📌', '💡'],
-  };
+        'Sport': <String>['🏃', '🏋️', '🚴', '⚽', '🏀', '🥇', '🧘', '🎾'],
+        'Santé': <String>['💧', '🥗', '💊', '😴', '🫀', '🧠', '🚶', '🩺'],
+        'Travail': <String>['💼', '🗂️', '🧑‍💻', '📚', '📝', '📈', '✅', '🧾'],
+        'Créativité': <String>['🎨', '🎵', '🧵', '📷', '✍️', '🧩', '🎬', '🛠️'],
+        'Social': <String>['👨‍👩‍👧', '🤝', '☎️', '💬', '🎉', '❤️', '🙏', '☕'],
+        'Autres': <String>['🎯', '⭐', '🔥', '🌱', '🚀', '⏱️', '📌', '💡'],
+      };
 
   /// Tabac, alcool, contenu adulte, écrans, jeux, nourriture, etc.
   static const Map<String, List<String>> _addictionCategories =
       <String, List<String>>{
-    'Tabac & vape': <String>['🚬', '🚭', '🫁', '💨'],
-    'Alcool': <String>['🍺', '🍷', '🥃', '🍸', '🍾', '🤢'],
-    'Contenu sensible': <String>['🔞', '⚠️', '🔒'],
-    'Écrans & web': <String>['📱', '💻', '📺', '🌐', '📲', '👁️'],
-    'Jeux & paris': <String>['🎰', '🎲', '🃏', '🎮', '🕹️'],
-    'Nourriture': <String>['🍔', '🍟', '🍕', '🍫', '🧁', '🍩', '🥤'],
-    'Substances': <String>['💊', '💉', '🧪'],
-    'Autres': <String>['🛡️', '⛔', '🧠', '💪', '😤', '🧘', '💅', '🤚', '✋', '🦷', '🦶'],
-  };
+        'Tabac & vape': <String>['🚬', '🚭', '🫁', '💨'],
+        'Alcool': <String>['🍺', '🍷', '🥃', '🍸', '🍾', '🤢'],
+        'Contenu sensible': <String>['🔞', '⚠️', '🔒'],
+        'Écrans & web': <String>['📱', '💻', '📺', '🌐', '📲', '👁️'],
+        'Jeux & paris': <String>['🎰', '🎲', '🃏', '🎮', '🕹️'],
+        'Nourriture': <String>['🍔', '🍟', '🍕', '🍫', '🧁', '🍩', '🥤'],
+        'Substances': <String>['💊', '💉', '🧪'],
+        'Autres': <String>[
+          '🛡️',
+          '⛔',
+          '🧠',
+          '💪',
+          '😤',
+          '🧘',
+          '💅',
+          '🤚',
+          '✋',
+          '🦷',
+          '🦶',
+        ],
+      };
 
   Map<String, List<String>> get _categories {
     switch (widget.preset) {
@@ -127,16 +130,16 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Choisir un emoji',
+                context.l10n.choisirUnEmoji,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
               TextField(
                 onChanged: (value) => setState(() => _query = value),
                 textCapitalization: TextCapitalization.none,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search),
-                  hintText: 'Rechercher un emoji...',
+                  hintText: context.l10n.rechercherUnEmoji,
                 ),
               ),
               const SizedBox(height: 12),
@@ -150,8 +153,8 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
                       style: const TextStyle(fontSize: 20),
                     ),
                   ),
-                  title: const Text('Aperçu'),
-                  subtitle: const Text('Emoji sélectionné'),
+                  title: Text(context.l10n.apercu),
+                  subtitle: Text(context.l10n.emojiSelectionne),
                 ),
               ),
               const SizedBox(height: 12),
@@ -160,14 +163,18 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
                   children: _categories.entries
                       .map((entry) {
                         final emojis = entry.value
-                            .where((e) => normalized.isEmpty || e.contains(normalized))
+                            .where(
+                              (e) =>
+                                  normalized.isEmpty || e.contains(normalized),
+                            )
                             .toList(growable: false);
                         if (emojis.isEmpty) return const SizedBox.shrink();
                         return _EmojiCategorySection(
-                          title: entry.key,
+                          title: context.l10n.systemMessage(entry.key),
                           emojis: emojis,
                           selectedEmoji: _selectedEmoji,
-                          onTapEmoji: (emoji) => setState(() => _selectedEmoji = emoji),
+                          onTapEmoji: (emoji) =>
+                              setState(() => _selectedEmoji = emoji),
                         );
                       })
                       .where((w) => w is! SizedBox)
@@ -179,7 +186,7 @@ class _EmojiPickerSheetState extends State<_EmojiPickerSheet> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop(_selectedEmoji),
-                  child: const Text('Valider'),
+                  child: Text(context.l10n.valider),
                 ),
               ),
             ],
@@ -230,15 +237,13 @@ class _EmojiCategorySection extends StatelessWidget {
                 child: Ink(
                   decoration: BoxDecoration(
                     color: selected
-                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)
+                        ? Theme.of(context).colorScheme.primary
+                              .withValues(alpha: 0.18)
                         : Theme.of(context).colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: Text(
-                      emoji,
-                      style: const TextStyle(fontSize: 20),
-                    ),
+                    child: Text(emoji, style: const TextStyle(fontSize: 20)),
                   ),
                 ),
               );

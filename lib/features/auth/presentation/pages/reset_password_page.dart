@@ -5,6 +5,7 @@ import '../../../../app/widgets/dismiss_keyboard_on_tap.dart';
 import '../state/auth_provider.dart';
 import '../widgets/fade_scale_page_route.dart';
 import 'login_page.dart';
+import '../../../../app/localization/localization.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key});
@@ -73,7 +74,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               const CircularProgressIndicator(),
               const SizedBox(height: 12),
               Text(
-                'Vérification de la session...',
+                context.l10n.verificationDeLaSession,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
@@ -91,18 +92,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Réinitialisation du mot de passe'),
-      ),
+      appBar: AppBar(title: Text(context.l10n.reinitialisationDuMotDePasse)),
       body: DismissKeyboardOnTap(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: 16,
-            ),
+            padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 16),
             child: AutofillGroup(
               child: Form(
                 key: _formKey,
@@ -111,75 +105,86 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
-                Text(
-                  'Entrez votre email',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _emailController,
-                  focusNode: _emailFocus,
-                  enabled: !_isSubmitting,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  autofillHints: const <String>[AutofillHints.username, AutofillHints.email],
-                  onFieldSubmitted: (_) => _submit(),
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (value) {
-                    final v = value?.trim() ?? '';
-                    if (v.isEmpty) return 'Ce champ est obligatoire';
-                    if (!_isEmailValid(v)) return 'Veuillez entrer une adresse email valide';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                if (_errorMessage != null) ...[
-                  Text(
-                    _errorMessage!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    Text(
+                      context.l10n.entrezVotreEmail,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _emailController,
+                      focusNode: _emailFocus,
+                      enabled: !_isSubmitting,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const <String>[
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      onFieldSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.email,
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                      validator: (value) {
+                        final v = value?.trim() ?? '';
+                        if (v.isEmpty)
+                          return context.l10n.ceChampEstObligatoire;
+                        if (!_isEmailValid(v))
+                          return context
+                              .l10n
+                              .veuillezEntrerUneAdresseEmailValide;
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    if (_errorMessage != null) ...[
+                      Text(
+                        context.l10n.systemMessage(_errorMessage!),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                if (_sent)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      'Un email de réinitialisation a été envoyé (si l’adresse existe).',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (_sent)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          context
+                              .l10n
+                              .unEmailDeReinitialisationAEteEnvoyeSiLadresse,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 48,
+                      child: FilledButton(
+                        onPressed: _isSubmitting || _sent ? null : _submit,
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(context.l10n.envoyerLemail),
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 48,
-                  child: FilledButton(
-                    onPressed: _isSubmitting || _sent ? null : _submit,
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Envoyer l’email'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: _isSubmitting
-                      ? null
-                      : () {
-                          Navigator.of(context).push(
-                            FadeScalePageRoute(
-                              pageBuilder: (_) => const LoginPage(),
-                            ),
-                          );
-                        },
-                  child: const Text('Retour à la connexion'),
-                ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _isSubmitting
+                          ? null
+                          : () {
+                              Navigator.of(context).push(
+                                FadeScalePageRoute(
+                                  pageBuilder: (_) => const LoginPage(),
+                                ),
+                              );
+                            },
+                      child: Text(context.l10n.retourALaConnexion),
+                    ),
                   ],
                 ),
               ),
@@ -190,4 +195,3 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 }
-
