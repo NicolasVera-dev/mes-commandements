@@ -1,5 +1,9 @@
 # Historique des versions
 
+## 1.4.0 — en développement
+
+Prochaine version en préparation sur `codex/integration/1.4`.
+
 ## 1.3.0 (code 14)
 
 - Ajout du choix français / anglais dans les paramètres, conservé au redémarrage.
