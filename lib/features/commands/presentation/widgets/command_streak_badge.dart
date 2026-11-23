@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/app_theme.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/usecases/compute_streak_usecase.dart';
+import '../../../../app/localization/localization.dart';
 
 /// Badge pill emoji + libellé pour la série sous le titre.
 class CommandStreakBadge extends StatelessWidget {
@@ -24,23 +25,23 @@ class CommandStreakBadge extends StatelessWidget {
     }
 
     final semantic = Theme.of(context).extension<AppSemanticColors>();
-    final isPositive = result.badge == StreakBadge.success1 ||
-        result.badge == StreakBadge.success2 ||
-        result.badge == StreakBadge.success3 ||
-        result.badge == StreakBadge.success4 ||
-        result.badge == StreakBadge.recoveredToday;
+    final isPositive = !result.badge.isNegative;
     final background = isPositive
         ? (semantic?.successBackground ??
-            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35))
+              Theme.of(context).colorScheme.primaryContainer
+                  .withValues(alpha: 0.35))
         : (semantic?.failedBackground ??
-            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.35));
+              Theme.of(context).colorScheme.errorContainer
+                  .withValues(alpha: 0.35));
     final foreground = isPositive
         ? (semantic?.successIndicator ??
-            Theme.of(context).colorScheme.onPrimaryContainer)
+              Theme.of(context).colorScheme.onPrimaryContainer)
         : (semantic?.failedIndicator ?? Theme.of(context).colorScheme.error);
 
-    final emoji = _emojiFor(result.badge);
-    final label = _labelFor(result, frequency);
+    final (emoji, title) = _badgeContent(result.badge, strings: context.l10n);
+    final label = result.badge == StreakBadge.recovered
+        ? title
+        : '$title · ${_countLabel(result, frequency, strings: context.l10n)}';
     final fontSize = compact ? 11.5 : 12.5;
 
     return Padding(
@@ -62,14 +63,16 @@ class CommandStreakBadge extends StatelessWidget {
               style: TextStyle(fontSize: compact ? 13 : 14, height: 1.1),
             ),
             SizedBox(width: compact ? 4 : 6),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w600,
-                    fontSize: fontSize,
-                    height: 1.2,
-                  ),
+            Flexible(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w600,
+                  fontSize: fontSize,
+                  height: 1.2,
+                ),
+              ),
             ),
           ],
         ),
@@ -78,103 +81,54 @@ class CommandStreakBadge extends StatelessWidget {
   }
 }
 
-String _emojiFor(StreakBadge badge) {
-  switch (badge) {
-    case StreakBadge.none:
-      return '';
-    case StreakBadge.success1:
-      return '🔥';
-    case StreakBadge.success2:
-      return '🚀';
-    case StreakBadge.success3:
-      return '👑';
-    case StreakBadge.success4:
-      return '🏆';
-    case StreakBadge.failDaily:
-    case StreakBadge.failOther:
-      return '😕';
-    case StreakBadge.recoveredToday:
-      return '✨';
-  }
+(String, String) _badgeContent(StreakBadge badge, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
+  return switch (badge) {
+    StreakBadge.none => ('', ''),
+    StreakBadge.recovered => ('✨', l10n.reprise),
+    StreakBadge.goodStart => ('🌱', l10n.bonDepart),
+    StreakBadge.inRhythm => ('🔥', l10n.enRythme),
+    StreakBadge.solidStreak => ('💪', l10n.serieSolide),
+    StreakBadge.consistent => ('⭐', l10n.belleRegularite),
+    StreakBadge.momentum => ('🚀', l10n.surTaLancee),
+    StreakBadge.milestone => ('🏅', l10n.capFranchi),
+    StreakBadge.established => ('👑', l10n.habitudeAncree),
+    StreakBadge.legendary => ('🏆', l10n.serieLegendaire),
+    StreakBadge.missedOccasion => ('🌥️', l10n.fauxPas),
+    StreakBadge.setback => ('🟡', l10n.caCoince),
+    StreakBadge.findRhythm => ('🟠', l10n.caDeraille),
+    StreakBadge.slowingDown => ('🍂', l10n.coupDur),
+    StreakBadge.adjustGoal => ('🧭', l10n.zoneRouge),
+    StreakBadge.smallStep => ('👣', l10n.plusDelan),
+    StreakBadge.freshStart => ('🔄', l10n.panneSeche),
+    StreakBadge.rethinkDirection => ('🎯', l10n.crash),
+  };
 }
 
-String _labelFor(StreakResult result, Frequency frequency) {
-  final n = result.count;
-  switch (result.badge) {
-    case StreakBadge.none:
-      return '';
-    case StreakBadge.recoveredToday:
-      return 'Reprise aujourd’hui';
-    case StreakBadge.success1:
-    case StreakBadge.success2:
-    case StreakBadge.success3:
-    case StreakBadge.success4:
-      return _successLabel(
-        frequency: frequency,
-        level: result.badge,
-        count: n,
-      );
-    case StreakBadge.failDaily:
-    case StreakBadge.failOther:
-      return _failLabel(frequency: frequency, count: n);
-  }
-}
-
-String _successLabel({
-  required Frequency frequency,
-  required StreakBadge level,
-  required int count,
+String _countLabel(
+  StreakResult result,
+  Frequency frequency, {
+  AppLocalizations? strings,
 }) {
-  final n = count;
-  switch (frequency) {
-    case Frequency.daily:
-      return switch (level) {
-        StreakBadge.success1 => '$n jours réussis',
-        StreakBadge.success2 => '$n jours au top',
-        StreakBadge.success3 => '$n jours incroyables',
-        StreakBadge.success4 => '$n jours légendaires',
-        _ => '$n jours réussis',
-      };
-    case Frequency.weekly:
-      return switch (level) {
-        StreakBadge.success1 => '$n semaines réussies',
-        StreakBadge.success2 => '$n semaines au top',
-        StreakBadge.success3 => '$n semaines incroyables',
-        StreakBadge.success4 => '$n semaines légendaires',
-        _ => '$n semaines réussies',
-      };
-    case Frequency.monthly:
-      return switch (level) {
-        StreakBadge.success1 => '$n mois réussis',
-        StreakBadge.success2 => '$n mois au top',
-        StreakBadge.success3 => '$n mois incroyables',
-        StreakBadge.success4 => '$n mois légendaires',
-        _ => '$n mois réussis',
-      };
-    case Frequency.yearly:
-      return switch (level) {
-        StreakBadge.success1 => '$n années réussies',
-        StreakBadge.success2 => '$n années au top',
-        StreakBadge.success3 => '$n années incroyables',
-        StreakBadge.success4 => '$n années légendaires',
-        _ => '$n années réussies',
-      };
-  }
-}
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
 
-String _failLabel({
-  required Frequency frequency,
-  required int count,
-}) {
-  final n = count;
-  switch (frequency) {
-    case Frequency.daily:
-      return '$n jours échoués consécutifs';
-    case Frequency.weekly:
-      return '$n semaines échouées consécutives';
-    case Frequency.monthly:
-      return '$n mois échoués consécutifs';
-    case Frequency.yearly:
-      return '$n années échouées consécutives';
-  }
+  final count = result.count;
+  final single = count == 1;
+  final negative = result.badge.isNegative;
+  final description = switch ((frequency, negative, single)) {
+    (Frequency.daily, false, _) => l10n.joursReussis,
+    (Frequency.weekly, false, _) => l10n.semainesReussies,
+    (Frequency.monthly, false, _) => l10n.moisReussis,
+    (Frequency.yearly, false, _) => l10n.anneesReussies,
+    (Frequency.daily, true, true) => l10n.jourManque,
+    (Frequency.daily, true, false) => l10n.joursManques,
+    (Frequency.weekly, true, true) => l10n.semaineManquee,
+    (Frequency.weekly, true, false) => l10n.semainesManquees,
+    (Frequency.monthly, true, true) => l10n.moisManque,
+    (Frequency.monthly, true, false) => l10n.moisManques,
+    (Frequency.yearly, true, true) => l10n.anneeManquee,
+    (Frequency.yearly, true, false) => l10n.anneesManquees,
+  };
+  return '$count $description';
 }

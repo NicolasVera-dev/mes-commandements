@@ -3,14 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../state/auth_provider.dart';
 import '../../presentation/pages/login_page.dart';
+import '../../../../app/localization/localization.dart';
 
 class RequireAuth extends StatelessWidget {
   final Widget child;
 
-  const RequireAuth({
-    super.key,
-    required this.child,
-  });
+  const RequireAuth({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +23,7 @@ class RequireAuth extends StatelessWidget {
               const CircularProgressIndicator(),
               const SizedBox(height: 12),
               Text(
-                'Vérification de la session...',
+                context.l10n.verificationDeLaSession,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
@@ -41,4 +39,3 @@ class RequireAuth extends StatelessWidget {
     return child;
   }
 }
-

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../domain/entities/cycle_note.dart';
 import '../state/cycle_note_provider.dart';
 import '../utils/cycle_key_display_label.dart';
+import '../../../../app/localization/localization.dart';
 
 Future<void> showCycleNoteEditorSheet(
   BuildContext context, {
@@ -16,10 +17,8 @@ Future<void> showCycleNoteEditorSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (sheetContext) => _CycleNoteEditorBody(
-      commandId: commandId,
-      cycleKey: cycleKey,
-    ),
+    builder: (sheetContext) =>
+        _CycleNoteEditorBody(commandId: commandId, cycleKey: cycleKey),
   );
 }
 
@@ -27,10 +26,7 @@ class _CycleNoteEditorBody extends StatefulWidget {
   final String commandId;
   final String cycleKey;
 
-  const _CycleNoteEditorBody({
-    required this.commandId,
-    required this.cycleKey,
-  });
+  const _CycleNoteEditorBody({required this.commandId, required this.cycleKey});
 
   @override
   State<_CycleNoteEditorBody> createState() => _CycleNoteEditorBodyState();
@@ -72,13 +68,14 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
       );
       if (!mounted) return;
       navigator.pop();
-    } on ArgumentError catch (e) {
-      messenger?.showSnackBar(SnackBar(content: Text('$e')));
+    } on ArgumentError {
+      messenger?.showSnackBar(
+        SnackBar(content: Text(context.l10n.erreurEnregistrementNote)),
+      );
     } on FirebaseException catch (e) {
       if (!mounted) return;
       final msg = e.code == 'permission-denied'
-          ? 'Sauvegarde refusée par Firestore. Déployez les règles du dépôt '
-              '(cycle_notes) : firebase deploy --only firestore:rules'
+          ? context.l10n.notePermissionSave
           : (e.message?.isNotEmpty == true ? e.message! : e.code);
       messenger?.showSnackBar(SnackBar(content: Text(msg)));
     }
@@ -90,16 +87,16 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer la note ?'),
-        content: const Text('Cette action est irréversible.'),
+        title: Text(context.l10n.supprimerLaNote),
+        content: Text(context.l10n.cetteActionEstIrreversible),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.supprimer),
           ),
         ],
       ),
@@ -118,8 +115,7 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
     } on FirebaseException catch (e) {
       if (!mounted) return;
       final msg = e.code == 'permission-denied'
-          ? 'Suppression refusée par Firestore. Déployez les règles du dépôt '
-              '(cycle_notes) : firebase deploy --only firestore:rules'
+          ? context.l10n.notePermissionDelete
           : (e.message?.isNotEmpty == true ? e.message! : e.code);
       messenger?.showSnackBar(SnackBar(content: Text(msg)));
     }
@@ -127,7 +123,7 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
 
   @override
   Widget build(BuildContext context) {
-    final label = cycleKeyDisplayLabel(widget.cycleKey);
+    final label = cycleKeyDisplayLabel(widget.cycleKey, strings: context.l10n);
     final provider = context.watch<CycleNoteProvider>();
     final saving = provider.isSaving;
     final length = _controller.text.characters.length;
@@ -145,7 +141,7 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Note — $label',
+              context.l10n.note(label),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
@@ -158,7 +154,7 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
                 LengthLimitingTextInputFormatter(CycleNote.maxContentLength),
               ],
               decoration: InputDecoration(
-                hintText: 'Écrivez une note pour ce cycle…',
+                hintText: context.l10n.ecrivezUneNotePourCeCycle,
                 border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
                 counterText: '$length / ${CycleNote.maxContentLength}',
@@ -170,22 +166,22 @@ class _CycleNoteEditorBodyState extends State<_CycleNoteEditorBody> {
                 if (_hasExistingNote)
                   TextButton(
                     onPressed: saving ? null : _confirmDelete,
-                    child: const Text('Supprimer'),
+                    child: Text(context.l10n.supprimer),
                   ),
                 const Spacer(),
                 FilledButton(
                   onPressed: saving
                       ? null
                       : canSubmit
-                          ? () => _save(context)
-                          : null,
+                      ? () => _save(context)
+                      : null,
                   child: saving
                       ? const SizedBox(
                           width: 22,
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Enregistrer'),
+                      : Text(context.l10n.enregistrer),
                 ),
               ],
             ),

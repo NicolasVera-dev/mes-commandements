@@ -27,7 +27,8 @@ class CommandStreakFromRepository extends StatefulWidget {
       _CommandStreakFromRepositoryState();
 }
 
-class _CommandStreakFromRepositoryState extends State<CommandStreakFromRepository> {
+class _CommandStreakFromRepositoryState
+    extends State<CommandStreakFromRepository> {
   Stream<List<CommandEvent>>? _eventsStream;
   String? _streamForCommandId;
   DateTime? _streamForStartUtc;
@@ -35,8 +36,17 @@ class _CommandStreakFromRepositoryState extends State<CommandStreakFromRepositor
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final start =
-        widget.command.createdAt?.toUtc() ?? DateTime.utc(2000, 1, 1);
+    _subscribe();
+  }
+
+  @override
+  void didUpdateWidget(covariant CommandStreakFromRepository oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _subscribe();
+  }
+
+  void _subscribe() {
+    final start = widget.command.createdAt?.toUtc() ?? DateTime.utc(2000, 1, 1);
     final id = widget.command.id;
     if (_eventsStream == null ||
         _streamForCommandId != id ||
@@ -44,9 +54,9 @@ class _CommandStreakFromRepositoryState extends State<CommandStreakFromRepositor
       _streamForCommandId = id;
       _streamForStartUtc = start;
       _eventsStream = context.read<CommandEventRepository>().watchEventsFrom(
-            id,
-            startUtcInclusive: start,
-          );
+        id,
+        startUtcInclusive: start,
+      );
     }
   }
 
@@ -56,17 +66,26 @@ class _CommandStreakFromRepositoryState extends State<CommandStreakFromRepositor
     if (stream == null) {
       return const SizedBox.shrink();
     }
-    final effectiveCreated =
-        widget.command.createdAt?.toUtc() ?? DateTime.utc(2000, 1, 1);
 
     return StreamBuilder<List<CommandEvent>>(
+      key: ObjectKey(stream),
       stream: stream,
-      initialData: const <CommandEvent>[],
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
+        final events = snapshot.data;
+        if (snapshot.hasError || events == null) {
           return const SizedBox.shrink();
         }
-        final events = snapshot.data ?? const <CommandEvent>[];
+        var effectiveCreated = widget.command.createdAt;
+        if (effectiveCreated == null) {
+          // Les anciens documents peuvent ne pas avoir de date de création.
+          for (final event in events) {
+            if (effectiveCreated == null ||
+                event.actionAtUtc.isBefore(effectiveCreated)) {
+              effectiveCreated = event.actionAtUtc;
+            }
+          }
+        }
+        if (effectiveCreated == null) return const SizedBox.shrink();
         final grouped = groupCommandEventsByCycle(events);
         final result = const ComputeStreakUseCase().execute(
           command: widget.command,

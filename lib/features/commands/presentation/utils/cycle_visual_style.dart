@@ -6,17 +6,20 @@ import '../../../../app/app_theme.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/entities/command_event.dart';
 import '../../domain/services/cycle_key_generator.dart';
+import '../../../../app/localization/localization.dart';
 
-enum CycleVisualStatus { success, failed, current, inactive }
+enum CycleVisualStatus { success, failed, current, inactive, paused }
 
 CycleVisualStatus statusForCycle({
   required bool isSuccess,
   required bool isCurrent,
   required bool isPast,
   bool isInactive = false,
+  bool isPaused = false,
 }) {
   if (isInactive) return CycleVisualStatus.inactive;
   if (isSuccess) return CycleVisualStatus.success;
+  if (isPaused) return CycleVisualStatus.paused;
   if (isCurrent) return CycleVisualStatus.current;
   if (isPast) return CycleVisualStatus.failed;
   return CycleVisualStatus.current;
@@ -72,27 +75,34 @@ CycleStyle styleForStatus(CycleVisualStatus status, BuildContext context) {
         stateIcon: Icons.schedule_rounded,
       );
     case CycleVisualStatus.inactive:
+    case CycleVisualStatus.paused:
       return CycleStyle(
         backgroundColor: Color.alphaBlend(
           scheme.surfaceContainerLow.withValues(alpha: 0.6),
           scheme.surface,
         ),
         indicatorColor: scheme.outlineVariant,
-        stateIcon: Icons.remove_rounded,
+        stateIcon: status == CycleVisualStatus.paused
+            ? Icons.pause_rounded
+            : Icons.remove_rounded,
       );
   }
 }
 
-String statusSemantics(CycleVisualStatus status) {
+String statusSemantics(CycleVisualStatus status, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (status) {
     case CycleVisualStatus.success:
-      return 'objectif atteint';
+      return l10n.objectifAtteint;
     case CycleVisualStatus.failed:
-      return 'objectif non atteint';
+      return l10n.objectifNonAtteint;
     case CycleVisualStatus.current:
-      return 'en cours';
+      return l10n.enCours2;
     case CycleVisualStatus.inactive:
-      return 'jour inactif';
+      return l10n.jourInactif;
+    case CycleVisualStatus.paused:
+      return l10n.enPause2;
   }
 }
 
@@ -158,33 +168,37 @@ bool hasComplete(List<CommandEvent> events) {
   return events.any((e) => e.type == CommandEventType.complete);
 }
 
-String frequencyLabel(Frequency frequency) {
+String frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }
 
-String monthLabel(int month) {
-  const labels = <String>[
-    'janvier',
-    'février',
-    'mars',
-    'avril',
-    'mai',
-    'juin',
-    'juillet',
-    'août',
-    'septembre',
-    'octobre',
-    'novembre',
-    'décembre',
+String monthLabel(int month, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
+  final labels = <String>[
+    l10n.janvier,
+    l10n.fevrier,
+    l10n.mars,
+    l10n.avril,
+    l10n.mai,
+    l10n.juin,
+    l10n.juillet,
+    l10n.aout,
+    l10n.septembre,
+    l10n.octobre,
+    l10n.novembre,
+    l10n.decembre,
   ];
   return labels[month - 1];
 }

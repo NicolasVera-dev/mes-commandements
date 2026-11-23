@@ -7,6 +7,8 @@ import '../../domain/entities/auto_reset_report.dart';
 import '../../domain/entities/command.dart';
 import '../../domain/entities/command_event.dart';
 import '../../domain/entities/command_position_update.dart';
+import '../../domain/entities/command_pause.dart';
+import '../../domain/services/cycle_key_generator.dart';
 import '../../domain/repositories/command_event_repository.dart';
 import '../../domain/repositories/command_repository.dart';
 import '../../domain/repositories/cycle_note_repository.dart';
@@ -140,13 +142,14 @@ class FirestoreCommandRepository implements CommandRepository {
       final resetCommand = command.applyAutoResetIfNeeded(nowUtc);
       if (resetCommand == command) continue;
       try {
-        await _applyResetBatch(
+        final didReset = await _applyResetBatch(
           uid: uid,
           commandBeforeReset: command,
           commandAfterReset: resetCommand,
           resetType: CommandEventType.resetAuto,
           eventAtUtc: nowUtc,
         );
+        if (!didReset) continue;
         updatedCount++;
         byFrequency[command.frequency] =
             (byFrequency[command.frequency] ?? 0) + 1;
@@ -327,49 +330,119 @@ class FirestoreCommandRepository implements CommandRepository {
   }
 
   @override
+  Future<void> pause(String commandId, {DateTime? untilUtc}) {
+    return _changePause(commandId, (command, now) {
+      if (command.isPausedAt(now)) return command;
+      if (untilUtc != null && !untilUtc.isAfter(now)) return command;
+      return command.copyWith(
+        pauses: [
+          ...command.pauses,
+          CommandPause(startUtc: now, endUtc: untilUtc?.toUtc()),
+        ],
+      );
+    });
+  }
+
+  @override
+  Future<void> resume(String commandId, {required bool nextCycle}) {
+    return _changePause(commandId, (command, now) {
+      final active = command.pauseAt(now);
+      if (active == null) return command;
+      var end = nextCycle
+          ? CycleKeyGenerator.nextCycleStartUtc(command.frequency, now)
+          : now;
+      while (nextCycle && !command.isActiveOnDayUtc(end)) {
+        end = CycleKeyGenerator.nextCycleStartUtc(command.frequency, end);
+      }
+      final resumed = command.copyWith(
+        pauses: [
+          for (final pause in command.pauses)
+            if (pause != active)
+              pause
+            else if (end.isAfter(active.startUtc))
+              CommandPause(startUtc: active.startUtc, endUtc: end),
+        ],
+      );
+      if (!nextCycle &&
+          command.cycleKeyAt(active.startUtc) != command.cycleKeyAt(now)) {
+        return resumed.applyAutoResetIfNeeded(now);
+      }
+      return resumed;
+    });
+  }
+
+  Future<void> _changePause(
+    String commandId,
+    Command Function(Command, DateTime) change,
+  ) async {
+    final uid = await _currentUserId();
+    if (uid == null) return;
+    final ref = _collectionForUser(uid).doc(commandId);
+    await _firestore.runTransaction<void>((tx) async {
+      final data = (await tx.get(ref)).data();
+      if (data == null) return;
+      final before = Command.fromMap(id: commandId, map: data);
+      final after = change(before, DateTime.now().toUtc());
+      if (before == after) return;
+      tx.update(ref, {
+        'pauses': after.pauses.map((pause) => pause.toMap()).toList(),
+        if (before.lastResetAt != after.lastResetAt) ...{
+          'progress': after.progress,
+          'lastResetAt': after.lastResetAt?.toIso8601String(),
+        },
+      });
+    });
+  }
+
+  @override
   Future<void> incrementProgress(String commandId) async {
     final uid = await _currentUserId();
     if (uid == null) return;
     final docRef = _collectionForUser(uid).doc(commandId);
-    Command? updatedAfterIncrement;
-    Command? completedAtIncrement;
-    final eventAt = DateTime.now().toUtc();
+    final result = await _firestore
+        .runTransaction<({Command command, DateTime at, bool completed})?>((
+          tx,
+        ) async {
+          final data = (await tx.get(docRef)).data();
+          if (data == null) return null;
 
-    await _firestore.runTransaction<void>((tx) async {
-      final snapshot = await tx.get(docRef);
-      if (!snapshot.exists) return;
+          final eventAt = DateTime.now().toUtc();
+          final command = Command.fromMap(id: commandId, map: data);
+          if (command.isPausedAt(eventAt)) return null;
+          final latestPause = command.pauses.lastOrNull;
+          final current =
+              latestPause != null &&
+                  command.cycleKeyAt(latestPause.startUtc) !=
+                      command.cycleKeyAt(eventAt)
+              ? command.applyAutoResetIfNeeded(eventAt)
+              : command;
+          final updated = current.incrementProgress();
+          tx.update(docRef, <String, Object?>{
+            'progress': updated.progress,
+            if (current.lastResetAt != command.lastResetAt)
+              'lastResetAt': current.lastResetAt?.toIso8601String(),
+          });
+          return (
+            command: updated,
+            at: eventAt,
+            completed: !current.isCompleted() && updated.isCompleted(),
+          );
+        });
 
-      final data = snapshot.data();
-      if (data == null) return;
-
-      final command = Command.fromMap(
-        id: docRef.id,
-        map: Map<String, Object?>.from(data),
-      );
-      final updated = command.incrementProgress();
-      updatedAfterIncrement = updated;
-      if (!command.isCompleted() && updated.isCompleted()) {
-        completedAtIncrement = updated;
-      }
-      tx.update(docRef, <String, Object?>{'progress': updated.progress});
-    });
-
-    if (updatedAfterIncrement != null) {
+    if (result == null) return;
+    _eventRepository?.addEventFireAndForget(
+      commandId: commandId,
+      event: result.command.toEvent(
+        type: CommandEventType.increment,
+        actionAtUtc: result.at,
+      ),
+    );
+    if (result.completed) {
       _eventRepository?.addEventFireAndForget(
         commandId: commandId,
-        event: updatedAfterIncrement!.toEvent(
-          type: CommandEventType.increment,
-          actionAtUtc: eventAt,
-        ),
-      );
-    }
-
-    if (completedAtIncrement != null) {
-      _eventRepository?.addEventFireAndForget(
-        commandId: commandId,
-        event: completedAtIncrement!.toEvent(
+        event: result.command.toEvent(
           type: CommandEventType.complete,
-          actionAtUtc: eventAt,
+          actionAtUtc: result.at,
         ),
       );
     }
@@ -389,6 +462,7 @@ class FirestoreCommandRepository implements CommandRepository {
       id: docRef.id,
       map: Map<String, Object?>.from(data),
     );
+    if (command.isPausedAt(eventAt)) return;
     final updated = command.resetProgress(resetAt: eventAt);
     await _applyResetBatch(
       uid: uid,
@@ -516,7 +590,7 @@ class FirestoreCommandRepository implements CommandRepository {
     await batch.commit();
   }
 
-  Future<void> _applyResetBatch({
+  Future<bool> _applyResetBatch({
     required String uid,
     required Command commandBeforeReset,
     required Command commandAfterReset,
@@ -552,23 +626,28 @@ class FirestoreCommandRepository implements CommandRepository {
       }
     }
 
-    final batch = _firestore.batch();
-    batch.update(commandRef, <String, Object?>{
-      'progress': commandAfterReset.progress,
-      'lastResetAt': commandAfterReset.lastResetAt?.toIso8601String(),
+    return _firestore.runTransaction<bool>((tx) async {
+      final data = (await tx.get(commandRef)).data();
+      if (data == null) return false;
+      final latest = Command.fromMap(id: commandBeforeReset.id, map: data);
+      if (latest != commandBeforeReset || latest.isPausedAt(DateTime.now())) {
+        return false;
+      }
+
+      tx.update(commandRef, <String, Object?>{
+        'progress': commandAfterReset.progress,
+        'lastResetAt': commandAfterReset.lastResetAt?.toIso8601String(),
+      });
+      final resetEvent = commandAfterReset.toEvent(
+        type: resetType,
+        actionAtUtc: eventAtUtc,
+      );
+      tx.set(eventsCollection.doc(), _eventToMap(resetEvent));
+      for (final eventDoc in cycleEventDocs) {
+        tx.delete(eventDoc.reference);
+      }
+      return true;
     });
-
-    final resetEvent = commandAfterReset.toEvent(
-      type: resetType,
-      actionAtUtc: eventAtUtc,
-    );
-    batch.set(eventsCollection.doc(), _eventToMap(resetEvent));
-
-    for (final eventDoc in cycleEventDocs) {
-      batch.delete(eventDoc.reference);
-    }
-
-    await batch.commit();
   }
 
   Map<String, Object?> _eventToMap(CommandEvent event) {

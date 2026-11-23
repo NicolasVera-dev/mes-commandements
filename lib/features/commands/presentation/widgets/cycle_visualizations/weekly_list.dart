@@ -7,6 +7,7 @@ import '../../../domain/services/cycle_key_generator.dart';
 import '../../utils/cycle_visual_style.dart';
 import '../cycle_note_bottom_sheet.dart';
 import '../cycle_note_indicator.dart';
+import '../../../../../app/localization/localization.dart';
 
 class WeeklyList extends StatelessWidget {
   final DateTime anchorUtc;
@@ -15,6 +16,7 @@ class WeeklyList extends StatelessWidget {
   final int target;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -35,6 +37,7 @@ class WeeklyList extends StatelessWidget {
     required this.target,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -70,8 +73,8 @@ class WeeklyList extends StatelessWidget {
                 ),
                 title: Text(
                   canCompletePastCycle
-                      ? 'Marquer comme complété'
-                      : 'Retirer la complétion',
+                      ? context.l10n.marquerCommeComplete
+                      : context.l10n.retirerLaCompletion,
                 ),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -90,7 +93,7 @@ class WeeklyList extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
-                title: const Text('Ajouter/modifier une note'),
+                title: Text(context.l10n.ajouterModifierUneNote),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _openNote(context, cycleKey);
@@ -149,12 +152,15 @@ class WeeklyList extends StatelessWidget {
                 ? 0.0
                 : (progress / target).clamp(0.0, 1.0);
             final success = hasComplete(events);
+            final paused = isCyclePaused?.call(weekStart) ?? false;
             final status = statusForCycle(
+              isPaused: paused,
               isSuccess: success,
               isCurrent: weekKey == currentKey,
               isPast: weekStart.isBefore(currentWeekStart),
             );
             final canCompletePastCycle =
+                !paused &&
                 !success &&
                 weekKey != currentKey &&
                 weekStart.isBefore(currentWeekStart);
@@ -169,17 +175,23 @@ class WeeklyList extends StatelessWidget {
             );
             final weekNumber = _weekNumberFromCycleKey(weekKey);
             final hasNote = notes.containsKey(weekKey);
-            final semanticsNote = hasNote ? ', note enregistrée' : '';
-            final cycleLabel =
-                'la semaine $weekNumber (${weekKey.substring(0, 4)})';
+            final semanticsNote = hasNote ? context.l10n.noteEnregistree : '';
+            final cycleLabel = context.l10n.laSemaine(
+              weekNumber,
+              weekKey.substring(0, 4),
+            );
             final semanticsAction =
                 (canCompletePastCycle || canUncompletePastCycle)
-                ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
-                : 'Appuyez pour ajouter ou modifier une note.';
+                ? context.l10n.appuyezPourChoisirEntreCompleterOuAjouterUneNote
+                : context.l10n.appuyezPourAjouterOuModifierUneNote;
 
             return Semantics(
-              label:
-                  'Semaine $weekNumber : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
+              label: context.l10n.semaine2(
+                weekNumber,
+                statusSemantics(status),
+                semanticsNote,
+                semanticsAction,
+              ),
               button: true,
               child: Card(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -218,9 +230,9 @@ class WeeklyList extends StatelessWidget {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 progressColorForRatio(context, progressRatio),
                               ),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHigh,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHigh,
                             ),
                             const SizedBox(height: 6),
                             Row(
@@ -242,9 +254,9 @@ class WeeklyList extends StatelessWidget {
                                       width: 8,
                                       height: 8,
                                       decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         shape: BoxShape.circle,
                                       ),
                                     ),

@@ -6,6 +6,7 @@ import '../../../domain/entities/cycle_note.dart';
 import '../../utils/cycle_visual_style.dart';
 import '../cycle_note_bottom_sheet.dart';
 import '../cycle_note_indicator.dart';
+import '../../../../../app/localization/localization.dart';
 
 class MonthlyGrid extends StatelessWidget {
   final int year;
@@ -13,6 +14,7 @@ class MonthlyGrid extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -32,6 +34,7 @@ class MonthlyGrid extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -67,8 +70,8 @@ class MonthlyGrid extends StatelessWidget {
                 ),
                 title: Text(
                   canCompletePastCycle
-                      ? 'Marquer comme complété'
-                      : 'Retirer la complétion',
+                      ? context.l10n.marquerCommeComplete
+                      : context.l10n.retirerLaCompletion,
                 ),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -87,7 +90,7 @@ class MonthlyGrid extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
-                title: const Text('Ajouter/modifier une note'),
+                title: Text(context.l10n.ajouterModifierUneNote),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _openNote(context, cycleKey);
@@ -130,12 +133,15 @@ class MonthlyGrid extends StatelessWidget {
           month,
           1,
         ).isBefore(DateTime.utc(now.year, now.month, 1));
+        final paused = isCyclePaused?.call(cycleStart) ?? false;
         final status = statusForCycle(
+          isPaused: paused,
           isSuccess: success,
           isCurrent: isCurrent,
           isPast: isPast,
         );
-        final canCompletePastCycle = !success && !isCurrent && isPast;
+        final canCompletePastCycle =
+            !paused && !success && !isCurrent && isPast;
         final canUncompletePastCycle = success && !isCurrent && isPast;
         final style = styleForStatus(status, context);
         final textColor = accessibleForegroundColor(
@@ -143,15 +149,15 @@ class MonthlyGrid extends StatelessWidget {
           context: context,
         );
         final hasNote = notes.containsKey(key);
-        final semanticsNote = hasNote ? ', note enregistrée' : '';
-        final cycleLabel = '${monthLabel(month)} $year';
+        final semanticsNote = hasNote ? context.l10n.noteEnregistree : '';
+        final cycleLabel = '${monthLabel(month, strings: context.l10n)} $year';
         final semanticsAction = (canCompletePastCycle || canUncompletePastCycle)
-            ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
-            : 'Appuyez pour ajouter ou modifier une note.';
+            ? context.l10n.appuyezPourChoisirEntreCompleterOuAjouterUneNote
+            : context.l10n.appuyezPourAjouterOuModifierUneNote;
 
         return Semantics(
           label:
-              '$cycleLabel : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
+              '$cycleLabel : ${statusSemantics(status, strings: context.l10n)}$semanticsNote. $semanticsAction',
           button: true,
           child: Material(
             color: Colors.transparent,

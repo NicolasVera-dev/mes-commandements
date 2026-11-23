@@ -5,15 +5,13 @@ import 'package:provider/provider.dart';
 
 import '../../domain/entities/command.dart';
 import '../state/command_provider.dart';
+import '../../../../app/localization/localization.dart';
 
 /// Déclenche le reset auto au lancement puis à chaque retour au premier plan.
 class CommandResetLifecycleListener extends StatefulWidget {
   final Widget child;
 
-  const CommandResetLifecycleListener({
-    super.key,
-    required this.child,
-  });
+  const CommandResetLifecycleListener({super.key, required this.child});
 
   @override
   State<CommandResetLifecycleListener> createState() =>
@@ -46,13 +44,18 @@ class _CommandResetLifecycleListenerState
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     if (!mounted) return;
-    unawaited(
-      context.read<CommandProvider>().applyPendingAutoResetsSilently(),
-    );
+    final provider = context.read<CommandProvider>();
+    if (provider.commands.any((command) => command.pauses.isNotEmpty)) {
+      provider.refreshAfterPause();
+    } else {
+      unawaited(provider.applyPendingAutoResetsSilently());
+    }
   }
 
   Future<void> _runInitialResetWithFeedback() async {
-    final report = await context.read<CommandProvider>().applyPendingAutoResetsSilently();
+    final report = await context
+        .read<CommandProvider>()
+        .applyPendingAutoResetsSilently();
     if (!mounted || !report.hasResets) return;
     final message = _buildMessage(report.byFrequency);
     if (message == null) return;
@@ -75,17 +78,25 @@ class _CommandResetLifecycleListenerState
       final entry = byFrequency.entries.first;
       final count = entry.value;
       final label = switch (entry.key) {
-        Frequency.daily => count > 1 ? 'quotidiens' : 'quotidien',
-        Frequency.weekly => count > 1 ? 'hebdomadaires' : 'hebdomadaire',
-        Frequency.monthly => count > 1 ? 'mensuels' : 'mensuel',
-        Frequency.yearly => count > 1 ? 'annuels' : 'annuel',
+        Frequency.daily =>
+          count > 1 ? context.l10n.quotidiens : context.l10n.quotidien2,
+        Frequency.weekly =>
+          count > 1 ? context.l10n.hebdomadaires : context.l10n.hebdomadaire2,
+        Frequency.monthly =>
+          count > 1 ? context.l10n.mensuels : context.l10n.mensuel2,
+        Frequency.yearly =>
+          count > 1 ? context.l10n.annuels : context.l10n.annuel2,
       };
-      final noun = count > 1 ? 'commandements' : 'commandement';
-      return '$count $noun $label remis à zéro';
+      final noun = count > 1
+          ? context.l10n.commandements2
+          : context.l10n.commandement;
+      return context.l10n.remisAZero2(count, noun, label);
     }
     final total = byFrequency.values.fold<int>(0, (sum, v) => sum + v);
-    final noun = total > 1 ? 'commandements' : 'commandement';
-    return '$total $noun remis à zéro';
+    final noun = total > 1
+        ? context.l10n.commandements2
+        : context.l10n.commandement;
+    return context.l10n.remisAZero(total, noun);
   }
 
   @override

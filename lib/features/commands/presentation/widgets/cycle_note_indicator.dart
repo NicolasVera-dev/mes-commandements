@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/localization/localization.dart';
+
 /// Pastille de note : visible uniquement lorsqu’une note existe pour le cycle.
 class CycleNoteIndicator extends StatelessWidget {
   final bool hasNote;
@@ -18,10 +20,10 @@ class CycleNoteIndicator extends StatelessWidget {
     }
     final scheme = Theme.of(context).colorScheme;
     return Tooltip(
-      message: 'Voir la note',
+      message: context.l10n.voirLaNote,
       child: Semantics(
         button: true,
-        label: 'Voir la note du cycle',
+        label: context.l10n.voirLaNoteDuCycle,
         child: IconButton(
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -31,10 +33,7 @@ class CycleNoteIndicator extends StatelessWidget {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: onPressed,
-          icon: Icon(
-            Icons.sticky_note_2_outlined,
-            color: scheme.tertiary,
-          ),
+          icon: Icon(Icons.sticky_note_2_outlined, color: scheme.tertiary),
         ),
       ),
     );

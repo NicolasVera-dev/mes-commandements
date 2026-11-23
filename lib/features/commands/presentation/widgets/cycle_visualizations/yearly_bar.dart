@@ -6,6 +6,7 @@ import '../../../domain/entities/cycle_note.dart';
 import '../../utils/cycle_visual_style.dart';
 import '../cycle_note_bottom_sheet.dart';
 import '../cycle_note_indicator.dart';
+import '../../../../../app/localization/localization.dart';
 
 class YearlyBar extends StatelessWidget {
   final int year;
@@ -13,6 +14,7 @@ class YearlyBar extends StatelessWidget {
   final String currentKey;
   final DateTime createdAtUtc;
   final String commandId;
+  final bool Function(DateTime)? isCyclePaused;
   final Map<String, CycleNote> notes;
   final Future<void> Function({
     required String cycleKey,
@@ -32,6 +34,7 @@ class YearlyBar extends StatelessWidget {
     required this.currentKey,
     required this.createdAtUtc,
     required this.commandId,
+    this.isCyclePaused,
     this.notes = const <String, CycleNote>{},
     this.onCompletePastCycle,
     this.onUncompletePastCycle,
@@ -67,8 +70,8 @@ class YearlyBar extends StatelessWidget {
                 ),
                 title: Text(
                   canCompletePastCycle
-                      ? 'Marquer comme complété'
-                      : 'Retirer la complétion',
+                      ? context.l10n.marquerCommeComplete
+                      : context.l10n.retirerLaCompletion,
                 ),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
@@ -87,7 +90,7 @@ class YearlyBar extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
-                title: const Text('Ajouter/modifier une note'),
+                title: Text(context.l10n.ajouterModifierUneNote),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _openNote(context, cycleKey);
@@ -112,13 +115,15 @@ class YearlyBar extends StatelessWidget {
     final key = '$year';
     final success = hasComplete(grouped[key] ?? const <CommandEvent>[]);
     final nowYear = DateTime.now().toUtc().year;
+    final paused = isCyclePaused?.call(DateTime.utc(year)) ?? false;
     final status = statusForCycle(
+      isPaused: paused,
       isSuccess: success,
       isCurrent: key == currentKey,
       isPast: year < nowYear,
     );
     final canCompletePastCycle =
-        !success && key != currentKey && year < nowYear;
+        !paused && !success && key != currentKey && year < nowYear;
     final canUncompletePastCycle =
         success && key != currentKey && year < nowYear;
     final style = styleForStatus(status, context);
@@ -127,14 +132,18 @@ class YearlyBar extends StatelessWidget {
       context: context,
     );
     final hasNote = notes.containsKey(key);
-    final semanticsNote = hasNote ? ', note enregistrée' : '';
+    final semanticsNote = hasNote ? context.l10n.noteEnregistree : '';
     final semanticsAction = (canCompletePastCycle || canUncompletePastCycle)
-        ? 'Appuyez pour choisir entre compléter ou ajouter une note.'
-        : 'Appuyez pour ajouter ou modifier une note.';
+        ? context.l10n.appuyezPourChoisirEntreCompleterOuAjouterUneNote
+        : context.l10n.appuyezPourAjouterOuModifierUneNote;
 
     return Semantics(
-      label:
-          'Année $year : ${statusSemantics(status)}$semanticsNote. $semanticsAction',
+      label: context.l10n.annee2(
+        year,
+        statusSemantics(status),
+        semanticsNote,
+        semanticsAction,
+      ),
       button: true,
       child: Material(
         color: Colors.transparent,
@@ -143,7 +152,7 @@ class YearlyBar extends StatelessWidget {
           onTap: () => _onCycleTap(
             context: context,
             cycleKey: key,
-            cycleLabel: 'l’année $year',
+            cycleLabel: context.l10n.lannee(year),
             canCompletePastCycle: canCompletePastCycle,
             canUncompletePastCycle: canUncompletePastCycle,
           ),

@@ -25,6 +25,10 @@ abstract class CommandRepository {
 
   Future<void> resetProgress(String commandId);
 
+  Future<void> pause(String commandId, {DateTime? untilUtc});
+
+  Future<void> resume(String commandId, {required bool nextCycle});
+
   Future<void> completePastCycle({
     required String commandId,
     required String cycleKey,

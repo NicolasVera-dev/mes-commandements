@@ -1,6 +1,8 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../app/localization/localization.dart';
+
 typedef AccentColorChanged = void Function(int? colorValue);
 const String _useThemeDefaultColorToken = '__use_theme_default_color__';
 
@@ -18,15 +20,17 @@ class AccentColorPickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selectedColorValue == null ? null : Color(selectedColorValue!);
+    final color = selectedColorValue == null
+        ? null
+        : Color(selectedColorValue!);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         backgroundColor: color ?? Theme.of(context).colorScheme.primary,
         child: Text(emojiPreview),
       ),
-      title: const Text('Couleur d’accent'),
-      subtitle: const Text('Personnaliser la couleur du commandement'),
+      title: Text(context.l10n.couleurDaccent),
+      subtitle: Text(context.l10n.personnaliserLaCouleurDuCommandement),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () async {
         final selected = await showModalBottomSheet<Object?>(
@@ -58,7 +62,8 @@ class _AccentColorPickerSheet extends StatefulWidget {
   });
 
   @override
-  State<_AccentColorPickerSheet> createState() => _AccentColorPickerSheetState();
+  State<_AccentColorPickerSheet> createState() =>
+      _AccentColorPickerSheetState();
 }
 
 class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
@@ -120,7 +125,7 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Choisir une couleur d’accent',
+                context.l10n.choisirUneCouleurDaccent,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
@@ -134,7 +139,8 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
                 child: SingleChildScrollView(
                   child: ColorPicker(
                     color: _selectedColor,
-                    onColorChanged: (color) => setState(() => _selectedColor = color),
+                    onColorChanged: (color) =>
+                        setState(() => _selectedColor = color),
                     enableShadesSelection: false,
                     pickersEnabled: const <ColorPickerType, bool>{
                       ColorPickerType.wheel: false,
@@ -144,7 +150,8 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
                       ColorPickerType.custom: true,
                     },
                     customColorSwatchesAndNames: <ColorSwatch<Object>, String>{
-                      for (final color in _materialPalette) ColorTools.createPrimarySwatch(color): '',
+                      for (final color in _materialPalette)
+                        ColorTools.createPrimarySwatch(color): '',
                     },
                   ),
                 ),
@@ -153,10 +160,11 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Contraste faible détecté (WCAG AA). Vous pouvez continuer, mais la lisibilité peut être réduite.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                    context
+                        .l10n
+                        .contrasteFaibleDetecteWcagAaVousPouvezContinuerMais,
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
               Row(
@@ -165,7 +173,7 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
                     child: OutlinedButton(
                       onPressed: () =>
                           Navigator.of(context).pop(_useThemeDefaultColorToken),
-                      child: const Text('Couleur par défaut (thème)'),
+                      child: Text(context.l10n.couleurParDefautTheme),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -173,7 +181,7 @@ class _AccentColorPickerSheetState extends State<_AccentColorPickerSheet> {
                     child: FilledButton(
                       onPressed: () =>
                           Navigator.of(context).pop(_selectedColor.toARGB32()),
-                      child: const Text('Valider'),
+                      child: Text(context.l10n.valider),
                     ),
                   ),
                 ],
@@ -219,12 +227,14 @@ class _CommandCardMiniaturePreview extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Aperçu du commandement',
+              context.l10n.apercuDuCommandement,
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),
           Icon(
-            validContrast ? Icons.check_circle_outline : Icons.warning_amber_rounded,
+            validContrast
+                ? Icons.check_circle_outline
+                : Icons.warning_amber_rounded,
             color: validContrast
                 ? Theme.of(context).colorScheme.tertiary
                 : Theme.of(context).colorScheme.error,

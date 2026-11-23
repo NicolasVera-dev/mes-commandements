@@ -9,40 +9,39 @@ import '../state/resistance_provider.dart';
 import '../utils/resistance_streak_color.dart';
 import '../widgets/resistance_relapse_dialog.dart';
 import 'edit_resistance_page.dart';
+import '../../../../app/localization/localization.dart';
 
 class ResistanceDetailPage extends StatelessWidget {
   final String resistanceId;
 
-  const ResistanceDetailPage({
-    super.key,
-    required this.resistanceId,
-  });
+  const ResistanceDetailPage({super.key, required this.resistanceId});
 
   static const _streakUseCase = ComputeResistanceStreakUseCase();
 
   @override
   Widget build(BuildContext context) {
-    final resistance = context.watch<ResistanceProvider>().getById(resistanceId);
+    final resistance = context.watch<ResistanceProvider>().getById(
+      resistanceId,
+    );
     final nowUtc = DateTime.now().toUtc();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          resistance?.title ?? 'Résistance',
+          resistance?.title ?? context.l10n.resistance,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
           if (resistance != null)
             IconButton(
-              tooltip: 'Modifier',
+              tooltip: context.l10n.modifier,
               icon: const Icon(Icons.edit_outlined),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => EditResistancePage(
-                      resistanceId: resistance.id,
-                    ),
+                    builder: (_) =>
+                        EditResistancePage(resistanceId: resistance.id),
                   ),
                 );
               },
@@ -52,7 +51,7 @@ class ResistanceDetailPage extends StatelessWidget {
       body: resistance == null
           ? Center(
               child: Text(
-                'Résistance introuvable.',
+                context.l10n.resistanceIntrouvable,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             )
@@ -93,9 +92,9 @@ class _ResistanceDetailBodyState extends State<_ResistanceDetailBody> {
     );
     if (!context.mounted || note == null) return;
     await context.read<ResistanceProvider>().recordRelapse(
-          resistanceId: r.id,
-          note: note.isEmpty ? null : note,
-        );
+      resistanceId: r.id,
+      note: note.isEmpty ? null : note,
+    );
   }
 
   @override
@@ -106,157 +105,163 @@ class _ResistanceDetailBodyState extends State<_ResistanceDetailBody> {
       resistance: r,
       nowUtc: widget.nowUtc,
     );
-    final streakColor = resistanceStreakColor(streakDays: streak, context: context);
+    final streakColor = resistanceStreakColor(
+      streakDays: streak,
+      context: context,
+    );
     final relapseRepo = context.read<ResistanceRelapseRepository>();
 
     return ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                children: [
-                  Hero(
-                    tag: 'resistance-emoji-${r.id}',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Text(
-                        r.emoji,
-                        style: const TextStyle(fontSize: 48),
-                      ),
-                    ),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              children: [
+                Hero(
+                  tag: 'resistance-emoji-${r.id}',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(r.emoji, style: const TextStyle(fontSize: 48)),
                   ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  r.title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                if (r.description.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
-                    r.title,
+                    r.description,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  if (r.description.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      r.description,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Text(
-                    '$streak',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: streakColor,
-                        ),
-                  ),
-                  Text(
-                    streak == 1
-                        ? 'jour sans craquer'
-                        : 'jours sans craquer',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.emoji_events_outlined,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Record : ${r.bestStreakDays} jour${r.bestStreakDays > 1 ? 's' : ''}',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: scheme.error,
-                        foregroundColor: scheme.onError,
-                        elevation: 2,
-                        shadowColor: scheme.error.withValues(alpha: 0.45),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 20,
-                        ),
-                      ),
-                      onPressed: () => _onRelapse(context, r),
-                      child: const Text(
-                        'J’ai craqué 😔',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Historique des rechutes',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          StreamBuilder<List<ResistanceRelapse>>(
-            stream: relapseRepo.watchRelapses(r.id),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+                const SizedBox(height: 20),
+                Text(
+                  '$streak',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: streakColor,
                   ),
-                );
-              }
-              if (snapshot.hasError) {
-                return Text(
-                  'Impossible de charger l’historique.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                );
-              }
-              final list = snapshot.data ?? const <ResistanceRelapse>[];
-              if (list.isEmpty) {
-                return Text(
-                  'Aucune rechute enregistrée. Continuez comme ça !',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                );
-              }
-              return Column(
-                children: list.map((rel) {
-                  final dateStr =
-                      '${rel.relapsedAtUtc.toLocal().day}/${rel.relapsedAtUtc.toLocal().month}/${rel.relapsedAtUtc.year}';
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      title: Text(dateStr),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Série perdue : ${rel.previousStreakDays} jour${rel.previousStreakDays > 1 ? 's' : ''}',
-                          ),
-                          if (rel.note != null && rel.note!.isNotEmpty)
-                            Text(rel.note!),
-                        ],
+                ),
+                Text(
+                  streak == 1
+                      ? context.l10n.jourSansCraquer
+                      : context.l10n.joursSansCraquer,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.emoji_events_outlined,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.recordJour(
+                        r.bestStreakDays,
+                        r.bestStreakDays > 1 ? 's' : '',
+                      ),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: scheme.error,
+                      foregroundColor: scheme.onError,
+                      elevation: 2,
+                      shadowColor: scheme.error.withValues(alpha: 0.45),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 20,
                       ),
                     ),
-                  );
-                }).toList(),
-              );
-            },
+                    onPressed: () => _onRelapse(context, r),
+                    child: Text(
+                      context.l10n.jaiCraque2,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      );
+        ),
+        const SizedBox(height: 20),
+        Text(
+          context.l10n.historiqueDesRechutes,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        StreamBuilder<List<ResistanceRelapse>>(
+          stream: relapseRepo.watchRelapses(r.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Text(
+                context.l10n.impossibleDeChargerLhistorique,
+                style: Theme.of(context).textTheme.bodyMedium,
+              );
+            }
+            final list = snapshot.data ?? const <ResistanceRelapse>[];
+            if (list.isEmpty) {
+              return Text(
+                context.l10n.aucuneRechuteEnregistreeContinuezCommeCa,
+                style: Theme.of(context).textTheme.bodyMedium,
+              );
+            }
+            return Column(
+              children: list.map((rel) {
+                final dateStr =
+                    '${rel.relapsedAtUtc.toLocal().day}/${rel.relapsedAtUtc.toLocal().month}/${rel.relapsedAtUtc.year}';
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    title: Text(dateStr),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.l10n.seriePerdueJour(
+                            rel.previousStreakDays,
+                            rel.previousStreakDays > 1 ? 's' : '',
+                          ),
+                        ),
+                        if (rel.note != null && rel.note!.isNotEmpty)
+                          Text(rel.note!),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
   }
 }

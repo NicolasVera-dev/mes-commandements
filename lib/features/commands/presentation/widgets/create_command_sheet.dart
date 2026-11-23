@@ -11,6 +11,7 @@ import 'accent_color_picker_field.dart';
 import 'command_creation_templates.dart';
 import 'emoji_picker_field.dart';
 import 'tag_input_field.dart';
+import '../../../../app/localization/localization.dart';
 
 Future<void> showCreateCommandSheet({
   required BuildContext context,
@@ -51,8 +52,8 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
   int? _selectedSuggestionIndex;
   bool _suppressSuggestionClear = false;
 
-  static final List<String> _suggestionLabels = kCommandCreationTemplates
-      .map((t) => t.title)
+  List<String> get _suggestionLabels => kCommandCreationTemplates
+      .map((t) => context.l10n.systemMessage(t.title))
       .toList(growable: false);
 
   @override
@@ -81,8 +82,8 @@ class _CreateCommandSheetState extends State<_CreateCommandSheet> {
   void _applySuggestion(int index) {
     final t = kCommandCreationTemplates[index];
     _suppressSuggestionClear = true;
-    _titleController.text = t.title;
-    _descriptionController.text = t.description;
+    _titleController.text = context.l10n.systemMessage(t.title);
+    _descriptionController.text = context.l10n.systemMessage(t.description);
     _targetController.text = t.target.toString();
     setState(() {
       _frequency = t.frequency;
@@ -242,7 +243,7 @@ class _CommandFormBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Créer un commandement',
+              context.l10n.creerUnCommandement,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
@@ -251,7 +252,7 @@ class _CommandFormBody extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Essentiel',
+                context.l10n.essentiel,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
@@ -262,16 +263,18 @@ class _CommandFormBody extends StatelessWidget {
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.next,
               onChanged: (_) => onManualTextEdit(),
-              decoration: const InputDecoration(
-                labelText: 'Titre',
-                hintText: 'Ex: Étudier Dart',
+              decoration: InputDecoration(
+                labelText: context.l10n.titre,
+                hintText: context.l10n.exEtudierDart,
                 prefixIcon: Icon(Icons.title),
               ),
               validator: (value) {
                 final v = value?.trim() ?? '';
-                if (v.length < 2) return 'Veuillez entrer un titre (min. 2)';
+                if (v.length < 2) return context.l10n.veuillezEntrerUnTitreMin2;
                 if (v.length > Command.maxTitleLength) {
-                  return 'Le titre ne doit pas dépasser ${Command.maxTitleLength} caractères';
+                  return context.l10n.leTitreNeDoitPasDepasserCaracteres(
+                    Command.maxTitleLength,
+                  );
                 }
                 return null;
               },
@@ -280,15 +283,15 @@ class _CommandFormBody extends StatelessWidget {
             DropdownButtonFormField<Frequency>(
               key: ValueKey<Frequency>(frequency),
               initialValue: frequency,
-              decoration: const InputDecoration(
-                labelText: 'Fréquence',
+              decoration: InputDecoration(
+                labelText: context.l10n.frequence,
                 prefixIcon: Icon(Icons.schedule),
               ),
               items: Frequency.values
                   .map((f) {
                     return DropdownMenuItem<Frequency>(
                       value: f,
-                      child: Text(_frequencyLabel(f)),
+                      child: Text(_frequencyLabel(f, strings: context.l10n)),
                     );
                   })
                   .toList(growable: false),
@@ -313,12 +316,13 @@ class _CommandFormBody extends StatelessWidget {
               ],
               textInputAction: TextInputAction.next,
               onChanged: (_) => onManualTextEdit(),
-              decoration: const InputDecoration(
-                labelText: 'Objectif',
-                hintText: 'Ex: 10',
+              decoration: InputDecoration(
+                labelText: context.l10n.objectif,
+                hintText: context.l10n.ex10,
                 prefixIcon: Icon(Icons.flag),
               ),
-              validator: validateRequiredPositiveInt,
+              validator: (value) =>
+                  validateRequiredPositiveInt(value, strings: context.l10n),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -329,9 +333,9 @@ class _CommandFormBody extends StatelessWidget {
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.newline,
               onChanged: (_) => onManualTextEdit(),
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Description (optionnelle)',
+              decoration: InputDecoration(
+                labelText: context.l10n.description,
+                hintText: context.l10n.descriptionOptionnelle,
                 alignLabelWithHint: true,
                 prefixIcon: Icon(Icons.notes_rounded),
               ),
@@ -340,7 +344,7 @@ class _CommandFormBody extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Personnalisation visuelle',
+                context.l10n.personnalisationVisuelle,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
@@ -355,7 +359,7 @@ class _CommandFormBody extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Organisation',
+                context.l10n.organisation,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
@@ -371,7 +375,7 @@ class _CommandFormBody extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: onSubmit,
-                child: const Text('Enregistrer'),
+                child: Text(context.l10n.enregistrer),
               ),
             ),
             const SizedBox(height: 10),
@@ -379,7 +383,7 @@ class _CommandFormBody extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: onCancel,
-                child: const Text('Annuler'),
+                child: Text(context.l10n.annuler),
               ),
             ),
             const SizedBox(height: 8),
@@ -390,16 +394,18 @@ class _CommandFormBody extends StatelessWidget {
   }
 }
 
-String _frequencyLabel(Frequency frequency) {
+String _frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }
 
@@ -411,16 +417,6 @@ class _DailyActiveWeekdaysField extends StatelessWidget {
     required this.selectedWeekdays,
     required this.onChanged,
   });
-
-  static const _labels = <int, String>{
-    DateTime.monday: 'L',
-    DateTime.tuesday: 'Ma',
-    DateTime.wednesday: 'Me',
-    DateTime.thursday: 'J',
-    DateTime.friday: 'V',
-    DateTime.saturday: 'S',
-    DateTime.sunday: 'D',
-  };
 
   static const _tooltips = <int, String>{
     DateTime.monday: 'Lundi',
@@ -437,7 +433,10 @@ class _DailyActiveWeekdaysField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Jours actifs', style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          context.l10n.joursActifs,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -446,10 +445,20 @@ class _DailyActiveWeekdaysField extends StatelessWidget {
               .map((weekday) {
                 final selected = selectedWeekdays.contains(weekday);
                 return Tooltip(
-                  message: _tooltips[weekday]!,
+                  message: context.l10n.systemMessage(_tooltips[weekday]!),
                   child: FilterChip(
                     selected: selected,
-                    label: Text(_labels[weekday]!),
+                    label: Text(
+                      [
+                        context.l10n.jourCourtLundi,
+                        context.l10n.jourCourtMardi,
+                        context.l10n.jourCourtMercredi,
+                        context.l10n.jourCourtJeudi,
+                        context.l10n.jourCourtVendredi,
+                        context.l10n.jourCourtSamedi,
+                        context.l10n.jourCourtDimanche,
+                      ][weekday - 1],
+                    ),
                     onSelected: (isSelected) {
                       final next = Set<int>.from(selectedWeekdays);
                       if (isSelected) {

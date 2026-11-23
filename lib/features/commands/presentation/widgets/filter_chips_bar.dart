@@ -4,6 +4,7 @@ import '../../domain/entities/command.dart';
 import '../../domain/usecases/filter_and_sort_commands_usecase.dart';
 
 import 'filter_bottom_sheet.dart';
+import '../../../../app/localization/localization.dart';
 
 class FilterChipsBar extends StatefulWidget {
   final FilterSettings current;
@@ -36,9 +37,10 @@ class _FilterChipsBarState extends State<FilterChipsBar> {
       for (final frequency in selectedFrequencies) {
         chips.add(
           _ActiveChip(
-            label: _frequencyLabel(frequency),
+            label: _frequencyLabel(frequency, strings: context.l10n),
             onRemove: () {
-              final next = Set<Frequency>.from(selectedFrequencies)..remove(frequency);
+              final next = Set<Frequency>.from(selectedFrequencies)
+                ..remove(frequency);
               widget.onFrequenciesChanged(next.isEmpty ? null : next);
             },
           ),
@@ -51,9 +53,10 @@ class _FilterChipsBarState extends State<FilterChipsBar> {
       for (final status in selectedStatuses) {
         chips.add(
           _ActiveChip(
-            label: _statusLabel(status),
+            label: _statusLabel(status, strings: context.l10n),
             onRemove: () {
-              final next = Set<CommandStatusFilter>.from(selectedStatuses)..remove(status);
+              final next = Set<CommandStatusFilter>.from(selectedStatuses)
+                ..remove(status);
               widget.onStatusesChanged(next);
             },
           ),
@@ -79,7 +82,7 @@ class _FilterChipsBarState extends State<FilterChipsBar> {
     if (widget.current.sort != CommandSort.alpha) {
       chips.add(
         _ActiveChip(
-          label: _sortLabel(widget.current.sort),
+          label: _sortLabel(widget.current.sort, strings: context.l10n),
           onRemove: () => widget.onSortChanged(CommandSort.alpha),
         ),
       );
@@ -104,13 +107,12 @@ class _FilterChipsBarState extends State<FilterChipsBar> {
           runSpacing: 8,
           children: [
             for (final chip in visibleChips)
-              Chip(
-                label: Text(chip.label),
-                onDeleted: chip.onRemove,
-              ),
+              Chip(label: Text(chip.label), onDeleted: chip.onRemove),
             if (hasMore)
               ActionChip(
-                label: Text(_expanded ? 'Réduire' : 'Voir plus'),
+                label: Text(
+                  _expanded ? context.l10n.reduire : context.l10n.voirPlus,
+                ),
                 onPressed: () {
                   setState(() {
                     _expanded = !_expanded;
@@ -128,50 +130,52 @@ class _ActiveChip {
   final String label;
   final VoidCallback onRemove;
 
-  _ActiveChip({
-    required this.label,
-    required this.onRemove,
-  });
+  _ActiveChip({required this.label, required this.onRemove});
 }
 
-String _frequencyLabel(Frequency frequency) {
+String _frequencyLabel(Frequency frequency, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (frequency) {
     case Frequency.daily:
-      return 'Quotidien';
+      return l10n.quotidien;
     case Frequency.weekly:
-      return 'Hebdomadaire';
+      return l10n.hebdomadaire;
     case Frequency.monthly:
-      return 'Mensuel';
+      return l10n.mensuel;
     case Frequency.yearly:
-      return 'Annuel';
+      return l10n.annuel;
   }
 }
 
-String _statusLabel(CommandStatusFilter status) {
+String _statusLabel(CommandStatusFilter status, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (status) {
     case CommandStatusFilter.all:
-      return 'Tous';
+      return l10n.tous;
     case CommandStatusFilter.notStarted:
-      return 'Non démarrés';
+      return l10n.nonDemarres;
     case CommandStatusFilter.started:
-      return 'En cours';
+      return l10n.enCours;
     case CommandStatusFilter.completed:
-      return 'Terminés';
+      return l10n.termines;
   }
 }
 
-String _sortLabel(CommandSort sort) {
+String _sortLabel(CommandSort sort, {AppLocalizations? strings}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   switch (sort) {
     case CommandSort.alpha:
-      return 'Manuel';
+      return l10n.manuel;
     case CommandSort.completedFirst:
-      return "Terminés d'abord";
+      return l10n.terminesDAbord;
     case CommandSort.highestProgressFirst:
-      return 'Progression ↓';
+      return l10n.progression3;
     case CommandSort.lowestProgressFirst:
-      return 'Progression ↑';
+      return l10n.progression2;
     case CommandSort.notCompletedFirst:
-      return "Non terminés d'abord";
+      return l10n.nonTerminesDAbord;
   }
 }
-

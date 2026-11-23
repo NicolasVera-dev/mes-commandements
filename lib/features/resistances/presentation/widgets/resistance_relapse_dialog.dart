@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/entities/resistance_relapse.dart';
+import '../../../../app/localization/localization.dart';
 
 /// Retourne `null` si annulé, sinon la note éventuelle (peut être vide).
 Future<String?> showResistanceRelapseDialog({
@@ -50,7 +51,7 @@ class _ResistanceRelapseDialogState extends State<_ResistanceRelapseDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Confirmer la rechute ?'),
+      title: Text(context.l10n.confirmerLaRechute),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -62,10 +63,12 @@ class _ResistanceRelapseDialogState extends State<_ResistanceRelapseDialog> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Vous allez remettre à zéro votre série de ${widget.currentStreakDays} jour${widget.currentStreakDays > 1 ? 's' : ''}.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              context.l10n.vousAllezRemettreAZeroVotreSerieDeJour(
+                widget.currentStreakDays,
+                widget.currentStreakDays > 1 ? 's' : '',
+              ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -73,8 +76,8 @@ class _ResistanceRelapseDialogState extends State<_ResistanceRelapseDialog> {
               maxLines: 3,
               maxLength: ResistanceRelapse.maxNoteLength,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Note (optionnelle)',
+              decoration: InputDecoration(
+                labelText: context.l10n.noteOptionnelle,
                 border: OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
@@ -85,7 +88,7 @@ class _ResistanceRelapseDialogState extends State<_ResistanceRelapseDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
+          child: Text(context.l10n.annuler),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -96,8 +99,8 @@ class _ResistanceRelapseDialogState extends State<_ResistanceRelapseDialog> {
             HapticFeedback.mediumImpact();
             Navigator.of(context).pop(_noteController.text.trim());
           },
-          child: const Text(
-            'J’ai craqué',
+          child: Text(
+            context.l10n.jaiCraque,
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),

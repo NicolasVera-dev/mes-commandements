@@ -9,14 +9,12 @@ import '../../../commands/presentation/widgets/emoji_picker_field.dart';
 import '../../../commands/presentation/widgets/tag_input_field.dart';
 import '../../domain/entities/resistance.dart';
 import '../state/resistance_provider.dart';
+import '../../../../app/localization/localization.dart';
 
 class EditResistancePage extends StatefulWidget {
   final String resistanceId;
 
-  const EditResistancePage({
-    super.key,
-    required this.resistanceId,
-  });
+  const EditResistancePage({super.key, required this.resistanceId});
 
   @override
   State<EditResistancePage> createState() => _EditResistancePageState();
@@ -62,9 +60,7 @@ class _EditResistancePageState extends State<EditResistancePage> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     if (auth.isInitialLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (!auth.isConnected) {
       return const LoginPage();
@@ -77,14 +73,14 @@ class _EditResistancePageState extends State<EditResistancePage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Modifier la résistance',
+            context.l10n.modifierLaResistance,
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
         body: resistance == null
             ? Center(
                 child: Text(
-                  'Résistance introuvable.',
+                  context.l10n.resistanceIntrouvable,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               )
@@ -101,14 +97,14 @@ class _EditResistancePageState extends State<EditResistancePage> {
                       TextFormField(
                         controller: _titleController,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
-                          labelText: 'Titre',
+                        decoration: InputDecoration(
+                          labelText: context.l10n.titre,
                           border: OutlineInputBorder(),
                         ),
                         maxLength: Resistance.maxTitleLength,
                         validator: (v) {
                           if ((v ?? '').trim().isEmpty) {
-                            return 'Le titre est obligatoire';
+                            return context.l10n.leTitreEstObligatoire;
                           }
                           return null;
                         },
@@ -117,8 +113,8 @@ class _EditResistancePageState extends State<EditResistancePage> {
                       TextFormField(
                         controller: _descriptionController,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
-                          labelText: 'Description',
+                        decoration: InputDecoration(
+                          labelText: context.l10n.description,
                           border: OutlineInputBorder(),
                           alignLabelWithHint: true,
                         ),
@@ -135,8 +131,7 @@ class _EditResistancePageState extends State<EditResistancePage> {
                       AccentColorPickerField(
                         selectedColorValue: _accentColorValue,
                         emojiPreview: _emoji,
-                        onChanged: (c) =>
-                            setState(() => _accentColorValue = c),
+                        onChanged: (c) => setState(() => _accentColorValue = c),
                       ),
                       const SizedBox(height: 12),
                       TagInputField(
@@ -153,24 +148,22 @@ class _EditResistancePageState extends State<EditResistancePage> {
                           }
                           final updated = resistance.copyWith(
                             title: _titleController.text.trim(),
-                            description:
-                                _descriptionController.text.trim(),
+                            description: _descriptionController.text.trim(),
                             emoji: _emoji,
                             accentColorValue: _accentColorValue,
-                            clearAccentColorValue:
-                                _accentColorValue == null,
+                            clearAccentColorValue: _accentColorValue == null,
                             tags: _tags,
                           );
                           provider.updateResistance(updated);
                           Navigator.of(context).pop();
                         },
-                        child: const Text('Enregistrer'),
+                        child: Text(context.l10n.enregistrer),
                       ),
                     ],
                   ),
                 ),
               ),
-        ),
+      ),
     );
   }
 }

@@ -10,14 +10,19 @@ import '../state/command_provider.dart';
 import '../state/cycle_note_provider.dart';
 import '../utils/cycle_keys_for_detail_period.dart';
 import '../utils/cycle_visual_style.dart';
+import '../widgets/command_confirmation_dialogs.dart';
 import '../widgets/cycle_summary_card.dart';
 import '../widgets/cycle_visualizations/daily_calendar.dart';
 import '../widgets/cycle_visualizations/monthly_grid.dart';
 import '../widgets/cycle_visualizations/weekly_list.dart';
 import '../widgets/cycle_visualizations/yearly_bar.dart';
 import '../widgets/command_streak_from_repository.dart';
+import '../widgets/command_pause_dialog.dart';
 import '../widgets/dynamic_progress_bar.dart';
 import '../widgets/history_skeleton.dart';
+import '../../../../app/localization/localization.dart';
+
+enum _CommandDetailAction { pause, reset, delete }
 
 class CommandDetailPage extends StatefulWidget {
   final String commandId;
@@ -88,13 +93,45 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
   Widget build(BuildContext context) {
     final provider = context.watch<CommandProvider>();
     final command = provider.getById(widget.commandId);
+    final now = DateTime.now().toUtc();
+    final isPaused = command?.isPausedAt(now) ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Détail du commandement')),
+      appBar: AppBar(
+        title: Text(context.l10n.detailDuCommandement),
+        actions: [
+          if (command != null)
+            PopupMenuButton<_CommandDetailAction>(
+              tooltip: context.l10n.actionsDuCommandement,
+              enabled: !provider.isMutating,
+              onSelected: (action) => _handleAction(action, provider, command),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: _CommandDetailAction.pause,
+                  child: Text(
+                    isPaused
+                        ? context.l10n.reprendre
+                        : context.l10n.mettreEnPause,
+                  ),
+                ),
+                if (!isPaused)
+                  PopupMenuItem(
+                    value: _CommandDetailAction.reset,
+                    enabled: command.isActiveOnDayUtc(now),
+                    child: Text(context.l10n.reinitialiser),
+                  ),
+                PopupMenuItem(
+                  value: _CommandDetailAction.delete,
+                  child: Text(context.l10n.supprimer),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: command == null
           ? Center(
               child: Text(
-                'Commandement introuvable.',
+                context.l10n.commandementIntrouvable,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             )
@@ -106,6 +143,41 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
               onNext: () => _goNext(command.frequency),
             ),
     );
+  }
+
+  Future<void> _handleAction(
+    _CommandDetailAction action,
+    CommandProvider provider,
+    Command command,
+  ) async {
+    if (action == _CommandDetailAction.pause) {
+      await showCommandPauseDialog(context, command);
+      return;
+    }
+    final deleting = action == _CommandDetailAction.delete;
+    final confirmed = deleting
+        ? await confirmCommandDeletion(context)
+        : await confirmCommandReset(context);
+    if (!confirmed || !mounted) return;
+
+    final success = deleting
+        ? await provider.deleteCommand(command.id)
+        : await provider.resetProgress(command.id);
+    if (!mounted) return;
+    if (success && deleting) {
+      await Navigator.of(context).maybePop();
+    } else if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.systemMessage(
+              provider.syncErrorMessage ??
+                  context.l10n.cetteActionEstIndisponiblePourLeMoment,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -138,16 +210,16 @@ class _DetailContentState extends State<_DetailContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: Text('Marquer $cycleLabel comme complété ?'),
+        title: Text(context.l10n.confirmation),
+        content: Text(context.l10n.marquerCommeComplete2(cycleLabel)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmer'),
+            child: Text(context.l10n.confirmer),
           ),
         ],
       ),
@@ -167,16 +239,18 @@ class _DetailContentState extends State<_DetailContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: Text('Retirer la complétion $cycleLabelWithPreposition ?'),
+        title: Text(context.l10n.confirmation),
+        content: Text(
+          context.l10n.retirerLaCompletion2(cycleLabelWithPreposition),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.annuler),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmer'),
+            child: Text(context.l10n.confirmer),
           ),
         ],
       ),
@@ -189,6 +263,7 @@ class _DetailContentState extends State<_DetailContent> {
   }
 
   String _withDePrefix(String label) {
+    if (context.l10n.localeName.startsWith('en')) return label;
     final trimmed = label.trimLeft();
     if (trimmed.startsWith('le ')) {
       return 'du ${trimmed.substring(3)}';
@@ -197,7 +272,7 @@ class _DetailContentState extends State<_DetailContent> {
       return 'des ${trimmed.substring(4)}';
     }
     if (trimmed.startsWith('la ')) {
-      return 'de la ${trimmed.substring(3)}';
+      return context.l10n.deLa(trimmed.substring(3));
     }
     if (trimmed.startsWith("l'") || trimmed.startsWith('l’')) {
       return 'de $trimmed';
@@ -236,17 +311,21 @@ class _DetailContentState extends State<_DetailContent> {
   Widget build(BuildContext context) {
     final eventRepository = context.read<CommandEventRepository>();
     final command = widget.command;
+    final description = command.description.trim();
     final period = widget.period;
     final anchorUtc = widget.anchorUtc;
+    final now = DateTime.now().toUtc();
+    final isPaused = command.isPausedAt(now);
     final nextResetText = _nextResetText(
       command.frequency,
       DateTime.now().toUtc(),
+      strings: context.l10n,
     );
     final periodLabel =
         (command.frequency == Frequency.monthly ||
             command.frequency == Frequency.yearly)
         ? '${anchorUtc.year}'
-        : '${monthLabel(anchorUtc.month)} ${anchorUtc.year}';
+        : '${monthLabel(anchorUtc.month, strings: context.l10n)} ${anchorUtc.year}';
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -279,7 +358,7 @@ class _DetailContentState extends State<_DetailContent> {
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           Text(
-                            '${frequencyLabel(command.frequency)} · objectif ${command.target}',
+                            '${frequencyLabel(command.frequency, strings: context.l10n)} · objectif ${command.target}',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -293,6 +372,13 @@ class _DetailContentState extends State<_DetailContent> {
                   compact: false,
                   titleIndent: 44,
                 ),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 DynamicProgressBar(
                   progress: command.progress,
@@ -302,10 +388,13 @@ class _DetailContentState extends State<_DetailContent> {
                       : Color(command.accentColorValue!),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  nextResetText,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (isPaused)
+                  CommandPauseStatus(command: command)
+                else
+                  Text(
+                    nextResetText,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
               ],
             ),
           ),
@@ -316,7 +405,7 @@ class _DetailContentState extends State<_DetailContent> {
             IconButton(
               onPressed: widget.onPrevious,
               icon: const Icon(Icons.chevron_left_rounded),
-              tooltip: 'Période précédente',
+              tooltip: context.l10n.periodePrecedente,
             ),
             Expanded(
               child: Text(
@@ -328,7 +417,7 @@ class _DetailContentState extends State<_DetailContent> {
             IconButton(
               onPressed: widget.onNext,
               icon: const Icon(Icons.chevron_right_rounded),
-              tooltip: 'Période suivante',
+              tooltip: context.l10n.periodeSuivante,
             ),
           ],
         ),
@@ -341,7 +430,7 @@ class _DetailContentState extends State<_DetailContent> {
             }
             if (snapshot.hasError) {
               return Text(
-                'Impossible de charger l’historique.',
+                context.l10n.impossibleDeChargerLhistorique,
                 style: Theme.of(context).textTheme.bodyMedium,
               );
             }
@@ -349,7 +438,9 @@ class _DetailContentState extends State<_DetailContent> {
             final effectiveCreatedAtUtc = snapshot.data?.toUtc();
             if (effectiveCreatedAtUtc == null) {
               return Text(
-                'Aucun historique pour ce commandement pour le moment. Continuez, chaque action compte !',
+                context
+                    .l10n
+                    .aucunHistoriquePourCeCommandementPourLeMomentContinuez,
                 style: Theme.of(context).textTheme.bodyMedium,
               );
             }
@@ -368,7 +459,7 @@ class _DetailContentState extends State<_DetailContent> {
                   }
                   if (eventsSnapshot.hasError) {
                     return Text(
-                      'Impossible de charger l’historique.',
+                      context.l10n.impossibleDeChargerLhistorique,
                       style: Theme.of(context).textTheme.bodyMedium,
                     );
                   }
@@ -376,7 +467,11 @@ class _DetailContentState extends State<_DetailContent> {
                   final events = eventsSnapshot.data ?? const <CommandEvent>[];
                   final hasAnyEvent = events.isNotEmpty;
                   final grouped = _groupByCycle(events);
-                  final currentKey = command.cycleKeyAt(DateTime.now().toUtc());
+                  final currentKey = command.cycleKeyAt(now);
+                  bool isCyclePaused(DateTime start) =>
+                      command.cycleKeyAt(start) == currentKey
+                      ? isPaused
+                      : command.wasPausedAtCycleEnd(start);
                   final cycleNotes = context.watch<CycleNoteProvider>().notes;
 
                   final visualization = switch (command.frequency) {
@@ -386,6 +481,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       activeWeekdays: command.activeWeekdays,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
@@ -398,6 +494,7 @@ class _DetailContentState extends State<_DetailContent> {
                       target: command.target,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -408,6 +505,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -418,6 +516,7 @@ class _DetailContentState extends State<_DetailContent> {
                       currentKey: currentKey,
                       createdAtUtc: effectiveCreatedAtUtc,
                       commandId: command.id,
+                      isCyclePaused: isCyclePaused,
                       notes: cycleNotes,
                       onCompletePastCycle: _confirmPastCycleCompletion,
                       onUncompletePastCycle: _confirmPastCycleUncompletion,
@@ -431,6 +530,7 @@ class _DetailContentState extends State<_DetailContent> {
                     currentKey: currentKey,
                     createdAtUtc: effectiveCreatedAtUtc,
                     activeWeekdays: command.activeWeekdays,
+                    wasPausedAtCycleEnd: command.wasPausedAtCycleEnd,
                   );
 
                   return Column(
@@ -440,7 +540,9 @@ class _DetailContentState extends State<_DetailContent> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
-                            'Aucun historique pour cette période. Continuez, chaque action compte !',
+                            context
+                                .l10n
+                                .aucunHistoriquePourCettePeriodeContinuezChaqueActionCompte,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
@@ -536,26 +638,32 @@ Map<String, List<CommandEvent>> _groupByCycle(List<CommandEvent> events) {
   return map;
 }
 
-String _nextResetText(Frequency frequency, DateTime nowUtc) {
+String _nextResetText(
+  Frequency frequency,
+  DateTime nowUtc, {
+  AppLocalizations? strings,
+}) {
+  final l10n = strings ?? lookupAppLocalizations(const Locale('fr'));
+
   final utc = nowUtc.toUtc();
   switch (frequency) {
     case Frequency.daily:
       if (utc.toLocal().hour >= 22) {
-        return 'Reset demain';
+        return l10n.resetDemain;
       }
-      return 'Reset demain à minuit UTC';
+      return l10n.resetDemainAMinuitUtc;
     case Frequency.weekly:
       final dayStart = DateTime.utc(utc.year, utc.month, utc.day);
       final offset = dayStart.weekday - DateTime.monday;
       final thisMonday = dayStart.subtract(Duration(days: offset));
       final nextMonday = thisMonday.add(const Duration(days: 7));
-      return 'Reset le lundi ${nextMonday.day} ${monthLabel(nextMonday.month)}';
+      return l10n.resetLeLundi(nextMonday.day, monthLabel(nextMonday.month));
     case Frequency.monthly:
       final nextFirst = utc.month == 12
           ? DateTime.utc(utc.year + 1, 1, 1)
           : DateTime.utc(utc.year, utc.month + 1, 1);
-      return 'Reset le 1er ${monthLabel(nextFirst.month)}';
+      return l10n.resetLe1er(monthLabel(nextFirst.month));
     case Frequency.yearly:
-      return 'Reset le 1er janvier ${utc.year + 1}';
+      return l10n.resetLe1erJanvier(utc.year + 1);
   }
 }
