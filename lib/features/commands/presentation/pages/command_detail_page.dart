@@ -18,11 +18,12 @@ import '../widgets/cycle_visualizations/weekly_list.dart';
 import '../widgets/cycle_visualizations/yearly_bar.dart';
 import '../widgets/command_streak_from_repository.dart';
 import '../widgets/command_pause_dialog.dart';
+import '../widgets/command_visibility_dialog.dart';
 import '../widgets/dynamic_progress_bar.dart';
 import '../widgets/history_skeleton.dart';
 import '../../../../app/localization/localization.dart';
 
-enum _CommandDetailAction { pause, reset, delete }
+enum _CommandDetailAction { pause, visibility, reset, delete }
 
 class CommandDetailPage extends StatefulWidget {
   final String commandId;
@@ -106,20 +107,29 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
               enabled: !provider.isMutating,
               onSelected: (action) => _handleAction(action, provider, command),
               itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: _CommandDetailAction.pause,
-                  child: Text(
-                    isPaused
-                        ? context.l10n.reprendre
-                        : context.l10n.mettreEnPause,
+                if (!command.isHidden)
+                  PopupMenuItem(
+                    value: _CommandDetailAction.pause,
+                    child: Text(
+                      isPaused
+                          ? context.l10n.reprendre
+                          : context.l10n.mettreEnPause,
+                    ),
                   ),
-                ),
-                if (!isPaused)
+                if (!isPaused && !command.isHidden)
                   PopupMenuItem(
                     value: _CommandDetailAction.reset,
                     enabled: command.isActiveOnDayUtc(now),
                     child: Text(context.l10n.reinitialiser),
                   ),
+                PopupMenuItem(
+                  value: _CommandDetailAction.visibility,
+                  child: Text(
+                    command.isHidden
+                        ? context.l10n.showCommandAction
+                        : context.l10n.hideCommandAction,
+                  ),
+                ),
                 PopupMenuItem(
                   value: _CommandDetailAction.delete,
                   child: Text(context.l10n.supprimer),
@@ -150,6 +160,13 @@ class _CommandDetailPageState extends State<CommandDetailPage> {
     CommandProvider provider,
     Command command,
   ) async {
+    if (action == _CommandDetailAction.visibility) {
+      final success = await showCommandVisibilityDialog(context, command);
+      if (success && !command.isHidden && mounted) {
+        await Navigator.of(context).maybePop();
+      }
+      return;
+    }
     if (action == _CommandDetailAction.pause) {
       await showCommandPauseDialog(context, command);
       return;

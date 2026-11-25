@@ -9,7 +9,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 - 🔐 **Authentification complète** : inscription, connexion, réinitialisation de mot de passe, paramètres de compte
 - 🌐 **Langue de l’application** : français ou anglais depuis les paramètres, avec mémorisation du choix sur l’appareil
 - 📓 **Carnet de bord** : troisième onglet pour planifier ses tâches, les accomplir, les réorganiser, les replanifier et les supprimer avec annulation ; report automatique avec retard, score quotidien, bilan personnel et aperçu des sept derniers jours
-- ✅ **Gestion des commandements** : création, édition, suppression, reset manuel
+- ✅ **Gestion des commandements** : création, édition, suppression, reset manuel et masquage avec conservation de l’historique
 - 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
 - 🧭 **Page détail riche** : historique par période, résumé de cycles réussis/échoués, navigation temporelle
@@ -218,6 +218,18 @@ flutter analyze
 
 ---
 
+## Commandements masqués et filtre de pause (1.4)
+
+Pour remplacer un objectif (par exemple passer de 7 000 à 8 000 pas) sans modifier son historique, ouvrir le menu **…** de sa carte ou de son détail, puis choisir **Masquer le commandement**. Après confirmation, il disparaît de la liste habituelle et passe en pause sans date de reprise. Son objectif, sa progression, ses événements et ses notes sont conservés. Une pause avec reprise programmée devient indéfinie : le commandement masqué ne reprend jamais automatiquement.
+
+La section **Commandements masqués**, repliée par défaut en bas de la liste, permet de consulter le détail et l’historique, de **Réafficher** un commandement ou de le supprimer définitivement après confirmation. Elle reste accessible même si tous les commandements sont masqués. Réafficher conserve la pause ; l’action **Reprendre** permet ensuite de choisir une reprise immédiate ou au prochain cycle. La suppression définitive purge aussi les événements et notes, par lots pour les historiques volumineux.
+
+Les commandements masqués ne déclenchent plus de rappels et ne subissent pas de reset automatique. Leur période de pause neutralise les cycles manqués selon les règles existantes des pauses, sans réécrire les cycles antérieurs. Le masquage est synchronisé avec le compte. Les anciens documents dépourvus du champ `isHidden` restent visibles.
+
+Le filtre de statut **En pause** est disponible dans les filtres et leur barre de raccourcis. Ce statut prend le pas sur « Non démarrés », « En cours » et « Terminés » tant que la pause est active. Plusieurs statuts sélectionnés sont combinés par union. La recherche, la fréquence et les statuts s’appliquent aussi aux commandements masqués, qui restent dans leur section repliable.
+
+---
+
 ## Carnet de bord (1.4)
 
 Le troisième onglet **Carnet de bord** sert à planifier des actions ponctuelles et à valoriser le travail accompli. Les commandements restent dédiés aux habitudes récurrentes et les résistances aux habitudes à éviter. L’interface du carnet est disponible en français et en anglais et reprend les thèmes clair et sombre de Rituel.
@@ -227,7 +239,7 @@ Le troisième onglet **Carnet de bord** sert à planifier des actions ponctuelle
 - Ajouter une tâche avec le bouton **Nouvelle tâche**, choisir sa date et, si utile, activer une priorité visuelle.
 - Cocher une tâche pour la terminer aujourd’hui, ou la décocher le même jour pour la rouvrir. Les accomplissements sont regroupés dans une section dédiée avec une présentation verte, une progression animée et un retour haptique.
 - Réorganiser les tâches ouvertes par appui long. Leur menu permet de modifier le titre et la priorité, de replanifier ou de supprimer.
-- Supprimer par glissement ou depuis le menu, puis utiliser **Annuler** dans le message de confirmation pour restaurer la tâche le même jour.
+- Supprimer par glissement ou depuis le menu, puis utiliser **Annuler** dans le bandeau pour restaurer la tâche le même jour. Le bandeau se ferme automatiquement après cinq secondes et peut être fermé immédiatement avec sa croix.
 - Naviguer entre les dates avec les flèches ou le calendrier et revenir à **Aujourd’hui** en un toucher.
 
 ### Reports et historique

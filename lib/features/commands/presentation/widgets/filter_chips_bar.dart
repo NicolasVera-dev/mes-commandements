@@ -160,6 +160,8 @@ String _statusLabel(CommandStatusFilter status, {AppLocalizations? strings}) {
       return l10n.enCours;
     case CommandStatusFilter.completed:
       return l10n.termines;
+    case CommandStatusFilter.paused:
+      return l10n.enPause;
   }
 }
 

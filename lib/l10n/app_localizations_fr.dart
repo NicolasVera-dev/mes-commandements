@@ -1659,4 +1659,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get journalSignInAction => 'Se connecter';
+
+  @override
+  String hiddenCommandsTitle(int count) {
+    return 'Commandements masqués ($count)';
+  }
+
+  @override
+  String get hiddenCommandsHelp =>
+      'Ces commandements sont en pause. Leur historique est conservé et ils ne déclenchent plus de rappels. Les filtres et la recherche s’appliquent aussi à cette section.';
+
+  @override
+  String get hideCommandTitle => 'Masquer ce commandement ?';
+
+  @override
+  String get hideCommandMessage =>
+      'Il sera mis en pause sans date de reprise et retiré des affichages habituels. Tu le retrouveras dans « Commandements masqués », avec tout son historique.';
+
+  @override
+  String get hideCommandAction => 'Masquer le commandement';
+
+  @override
+  String get showCommandTitle => 'Réafficher ce commandement ?';
+
+  @override
+  String get showCommandMessage =>
+      'Il retrouvera sa place dans la liste et restera en pause. Tu pourras le reprendre quand tu le souhaites.';
+
+  @override
+  String get showCommandAction => 'Réafficher';
+
+  @override
+  String get commandHiddenFeedback => 'Commandement masqué et mis en pause.';
+
+  @override
+  String get commandShownFeedback =>
+      'Commandement réaffiché, toujours en pause.';
+
+  @override
+  String get hiddenCommandStatus => 'Masqué · en pause';
 }

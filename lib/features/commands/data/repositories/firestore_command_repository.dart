@@ -310,24 +310,30 @@ class FirestoreCommandRepository implements CommandRepository {
     await _cycleNoteRepository?.deleteAllNotes(commandId);
 
     final commandRef = _collectionForUser(uid).doc(commandId);
-    final eventsCollection = commandRef.collection('events');
-    final eventsSnapshot = await eventsCollection.limit(500).get();
-
-    // Firestore limite un batch à 500 opérations.
-    // On réserve 1 opération pour le document commandement.
-    if (eventsSnapshot.docs.length >= 500) {
-      throw StateError(
-        'Suppression impossible en un batch atomique: trop d’événements à supprimer.',
-      );
+    // Old archived commands can have years of events. Purge in bounded
+    // batches and delete the parent last, so an interrupted deletion can retry.
+    for (final name in ['events', 'cycle_notes']) {
+      final collection = commandRef.collection(name);
+      while (true) {
+        final snapshot = await collection.limit(500).get();
+        if (snapshot.docs.isEmpty) break;
+        final batch = _firestore.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      }
     }
-
-    final batch = _firestore.batch();
-    for (final eventDoc in eventsSnapshot.docs) {
-      batch.delete(eventDoc.reference);
-    }
-    batch.delete(commandRef);
-    await batch.commit();
+    await commandRef.delete();
   }
+
+  @override
+  Future<void> setHidden(String commandId, {required bool hidden}) =>
+      _changePause(
+        commandId,
+        (command, now) =>
+            hidden ? command.hideAt(now) : command.copyWith(isHidden: false),
+      );
 
   @override
   Future<void> pause(String commandId, {DateTime? untilUtc}) {
@@ -346,6 +352,7 @@ class FirestoreCommandRepository implements CommandRepository {
   @override
   Future<void> resume(String commandId, {required bool nextCycle}) {
     return _changePause(commandId, (command, now) {
+      if (command.isHidden) return command;
       final active = command.pauseAt(now);
       if (active == null) return command;
       var end = nextCycle
@@ -385,6 +392,7 @@ class FirestoreCommandRepository implements CommandRepository {
       final after = change(before, DateTime.now().toUtc());
       if (before == after) return;
       tx.update(ref, {
+        'isHidden': after.isHidden,
         'pauses': after.pauses.map((pause) => pause.toMap()).toList(),
         if (before.lastResetAt != after.lastResetAt) ...{
           'progress': after.progress,
@@ -408,7 +416,7 @@ class FirestoreCommandRepository implements CommandRepository {
 
           final eventAt = DateTime.now().toUtc();
           final command = Command.fromMap(id: commandId, map: data);
-          if (command.isPausedAt(eventAt)) return null;
+          if (command.isHidden || command.isPausedAt(eventAt)) return null;
           final latestPause = command.pauses.lastOrNull;
           final current =
               latestPause != null &&
@@ -462,7 +470,7 @@ class FirestoreCommandRepository implements CommandRepository {
       id: docRef.id,
       map: Map<String, Object?>.from(data),
     );
-    if (command.isPausedAt(eventAt)) return;
+    if (command.isHidden || command.isPausedAt(eventAt)) return;
     final updated = command.resetProgress(resetAt: eventAt);
     await _applyResetBatch(
       uid: uid,

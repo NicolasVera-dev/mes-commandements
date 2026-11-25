@@ -36,6 +36,7 @@ class Command {
   final List<String> tags;
   final List<int> activeWeekdays;
   final List<CommandPause> pauses;
+  final bool isHidden;
 
   Command({
     required this.id,
@@ -52,6 +53,7 @@ class Command {
     this.tags = const <String>[],
     this.activeWeekdays = const <int>[],
     this.pauses = const <CommandPause>[],
+    this.isHidden = false,
   }) : assert(title.trim().isNotEmpty, 'Le titre ne doit pas être vide.'),
        assert(
          title.trim().length <= maxTitleLength,
@@ -101,6 +103,7 @@ class Command {
     List<String>? tags,
     List<int>? activeWeekdays,
     List<CommandPause>? pauses,
+    bool? isHidden,
     bool clearLastResetAt = false,
     bool clearAccentColorValue = false,
   }) {
@@ -121,6 +124,7 @@ class Command {
       tags: tags ?? this.tags,
       activeWeekdays: activeWeekdays ?? this.activeWeekdays,
       pauses: pauses ?? this.pauses,
+      isHidden: isHidden ?? this.isHidden,
     );
   }
 
@@ -138,7 +142,7 @@ class Command {
 
   /// Détermine si la progression doit être réinitialisée pour la période en cours.
   bool shouldAutoReset(DateTime now) {
-    if (isPausedAt(now)) return false;
+    if (isHidden || isPausedAt(now)) return false;
     final currentBoundary = _periodStart(now.toUtc());
     final effectiveLastReset =
         lastResetAt ?? (pauses.isEmpty ? null : createdAt);
@@ -168,6 +172,24 @@ class Command {
   }
 
   bool isPausedAt(DateTime instant) => pauseAt(instant) != null;
+
+  /// Hide and pause indefinitely in one state change. Existing pause history,
+  /// including the start of an active scheduled pause, remains intact.
+  Command hideAt(DateTime instant) {
+    final now = instant.toUtc();
+    final active = pauseAt(now);
+    return copyWith(
+      isHidden: true,
+      pauses: [
+        for (final pause in pauses)
+          if (pause == active)
+            CommandPause(startUtc: pause.startUtc)
+          else
+            pause,
+        if (active == null) CommandPause(startUtc: now),
+      ],
+    );
+  }
 
   /// Un cycle incomplet est neutralisé si la pause couvre sa clôture.
   bool wasPausedAtCycleEnd(DateTime cycleStart) {
@@ -212,6 +234,7 @@ class Command {
         other.emoji == emoji &&
         other.accentColorValue == accentColorValue &&
         other.position == position &&
+        other.isHidden == isHidden &&
         _listEquals(other.tags, tags) &&
         _listEquals(other.activeWeekdays, activeWeekdays) &&
         _listEquals(other.pauses, pauses);
@@ -230,6 +253,7 @@ class Command {
     emoji,
     accentColorValue,
     position,
+    isHidden,
     Object.hashAll(tags),
     Object.hashAll(activeWeekdays),
     Object.hashAll(pauses),
@@ -249,6 +273,7 @@ class Command {
       'position': position,
       'tags': tags,
       'activeWeekdays': activeWeekdays,
+      'isHidden': isHidden,
       if (pauses.isNotEmpty)
         'pauses': pauses.map((pause) => pause.toMap()).toList(),
     };
@@ -326,6 +351,7 @@ class Command {
       position: position,
       tags: tags,
       activeWeekdays: activeWeekdays,
+      isHidden: map['isHidden'] == true,
       pauses: rawPauses is List
           ? List.unmodifiable(
               rawPauses.map(CommandPause.fromMap).whereType<CommandPause>(),

@@ -2973,6 +2973,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Se connecter'**
   String get journalSignInAction;
+
+  /// No description provided for @hiddenCommandsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandements masqués ({count})'**
+  String hiddenCommandsTitle(int count);
+
+  /// No description provided for @hiddenCommandsHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ces commandements sont en pause. Leur historique est conservé et ils ne déclenchent plus de rappels. Les filtres et la recherche s’appliquent aussi à cette section.'**
+  String get hiddenCommandsHelp;
+
+  /// No description provided for @hideCommandTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer ce commandement ?'**
+  String get hideCommandTitle;
+
+  /// No description provided for @hideCommandMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il sera mis en pause sans date de reprise et retiré des affichages habituels. Tu le retrouveras dans « Commandements masqués », avec tout son historique.'**
+  String get hideCommandMessage;
+
+  /// No description provided for @hideCommandAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer le commandement'**
+  String get hideCommandAction;
+
+  /// No description provided for @showCommandTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réafficher ce commandement ?'**
+  String get showCommandTitle;
+
+  /// No description provided for @showCommandMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il retrouvera sa place dans la liste et restera en pause. Tu pourras le reprendre quand tu le souhaites.'**
+  String get showCommandMessage;
+
+  /// No description provided for @showCommandAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réafficher'**
+  String get showCommandAction;
+
+  /// No description provided for @commandHiddenFeedback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandement masqué et mis en pause.'**
+  String get commandHiddenFeedback;
+
+  /// No description provided for @commandShownFeedback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandement réaffiché, toujours en pause.'**
+  String get commandShownFeedback;
+
+  /// No description provided for @hiddenCommandStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masqué · en pause'**
+  String get hiddenCommandStatus;
 }
 
 class _AppLocalizationsDelegate

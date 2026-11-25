@@ -12,6 +12,7 @@ import '../state/command_provider.dart';
 import 'command_streak_from_repository.dart';
 import 'command_confirmation_dialogs.dart';
 import 'command_pause_dialog.dart';
+import 'command_visibility_dialog.dart';
 import 'dynamic_progress_bar.dart';
 import 'increment_animation_overlay.dart';
 import '../../../../app/localization/localization.dart';
@@ -347,6 +348,12 @@ class _CommandCardState extends State<CommandCard> {
                             case _CommandCardMenuAction.pause:
                               await showCommandPauseDialog(context, command);
                               break;
+                            case _CommandCardMenuAction.hide:
+                              await showCommandVisibilityDialog(
+                                context,
+                                command,
+                              );
+                              break;
                             case _CommandCardMenuAction.delete:
                               if (await confirmCommandDeletion(context) &&
                                   context.mounted) {
@@ -384,6 +391,14 @@ class _CommandCardState extends State<CommandCard> {
                                     ? context.l10n.reprendre
                                     : context.l10n.mettreEnPause,
                               ),
+                            ),
+                          ),
+                          PopupMenuItem<_CommandCardMenuAction>(
+                            value: _CommandCardMenuAction.hide,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.visibility_off_outlined),
+                              title: Text(context.l10n.hideCommandAction),
                             ),
                           ),
                           PopupMenuItem<_CommandCardMenuAction>(
@@ -607,7 +622,7 @@ _CommandTagChipStyle _commandTagChipStyle({
   return const _CommandTagChipStyle();
 }
 
-enum _CommandCardMenuAction { details, edit, pause, delete }
+enum _CommandCardMenuAction { details, edit, pause, hide, delete }
 
 /// Libellés courts pour la ligne méta en mode compact.
 String _frequencyLabelCompact(

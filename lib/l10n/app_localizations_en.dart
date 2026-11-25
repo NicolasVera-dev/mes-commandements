@@ -1651,4 +1651,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalSignInAction => 'Sign in';
+
+  @override
+  String hiddenCommandsTitle(int count) {
+    return 'Hidden commandments ($count)';
+  }
+
+  @override
+  String get hiddenCommandsHelp =>
+      'These commandments are paused. Their history is preserved and they no longer trigger reminders. Filters and search also apply to this section.';
+
+  @override
+  String get hideCommandTitle => 'Hide this commandment?';
+
+  @override
+  String get hideCommandMessage =>
+      'It will be paused indefinitely and removed from the usual views. You can find it under “Hidden commandments”, with all its history.';
+
+  @override
+  String get hideCommandAction => 'Hide commandment';
+
+  @override
+  String get showCommandTitle => 'Show this commandment again?';
+
+  @override
+  String get showCommandMessage =>
+      'It will return to the list and remain paused. You can resume it whenever you are ready.';
+
+  @override
+  String get showCommandAction => 'Show again';
+
+  @override
+  String get commandHiddenFeedback => 'Commandment hidden and paused.';
+
+  @override
+  String get commandShownFeedback => 'Commandment shown again, still paused.';
+
+  @override
+  String get hiddenCommandStatus => 'Hidden · paused';
 }

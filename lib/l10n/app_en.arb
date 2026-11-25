@@ -540,5 +540,23 @@
   "journalSave": "Save",
   "journalCancel": "Cancel",
   "journalUndo": "Undo",
-  "journalSignInAction": "Sign in"
+  "journalSignInAction": "Sign in",
+  "hiddenCommandsTitle": "Hidden commandments ({count})",
+  "@hiddenCommandsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hiddenCommandsHelp": "These commandments are paused. Their history is preserved and they no longer trigger reminders. Filters and search also apply to this section.",
+  "hideCommandTitle": "Hide this commandment?",
+  "hideCommandMessage": "It will be paused indefinitely and removed from the usual views. You can find it under “Hidden commandments”, with all its history.",
+  "hideCommandAction": "Hide commandment",
+  "showCommandTitle": "Show this commandment again?",
+  "showCommandMessage": "It will return to the list and remain paused. You can resume it whenever you are ready.",
+  "showCommandAction": "Show again",
+  "commandHiddenFeedback": "Commandment hidden and paused.",
+  "commandShownFeedback": "Commandment shown again, still paused.",
+  "hiddenCommandStatus": "Hidden · paused"
 }

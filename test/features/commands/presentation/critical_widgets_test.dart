@@ -73,6 +73,9 @@ class _FakeCommandRepository implements CommandRepository {
   }
 
   @override
+  Future<void> setHidden(String commandId, {required bool hidden}) async {}
+
+  @override
   Future<void> pause(String commandId, {DateTime? untilUtc}) async {}
 
   @override

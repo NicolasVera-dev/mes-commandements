@@ -52,7 +52,8 @@ class CommandProvider extends ChangeNotifier {
         final pauseChanged = commands.any((command) {
           final previous = previousById[command.id];
           return previous != null &&
-              (previous.pauses.length != command.pauses.length ||
+              (previous.isHidden != command.isHidden ||
+                  previous.pauses.length != command.pauses.length ||
                   previous.pauses.lastOrNull != command.pauses.lastOrNull);
         });
         _commands = List<Command>.from(commands);
@@ -165,7 +166,7 @@ class CommandProvider extends ChangeNotifier {
   List<String> get availableTags {
     final set = <String>{};
     for (final command in _commands) {
-      set.addAll(command.tags);
+      if (!command.isHidden) set.addAll(command.tags);
     }
     final list = set.toList(growable: false)..sort();
     return list;
@@ -205,6 +206,14 @@ class CommandProvider extends ChangeNotifier {
     return _runMutationForId(id, () => _repository.delete(id));
   }
 
+  Future<bool> setCommandHidden(String id, {required bool hidden}) {
+    _markCommandsChangedForNotifications();
+    return _runMutationForId(
+      id,
+      () => _repository.setHidden(id, hidden: hidden),
+    );
+  }
+
   Future<void> pauseCommand(String id, {DateTime? untilUtc}) =>
       _runMutationForId(id, () => _repository.pause(id, untilUtc: untilUtc));
 
@@ -242,7 +251,10 @@ class CommandProvider extends ChangeNotifier {
 
   void incrementProgress(String commandId) {
     final command = getById(commandId);
-    if (command == null || command.isPausedAt(DateTime.now())) return;
+    if (command == null ||
+        command.isHidden ||
+        command.isPausedAt(DateTime.now()))
+      return;
 
     _markCommandsChangedForNotifications();
     unawaited(
@@ -255,7 +267,10 @@ class CommandProvider extends ChangeNotifier {
 
   Future<bool> resetProgress(String commandId) async {
     final command = getById(commandId);
-    if (command == null || command.isPausedAt(DateTime.now())) return false;
+    if (command == null ||
+        command.isHidden ||
+        command.isPausedAt(DateTime.now()))
+      return false;
 
     _markCommandsChangedForNotifications();
     return _runMutationForId(
@@ -368,6 +383,7 @@ class CommandProvider extends ChangeNotifier {
     /// empty => no tag filtering.
     required Set<String> tags,
     required CommandSort sort,
+    bool hiddenOnly = false,
   }) {
     return _filterAndSortCommandsUseCase.execute(
       commands: _commands,
@@ -376,6 +392,7 @@ class CommandProvider extends ChangeNotifier {
       tags: tags,
       sort: sort,
       searchQuery: _searchQuery,
+      hiddenOnly: hiddenOnly,
     );
   }
 
