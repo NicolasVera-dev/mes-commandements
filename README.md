@@ -6,6 +6,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 
 ## Fonctionnalités
 
+- 👋 **Accueil déconnecté** : présentation en quatre pages (bienvenue, progression, résistances, carnet de bord), en-tête fixe avec logo et nom RITUEL, défilement automatique discret
 - 🔐 **Authentification complète** : inscription, connexion, réinitialisation de mot de passe, paramètres de compte
 - 🌐 **Langue de l’application** : français ou anglais depuis les paramètres, avec mémorisation du choix sur l’appareil
 - 📓 **Carnet de bord** : troisième onglet pour planifier ses tâches, les accomplir, les réorganiser, les replanifier et les supprimer avec annulation ; report automatique avec retard, score quotidien, bilan personnel et aperçu des sept derniers jours
@@ -214,6 +215,20 @@ flutter test --coverage
 
 # Analyser le code
 flutter analyze
+```
+
+---
+
+## Onboarding déconnecté (1.4)
+
+L’accueil des utilisateurs déconnectés présente quatre pages : bienvenue, progression des commandements, résistances et carnet de bord. La dernière invite à planifier sa journée et à apprécier le travail accompli. Le logo d’application et le nom **RITUEL**, centrés en haut, restent fixes pendant les transitions. Le bouton **Commencer dès maintenant** reste accessible sur chaque page ; aucune attente n’est imposée avant la connexion.
+
+Les pages défilent automatiquement toutes les huit secondes et reviennent à la première après le carnet de bord. Aucun compte à rebours ni bouton pause, reprise ou relecture n’est affiché. Les points indicateurs conservent leur dessin d’origine. Un swipe manuel relance un délai complet de huit secondes, et le minuteur est suspendu pendant une interaction tactile.
+
+Le passage en arrière-plan ou l’ouverture de la connexion suspend le défilement. Avec la navigation accessible (lecteur d’écran) ou la réduction des animations, la présentation reste manuelle. Sur petit écran ou avec du texte agrandi, le contenu peut défiler verticalement, tandis que l’en-tête et les actions restent fixes. Les textes sont disponibles en français et en anglais.
+
+```bash
+flutter test test/features/auth/onboarding_welcome_test.dart
 ```
 
 ---

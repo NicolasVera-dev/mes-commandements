@@ -935,5 +935,8 @@
   "showCommandAction": "Réafficher",
   "commandHiddenFeedback": "Commandement masqué et mis en pause.",
   "commandShownFeedback": "Commandement réaffiché, toujours en pause.",
-  "hiddenCommandStatus": "Masqué · en pause"
+  "hiddenCommandStatus": "Masqué · en pause",
+  "onboardingJournalTitle": "Savoure le travail accompli",
+  "onboardingJournalBody": "Prépare ta journée dans ton carnet de bord. Coche tes tâches, retrouve celles à reprendre et prends un instant pour apprécier tes avancées.",
+  "onboardingJournalQuote": "Chaque petit pas mérite d’être reconnu."
 }

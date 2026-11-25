@@ -1698,4 +1698,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get hiddenCommandStatus => 'Masqué · en pause';
+
+  @override
+  String get onboardingJournalTitle => 'Savoure le travail accompli';
+
+  @override
+  String get onboardingJournalBody =>
+      'Prépare ta journée dans ton carnet de bord. Coche tes tâches, retrouve celles à reprendre et prends un instant pour apprécier tes avancées.';
+
+  @override
+  String get onboardingJournalQuote =>
+      'Chaque petit pas mérite d’être reconnu.';
 }

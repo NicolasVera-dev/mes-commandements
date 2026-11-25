@@ -1,22 +1,61 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../app/localization/localization.dart';
+import '../widgets/onboarding/onboarding_brand_header.dart';
 
 /// Accueil hors-ligne pour utilisateurs non connectés (aucune persistance « déjà vu »).
 class OnboardingWelcomePage extends StatefulWidget {
   final VoidCallback onCommencer;
+  final bool isActive;
 
-  const OnboardingWelcomePage({super.key, required this.onCommencer});
+  const OnboardingWelcomePage({
+    super.key,
+    required this.onCommencer,
+    this.isActive = true,
+  });
 
   @override
   State<OnboardingWelcomePage> createState() => _OnboardingWelcomePageState();
 }
 
-class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
+class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
+    with WidgetsBindingObserver {
   late final PageController _pageController;
   int _pageIndex = 0;
+  static const _slideDelay = Duration(seconds: 8);
+  Timer? _timer;
+  bool _foreground = true;
+  bool _manualAccessibility = false;
+  bool _transitioning = false;
+  bool _interacting = false;
+
+  int get _slideCount => _slides.length + 1;
+  bool get _canAdvance =>
+      widget.isActive &&
+      _foreground &&
+      !_manualAccessibility &&
+      !_transitioning &&
+      !_interacting;
+
+  List<_SlideData> _localizedSlides(AppLocalizations strings) => [
+    for (final data in _slides)
+      _SlideData(
+        icon: data.icon,
+        title: strings.systemMessage(data.title),
+        body: strings.systemMessage(data.body),
+        quote: data.quote == null ? null : strings.systemMessage(data.quote!),
+      ),
+    _SlideData(
+      icon: Icons.menu_book_rounded,
+      title: strings.onboardingJournalTitle,
+      body: strings.onboardingJournalBody,
+      quote: strings.onboardingJournalQuote,
+    ),
+  ];
 
   static const _slides = <_SlideData>[
     _SlideData(
@@ -43,10 +82,80 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _manualAccessibility =
+        MediaQuery.accessibleNavigationOf(context) ||
+        MediaQuery.disableAnimationsOf(context);
+    _syncTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant OnboardingWelcomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) {
+      _syncTimer(reset: true);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _foreground = state == AppLifecycleState.resumed;
+    });
+    _syncTimer();
+  }
+
+  void _syncTimer({bool reset = false}) {
+    if (reset || !_canAdvance) {
+      _timer?.cancel();
+      _timer = null;
+    }
+    if (!_canAdvance || (_timer?.isActive ?? false)) return;
+    _timer = Timer(_slideDelay, () {
+      _timer = null;
+      unawaited(_advance());
+    });
+  }
+
+  Future<void> _advance() async {
+    if (!_canAdvance || !_pageController.hasClients) return;
+    _transitioning = true;
+    _syncTimer();
+    try {
+      await _pageController.animateToPage(
+        (_pageController.page?.round() ?? 0) + 1,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    } finally {
+      if (mounted) {
+        _transitioning = false;
+        _syncTimer(reset: true);
+      }
+    }
+  }
+
+  void _onPageChanged(int index) {
+    setState(() => _pageIndex = index % _slideCount);
+    _syncTimer(reset: true);
+  }
+
+  void _setInteracting(bool value) {
+    _interacting = value;
+    _syncTimer(reset: true);
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
   }
@@ -56,20 +165,16 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
     required int page,
     required int total,
   }) {
-    final base = context.l10n.pageSur2(
-      page,
-      total,
-      context.l10n.systemMessage(data.title),
-      context.l10n.systemMessage(data.body),
-    );
+    final base = context.l10n.pageSur2(page, total, data.title, data.body);
     if (data.quote == null || data.quote!.isEmpty) return base;
-    return '$base. ${context.l10n.systemMessage(data.quote!)}';
+    return '$base. ${data.quote!}';
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final slides = _localizedSlides(context.l10n);
 
     return PopScope(
       canPop: false,
@@ -93,27 +198,33 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
           child: SafeArea(
             child: Column(
               children: [
+                const OnboardingBrandHeader(),
                 Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    onPageChanged: (i) => setState(() => _pageIndex = i),
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      for (var i = 0; i < _slides.length; i++)
-                        _OnboardingSlide(
-                          data: _slides[i],
+                  child: Listener(
+                    onPointerDown: (_) => _setInteracting(true),
+                    onPointerUp: (_) => _setInteracting(false),
+                    onPointerCancel: (_) => _setInteracting(false),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: _onPageChanged,
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (_, index) {
+                        final page = index % slides.length;
+                        return _OnboardingSlide(
+                          data: slides[page],
                           semanticPageLabel: _semanticLabelForSlide(
-                            _slides[i],
-                            page: i + 1,
-                            total: _slides.length,
+                            slides[page],
+                            page: page + 1,
+                            total: slides.length,
                           ),
-                        ),
-                    ],
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 _PageDots(
-                  count: _slides.length,
+                  count: slides.length,
                   index: _pageIndex,
                   scheme: scheme,
                 ),
@@ -138,7 +249,10 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
                         shadowColor: Colors.transparent,
                         surfaceTintColor: Colors.transparent,
                       ),
-                      onPressed: widget.onCommencer,
+                      onPressed: () {
+                        _timer?.cancel();
+                        widget.onCommencer();
+                      },
                       child: Text(
                         context.l10n.commencerDesMaintenant,
                         textAlign: TextAlign.center,
@@ -190,47 +304,55 @@ class _OnboardingSlide extends StatelessWidget {
     return Semantics(
       container: true,
       label: semanticPageLabel,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ExcludeSemantics(
-              child: Icon(data.icon, size: 88, color: scheme.primary),
+      excludeSemantics: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: (constraints.maxHeight - 32).clamp(0, double.infinity),
             ),
-            const SizedBox(height: 32),
-            Text(
-              context.l10n.systemMessage(data.title),
-              textAlign: TextAlign.center,
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-                color: scheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.systemMessage(data.body),
-              textAlign: TextAlign.center,
-              style: textTheme.bodyLarge?.copyWith(
-                height: 1.45,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            if (data.quote != null && data.quote!.isNotEmpty) ...[
-              const SizedBox(height: 28),
-              Text(
-                '« ${context.l10n.systemMessage(data.quote!)} »',
-                textAlign: TextAlign.center,
-                style: textTheme.titleMedium?.copyWith(
-                  height: 1.4,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
-                  color: scheme.primary,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ExcludeSemantics(
+                  child: Icon(data.icon, size: 88, color: scheme.primary),
                 ),
-              ),
-            ],
-          ],
+                const SizedBox(height: 32),
+                Text(
+                  data.title,
+                  textAlign: TextAlign.center,
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    color: scheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  data.body,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyLarge?.copyWith(
+                    height: 1.45,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                if (data.quote != null && data.quote!.isNotEmpty) ...[
+                  const SizedBox(height: 28),
+                  Text(
+                    '« ${data.quote!} »',
+                    textAlign: TextAlign.center,
+                    style: textTheme.titleMedium?.copyWith(
+                      height: 1.4,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500,
+                      color: scheme.primary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

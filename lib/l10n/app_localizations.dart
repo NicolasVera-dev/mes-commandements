@@ -3039,6 +3039,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Masqué · en pause'**
   String get hiddenCommandStatus;
+
+  /// No description provided for @onboardingJournalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Savoure le travail accompli'**
+  String get onboardingJournalTitle;
+
+  /// No description provided for @onboardingJournalBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prépare ta journée dans ton carnet de bord. Coche tes tâches, retrouve celles à reprendre et prends un instant pour apprécier tes avancées.'**
+  String get onboardingJournalBody;
+
+  /// No description provided for @onboardingJournalQuote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque petit pas mérite d’être reconnu.'**
+  String get onboardingJournalQuote;
 }
 
 class _AppLocalizationsDelegate

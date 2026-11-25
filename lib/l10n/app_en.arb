@@ -558,5 +558,8 @@
   "showCommandAction": "Show again",
   "commandHiddenFeedback": "Commandment hidden and paused.",
   "commandShownFeedback": "Commandment shown again, still paused.",
-  "hiddenCommandStatus": "Hidden · paused"
+  "hiddenCommandStatus": "Hidden · paused",
+  "onboardingJournalTitle": "Enjoy what you accomplish",
+  "onboardingJournalBody": "Plan your day in your journal. Check off your tasks, pick up where you left off and take a moment to appreciate your progress.",
+  "onboardingJournalQuote": "Every small step deserves recognition."
 }

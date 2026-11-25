@@ -2,6 +2,9 @@
 
 ## 1.4.0 — en développement
 
+- Onboarding enrichi avec une page carnet de bord et un en-tête fixe logo / RITUEL.
+- Défilement automatique discret toutes les huit secondes, en boucle, avec les indicateurs d’origine et respect des réglages d’accessibilité.
+
 - Masquage des commandements avec pause indéfinie, historique conservé et section repliable pour les retrouver.
 - Réaffichage en conservant la pause et filtre de statut « En pause ».
 - Suppression définitive des commandements avec historiques de plus de 500 événements.
