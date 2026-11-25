@@ -98,6 +98,56 @@ void main() {
   }
 
   testWidgets(
+    'deletion banner closes automatically after five seconds and can be closed manually',
+    (tester) async {
+      final repo = FirestoreJournalRepository(
+        firestore: FakeFirebaseFirestore(),
+      );
+      final today = JournalDay.parse('2026-11-25');
+      for (final id in ['a', 'b']) {
+        await repo.saveTask(
+          'a',
+          JournalTask(
+            id: id,
+            title: 'Tâche $id',
+            plans: [JournalPlan(start: today)],
+          ),
+        );
+      }
+      final provider = JournalProvider(
+        repository: repo,
+        userIds: Stream.value('a'),
+        clock: () => today.date,
+      );
+      await mount(tester, provider, 'fr');
+      Future<void> removeFirst() async {
+        await tester.tap(find.byType(PopupMenuButton<JournalTaskAction>).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Supprimer la tâche'));
+        await tester.pumpAndSettle();
+      }
+
+      await removeFirst();
+      expect(find.text('Tâche supprimée du planning.'), findsOneWidget);
+      expect(find.text('Annuler'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 4));
+      expect(find.byType(SnackBar), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+      expect(find.byType(SnackBar), findsNothing);
+      expect(provider.summary(today).tasks, hasLength(1));
+      await removeFirst();
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.byType(SnackBar), findsNothing);
+      expect(provider.summary(today).tasks, isEmpty);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      provider.dispose();
+    },
+  );
+
+  testWidgets(
     'past is read-only, future cannot be checked, overdue carries on resume',
     (tester) async {
       final repo = FirestoreJournalRepository(

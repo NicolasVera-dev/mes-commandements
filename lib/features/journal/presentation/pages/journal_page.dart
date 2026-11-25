@@ -133,6 +133,9 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
       ..showSnackBar(
         SnackBar(
           content: Text(context.l10n.journalRemoved),
+          persist: false,
+          duration: const Duration(seconds: 5),
+          showCloseIcon: true,
           action: SnackBarAction(
             label: context.l10n.journalUndo,
             onPressed: () => _perform(() => provider.restore(removed!)),
