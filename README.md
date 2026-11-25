@@ -8,6 +8,7 @@ Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une ex
 
 - 🔐 **Authentification complète** : inscription, connexion, réinitialisation de mot de passe, paramètres de compte
 - 🌐 **Langue de l’application** : français ou anglais depuis les paramètres, avec mémorisation du choix sur l’appareil
+- 📓 **Carnet de bord** : troisième onglet pour planifier ses tâches, les accomplir, les réorganiser, les replanifier et les supprimer avec annulation ; report automatique avec retard, score quotidien, bilan personnel et aperçu des sept derniers jours
 - ✅ **Gestion des commandements** : création, édition, suppression, reset manuel
 - 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
 - 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
@@ -217,6 +218,50 @@ flutter analyze
 
 ---
 
+## Carnet de bord (1.4)
+
+Le troisième onglet **Carnet de bord** sert à planifier des actions ponctuelles et à valoriser le travail accompli. Les commandements restent dédiés aux habitudes récurrentes et les résistances aux habitudes à éviter. L’interface du carnet est disponible en français et en anglais et reprend les thèmes clair et sombre de Rituel.
+
+### Préparer et accomplir sa journée
+
+- Ajouter une tâche avec le bouton **Nouvelle tâche**, choisir sa date et, si utile, activer une priorité visuelle.
+- Cocher une tâche pour la terminer aujourd’hui, ou la décocher le même jour pour la rouvrir. Les accomplissements sont regroupés dans une section dédiée avec une présentation verte, une progression animée et un retour haptique.
+- Réorganiser les tâches ouvertes par appui long. Leur menu permet de modifier le titre et la priorité, de replanifier ou de supprimer.
+- Supprimer par glissement ou depuis le menu, puis utiliser **Annuler** dans le message de confirmation pour restaurer la tâche le même jour.
+- Naviguer entre les dates avec les flèches ou le calendrier et revenir à **Aujourd’hui** en un toucher.
+
+### Reports et historique
+
+Les dates du carnet suivent le calendrier local de l’appareil. Une tâche ouverte reste visible au fil des jours sans duplication ni écriture automatique à minuit. Ses périodes de planification permettent de conserver les scores passés lors d’une replanification. Une suppression retire la tâche du planning courant et futur, mais conserve ses engagements passés. Les tâches passées sont en lecture seule ; les notes de bilan restent modifiables.
+
+Le retard indique le nombre de jours depuis le début de la période de planification active. Une replanification explicite fait repartir ce délai à la nouvelle date choisie ; la date d’origine reste conservée. Le carnet s’actualise au changement de jour et au retour dans l’application.
+
+### Score et bilan personnel
+
+Le score correspond au nombre de tâches accomplies ce jour-là divisé par le nombre de tâches prévues ce jour-là, arrondi en pourcentage. Chaque tâche a le même poids ; les priorités sont uniquement des repères visuels. À zéro, le compteur affiche **0 tâche accomplie sur X**. Une journée sans tâche n’a pas de score. Les tâches des jours futurs restent prévisionnelles : terminer une tâche aujourd’hui la retire des jours suivants.
+
+Par exemple, une tâche prévue lundi et terminée mardi reste inachevée dans le bilan du lundi et compte comme accomplie le mardi. Supprimer ou replanifier une tâche lundi la retire du calcul du lundi ; effectuer cette action mardi ne modifie pas le score du lundi. Atteindre 100 % déclenche un message qui invite à apprécier le travail accompli.
+
+**Mon bilan** permet d’enregistrer un ressenti facultatif et une note de 4 000 caractères maximum pour aujourd’hui ou une journée passée. L’enregistrement est explicite via **Enregistrer**. L’aperçu des sept derniers jours donne accès aux journées correspondantes et distingue les jours sans tâche des jours à 0 %.
+
+### Persistance et vérifications
+
+Le domaine se trouve dans `lib/features/journal/domain`, la persistance dans `data` et les composants Material dans `presentation`. Firestore stocke les tâches dans `users/{uid}/journal_tasks` et les bilans dans `users/{uid}/journal_reflections`. La suppression du compte purge aussi ces deux collections. Les règles de `firestore.rules` doivent être publiées avant un test sur un appareil connecté au projet Firebase.
+
+Les tests Flutter du carnet couvrent les changements de jour, les reports et replanifications, les scores historiques, la suppression avec annulation, la persistance, le changement de compte et les parcours d’interface français/anglais, y compris sur petit écran et avec du texte agrandi :
+
+```bash
+flutter test test/features/journal
+```
+
+Tests locaux des règles de confidentialité (Java 21+, Node.js et Firebase CLI via npm ; aucune donnée de production utilisée) :
+
+```bash
+npx --yes firebase-tools emulators:exec --only firestore --project demo-rituel-journal 'python3 test/firestore/journal_rules_test.py'
+```
+
+---
+
 ## Structure des fichiers clés
 
 ```
@@ -356,11 +401,13 @@ Les **rechutes** et les **notes par jour** sont stockées dans des collections d
 
 ## Maintenance et branches
 
-`develop` est la branche d’intégration et le point de départ des nouveaux développements. Créer une branche de travail depuis `develop`, valider les tests et les builds concernés, puis fusionner dans `develop` avec un commit de merge. Les branches de version existantes (`v1.1.0`, `v1.2.0`) restent des repères historiques. La branche `main` ne doit être mise à jour que lors d’une livraison préparée.
+Les fonctionnalités d’une version partent de sa branche d’intégration : pour la 1.4, `codex/integration/1.4`. Chaque fonctionnalité dispose de sa branche `codex/feature/...`, est testée sur appareil, puis est fusionnée par PR dans la branche d’intégration après validation. La version complète rejoint `develop` une fois les fonctionnalités éprouvées. Les mises à jour de `develop` passent également par PR, conformément à la règle du dépôt.
+
+La 1.3 est figée sur `codex/release/1.3.0` avec le tag `v1.3.0`. Les branches `v1.1.0` et `v1.2.0` restent des repères historiques. La branche `main`, qui contient un ancien squelette, reste inchangée dans ce cycle.
 
 ```bash
-git switch develop
-git pull --ff-only origin develop
+git switch codex/integration/1.4
+git pull --ff-only origin codex/integration/1.4
 git switch -c codex/feature/ma-fonctionnalite
 ```
 

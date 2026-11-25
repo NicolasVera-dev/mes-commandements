@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../features/commands/presentation/pages/home_page.dart';
+import '../features/journal/presentation/pages/journal_page.dart';
 import '../features/resistances/presentation/pages/resistances_home_page.dart';
 import 'localization/localization.dart';
 
@@ -55,6 +56,7 @@ class _MainShellState extends State<MainShell> {
           children: const [
             _KeepAliveTab(child: HomePage()),
             _KeepAliveTab(child: ResistancesHomePage()),
+            _KeepAliveTab(child: JournalPage()),
           ],
         ),
         bottomNavigationBar: NavigationBar(
@@ -70,6 +72,11 @@ class _MainShellState extends State<MainShell> {
               icon: Icon(Icons.shield_outlined),
               selectedIcon: Icon(Icons.shield_rounded),
               label: context.l10n.resistances,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.menu_book_outlined),
+              selectedIcon: Icon(Icons.menu_book_rounded),
+              label: context.l10n.journalTitle,
             ),
           ],
         ),

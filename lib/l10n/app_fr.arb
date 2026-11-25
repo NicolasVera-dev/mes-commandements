@@ -792,5 +792,130 @@
   "jourCourtDimanche": "D",
   "erreurEnregistrementNote": "Impossible d’enregistrer la note. Veuillez réessayer.",
   "notePermissionSave": "Sauvegarde refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules",
-  "notePermissionDelete": "Suppression refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules"
+  "notePermissionDelete": "Suppression refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules",
+  "journalTitle": "Carnet de bord",
+  "journalAddTask": "Nouvelle tâche",
+  "journalTaskTitle": "Que veux-tu accomplir ?",
+  "journalTaskHint": "Une action concrète pour ta journée",
+  "journalTaskRequired": "Indique une tâche (200 caractères maximum).",
+  "journalPlannedFor": "Prévue pour le {date}",
+  "@journalPlannedFor": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journalOriginalDate": "Prévue à l’origine le {date}",
+  "@journalOriginalDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journalPriority": "Priorité du jour",
+  "journalPriorityHelp": "Un repère visuel, sans modifier le score.",
+  "journalToday": "Aujourd’hui",
+  "journalTomorrow": "Demain",
+  "journalCalendar": "Choisir une journée",
+  "journalPreviousDay": "Jour précédent",
+  "journalNextDay": "Jour suivant",
+  "journalAccomplishments": "Mes accomplissements",
+  "journalCompletedCount": "{done, plural, =0{0 tâche accomplie} =1{{done} tâche accomplie} other{{done} tâches accomplies}} sur {total}",
+  "@journalCompletedCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journalScoreHelp": "Chaque tâche a le même poids. Le bilan du jour garde la trace de tes engagements, même si une tâche est reportée. Supprimer ou replanifier une tâche aujourd’hui la retire du score d’aujourd’hui.",
+  "journalNoScore": "Pas encore de score",
+  "journalCelebrate": "Tu as tenu tous tes engagements. Savoure le travail accompli !",
+  "journalProgress": "Chaque tâche accomplie fait avancer ta journée.",
+  "journalStart": "Un premier pas suffit pour lancer ta journée.",
+  "journalPending": "À accomplir · {count}",
+  "@journalPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journalDone": "Accomplies · {count}",
+  "@journalDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journalLate": "{count, plural, =1{1 jour de retard} other{{count} jours de retard}}",
+  "@journalLate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journalCompletedToday": "Accomplie aujourd’hui",
+  "journalCompletedDay": "Accomplie ce jour-là",
+  "journalCarryHint": "Les tâches inachevées passent au lendemain, sans doublon. Tu peux les replanifier à tout moment.",
+  "journalFutureHint": "Les tâches encore en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.",
+  "journalPastHint": "Cette journée est conservée dans ton historique. Les tâches restées ouvertes ont été reportées.",
+  "journalEmptyTitle": "De la place pour tes projets",
+  "journalEmptyBody": "Prévois quelques actions réalistes et retrouve ici la satisfaction de les accomplir.",
+  "journalEmptyPast": "Aucune tâche prévue ce jour-là.",
+  "journalEditTask": "Modifier la tâche",
+  "journalReschedule": "Replanifier",
+  "journalRemoved": "Tâche supprimée du planning.",
+  "journalCompletedFeedback": "Un engagement tenu. Bien joué !",
+  "journalAllDoneFeedback": "Tout est accompli pour aujourd’hui !",
+  "journalError": "Le carnet n’a pas pu être mis à jour. Réessaie dans un instant.",
+  "journalLoadError": "Le carnet est momentanément indisponible. Tes données restent conservées.",
+  "journalRetry": "Réessayer",
+  "journalBalance": "Bilan de la journée",
+  "journalReviewAction": "Mon bilan",
+  "journalFeeling": "Comment je me sens",
+  "journalMoodDifficult": "Difficile",
+  "journalMoodMixed": "Mitigé",
+  "journalMoodSatisfied": "Satisfait",
+  "journalReflection": "Ce que je retiens",
+  "journalReflectionHint": "Une réussite, une difficulté ou une idée pour demain…",
+  "journalReflectionHelp": "Facultatif. Prends un instant pour reconnaître ce que tu as accompli.",
+  "journalReflectionSaved": "Bilan enregistré.",
+  "journalWeek": "Mes 7 derniers jours",
+  "journalWeekDay": "{date} : {score} %",
+  "@journalWeekDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "journalWeekEmpty": "{date} : aucune tâche",
+  "@journalWeekEmpty": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journalReorderHint": "Appui long pour réorganiser tes tâches.",
+  "journalSignIn": "Connecte-toi pour retrouver ton carnet et préparer ta journée.",
+  "journalReadOnly": "Les journées passées restent inchangées.",
+  "journalDeleteTask": "Supprimer la tâche",
+  "journalTaskActions": "Actions de la tâche",
+  "journalFutureScore": "Journée en préparation",
+  "journalSave": "Enregistrer",
+  "journalCancel": "Annuler",
+  "journalUndo": "Annuler",
+  "journalSignInAction": "Se connecter"
 }

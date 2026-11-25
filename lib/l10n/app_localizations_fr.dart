@@ -1428,4 +1428,235 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get notePermissionDelete =>
       'Suppression refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules';
+
+  @override
+  String get journalTitle => 'Carnet de bord';
+
+  @override
+  String get journalAddTask => 'Nouvelle tâche';
+
+  @override
+  String get journalTaskTitle => 'Que veux-tu accomplir ?';
+
+  @override
+  String get journalTaskHint => 'Une action concrète pour ta journée';
+
+  @override
+  String get journalTaskRequired =>
+      'Indique une tâche (200 caractères maximum).';
+
+  @override
+  String journalPlannedFor(String date) {
+    return 'Prévue pour le $date';
+  }
+
+  @override
+  String journalOriginalDate(String date) {
+    return 'Prévue à l’origine le $date';
+  }
+
+  @override
+  String get journalPriority => 'Priorité du jour';
+
+  @override
+  String get journalPriorityHelp => 'Un repère visuel, sans modifier le score.';
+
+  @override
+  String get journalToday => 'Aujourd’hui';
+
+  @override
+  String get journalTomorrow => 'Demain';
+
+  @override
+  String get journalCalendar => 'Choisir une journée';
+
+  @override
+  String get journalPreviousDay => 'Jour précédent';
+
+  @override
+  String get journalNextDay => 'Jour suivant';
+
+  @override
+  String get journalAccomplishments => 'Mes accomplissements';
+
+  @override
+  String journalCompletedCount(int done, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: '$done tâches accomplies',
+      one: '$done tâche accomplie',
+      zero: '0 tâche accomplie',
+    );
+    return '$_temp0 sur $total';
+  }
+
+  @override
+  String get journalScoreHelp =>
+      'Chaque tâche a le même poids. Le bilan du jour garde la trace de tes engagements, même si une tâche est reportée. Supprimer ou replanifier une tâche aujourd’hui la retire du score d’aujourd’hui.';
+
+  @override
+  String get journalNoScore => 'Pas encore de score';
+
+  @override
+  String get journalCelebrate =>
+      'Tu as tenu tous tes engagements. Savoure le travail accompli !';
+
+  @override
+  String get journalProgress =>
+      'Chaque tâche accomplie fait avancer ta journée.';
+
+  @override
+  String get journalStart => 'Un premier pas suffit pour lancer ta journée.';
+
+  @override
+  String journalPending(int count) {
+    return 'À accomplir · $count';
+  }
+
+  @override
+  String journalDone(int count) {
+    return 'Accomplies · $count';
+  }
+
+  @override
+  String journalLate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours de retard',
+      one: '1 jour de retard',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journalCompletedToday => 'Accomplie aujourd’hui';
+
+  @override
+  String get journalCompletedDay => 'Accomplie ce jour-là';
+
+  @override
+  String get journalCarryHint =>
+      'Les tâches inachevées passent au lendemain, sans doublon. Tu peux les replanifier à tout moment.';
+
+  @override
+  String get journalFutureHint =>
+      'Les tâches encore en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.';
+
+  @override
+  String get journalPastHint =>
+      'Cette journée est conservée dans ton historique. Les tâches restées ouvertes ont été reportées.';
+
+  @override
+  String get journalEmptyTitle => 'De la place pour tes projets';
+
+  @override
+  String get journalEmptyBody =>
+      'Prévois quelques actions réalistes et retrouve ici la satisfaction de les accomplir.';
+
+  @override
+  String get journalEmptyPast => 'Aucune tâche prévue ce jour-là.';
+
+  @override
+  String get journalEditTask => 'Modifier la tâche';
+
+  @override
+  String get journalReschedule => 'Replanifier';
+
+  @override
+  String get journalRemoved => 'Tâche supprimée du planning.';
+
+  @override
+  String get journalCompletedFeedback => 'Un engagement tenu. Bien joué !';
+
+  @override
+  String get journalAllDoneFeedback => 'Tout est accompli pour aujourd’hui !';
+
+  @override
+  String get journalError =>
+      'Le carnet n’a pas pu être mis à jour. Réessaie dans un instant.';
+
+  @override
+  String get journalLoadError =>
+      'Le carnet est momentanément indisponible. Tes données restent conservées.';
+
+  @override
+  String get journalRetry => 'Réessayer';
+
+  @override
+  String get journalBalance => 'Bilan de la journée';
+
+  @override
+  String get journalReviewAction => 'Mon bilan';
+
+  @override
+  String get journalFeeling => 'Comment je me sens';
+
+  @override
+  String get journalMoodDifficult => 'Difficile';
+
+  @override
+  String get journalMoodMixed => 'Mitigé';
+
+  @override
+  String get journalMoodSatisfied => 'Satisfait';
+
+  @override
+  String get journalReflection => 'Ce que je retiens';
+
+  @override
+  String get journalReflectionHint =>
+      'Une réussite, une difficulté ou une idée pour demain…';
+
+  @override
+  String get journalReflectionHelp =>
+      'Facultatif. Prends un instant pour reconnaître ce que tu as accompli.';
+
+  @override
+  String get journalReflectionSaved => 'Bilan enregistré.';
+
+  @override
+  String get journalWeek => 'Mes 7 derniers jours';
+
+  @override
+  String journalWeekDay(String date, int score) {
+    return '$date : $score %';
+  }
+
+  @override
+  String journalWeekEmpty(String date) {
+    return '$date : aucune tâche';
+  }
+
+  @override
+  String get journalReorderHint => 'Appui long pour réorganiser tes tâches.';
+
+  @override
+  String get journalSignIn =>
+      'Connecte-toi pour retrouver ton carnet et préparer ta journée.';
+
+  @override
+  String get journalReadOnly => 'Les journées passées restent inchangées.';
+
+  @override
+  String get journalDeleteTask => 'Supprimer la tâche';
+
+  @override
+  String get journalTaskActions => 'Actions de la tâche';
+
+  @override
+  String get journalFutureScore => 'Journée en préparation';
+
+  @override
+  String get journalSave => 'Enregistrer';
+
+  @override
+  String get journalCancel => 'Annuler';
+
+  @override
+  String get journalUndo => 'Annuler';
+
+  @override
+  String get journalSignInAction => 'Se connecter';
 }

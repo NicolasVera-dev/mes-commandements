@@ -2,7 +2,11 @@
 
 ## 1.4.0 — en développement
 
-Prochaine version en préparation sur `codex/integration/1.4`.
+- Ajout du carnet de bord comme troisième onglet : tâches quotidiennes, priorité et réorganisation.
+- Report automatique des tâches inachevées, retard visible, replanification et suppression avec annulation.
+- Score quotidien, mise en valeur des accomplissements, bilan personnel et aperçu des sept derniers jours.
+- Synchronisation du carnet par compte, interface en français et en anglais.
+- Correction du compteur français à zéro : « 0 tâche accomplie ».
 
 ## 1.3.0 (code 14)
 
