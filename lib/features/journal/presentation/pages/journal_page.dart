@@ -255,6 +255,7 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
               label: Text(strings.journalAddTask),
             )
           : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : !provider.isConnected
