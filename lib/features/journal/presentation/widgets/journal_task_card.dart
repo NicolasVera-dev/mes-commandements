@@ -34,11 +34,14 @@ class JournalTaskCard extends StatelessWidget {
     final strings = context.l10n;
     final done = task.completedOn(day);
     final late = task.lateDaysOn(day);
+    final failed = readOnly && !done && task.isNonReportableOn(day);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5),
       elevation: 0,
       color: done
           ? semantic?.completedCardBackground
+          : failed
+          ? semantic?.failedBackground
           : theme.colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -46,6 +49,10 @@ class JournalTaskCard extends StatelessWidget {
             ? BorderSide(
                 color:
                     semantic?.completedCardBorder ?? theme.colorScheme.primary,
+              )
+            : failed
+            ? BorderSide(
+                color: semantic?.failedIndicator ?? theme.colorScheme.error,
               )
             : BorderSide.none,
       ),
@@ -92,7 +99,17 @@ class JournalTaskCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                  if (done)
+                  if (failed)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        strings.journalFailed,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: semantic?.failedIndicator,
+                        ),
+                      ),
+                    )
+                  else if (done)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
@@ -114,7 +131,7 @@ class JournalTaskCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (!done && late > 0)
+                  if (!done && !failed && late > 0)
                     Text(
                       strings.journalOriginalDate(
                         MaterialLocalizations.of(context)

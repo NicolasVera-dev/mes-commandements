@@ -6,6 +6,8 @@ import '../../domain/entities/command_event.dart';
 import '../../domain/repositories/command_event_repository.dart';
 import '../../domain/usecases/compute_streak_usecase.dart';
 import 'command_streak_badge.dart';
+import '../../../../app/localization/localization.dart';
+import '../../domain/usecases/compute_best_streak_usecase.dart';
 
 /// Charge l’historique via [CommandEventRepository.watchEventsFrom] et affiche le badge de série.
 class CommandStreakFromRepository extends StatefulWidget {
@@ -14,6 +16,7 @@ class CommandStreakFromRepository extends StatefulWidget {
     required this.command,
     required this.compact,
     this.titleIndent = 0,
+    this.showRecord = false,
   });
 
   final Command command;
@@ -21,6 +24,7 @@ class CommandStreakFromRepository extends StatefulWidget {
 
   /// Décalage à gauche pour aligner le pill sous le titre (ex. largeur emoji + gap).
   final double titleIndent;
+  final bool showRecord;
 
   @override
   State<CommandStreakFromRepository> createState() =>
@@ -94,10 +98,29 @@ class _CommandStreakFromRepositoryState
         );
         return Padding(
           padding: EdgeInsets.only(left: widget.titleIndent),
-          child: CommandStreakBadge(
-            result: result,
-            frequency: widget.command.frequency,
-            compact: widget.compact,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommandStreakBadge(
+                result: result,
+                frequency: widget.command.frequency,
+                compact: widget.compact,
+              ),
+              if (widget.showRecord)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    context.l10n.commandBestStreak(
+                      const ComputeBestStreakUseCase().execute(
+                        command: widget.command,
+                        grouped: grouped,
+                        createdAtUtc: effectiveCreated,
+                      ),
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+            ],
           ),
         );
       },

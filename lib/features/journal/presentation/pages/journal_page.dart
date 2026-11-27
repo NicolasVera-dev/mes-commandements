@@ -14,6 +14,7 @@ import '../widgets/journal_progress_card.dart';
 import '../widgets/journal_review_sheet.dart';
 import '../widgets/journal_task_card.dart';
 import '../widgets/journal_task_sheet.dart';
+import '../../../../app/widgets/page_title.dart';
 import '../widgets/journal_week_overview.dart';
 
 class JournalPage extends StatefulWidget {
@@ -218,13 +219,13 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 16,
+        titleSpacing: 8,
         toolbarHeight: 68,
         backgroundColor: theme.colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text(strings.journalTitle),
+        title: PageTitle(strings.journalTitle),
         actions: [
           IconButton(
             tooltip: strings.journalCalendar,
@@ -414,7 +415,9 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
                     Padding(
                       padding: const EdgeInsets.only(top: 16, bottom: 8),
                       child: Text(
-                        strings.journalPending(pending.length),
+                        past
+                            ? strings.journalUnfinished(pending.length)
+                            : strings.journalPending(pending.length),
                         style: theme.textTheme.titleMedium,
                       ),
                     ),
@@ -427,6 +430,21 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       buildDefaultDragHandles: false,
+                      proxyDecorator: (child, index, animation) =>
+                          AnimatedBuilder(
+                            animation: animation,
+                            builder: (_, _) => Transform.scale(
+                              scale:
+                                  1 +
+                                  .03 *
+                                      Curves.easeOut.transform(animation.value),
+                              child: Material(
+                                key: const ValueKey('journal_drag_proxy'),
+                                type: MaterialType.transparency,
+                                child: child,
+                              ),
+                            ),
+                          ),
                       itemCount: pending.length,
                       onReorderItem: (oldIndex, newIndex) {
                         if (past || busy) return;

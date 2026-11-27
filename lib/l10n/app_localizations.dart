@@ -2755,19 +2755,19 @@ abstract class AppLocalizations {
   /// No description provided for @journalCarryHint.
   ///
   /// In fr, this message translates to:
-  /// **'Les tâches inachevées passent au lendemain, sans doublon. Tu peux les replanifier à tout moment.'**
+  /// **'Les tâches reportables inachevées passent au lendemain, sans doublon. Les autres restent dans le bilan du jour prévu.'**
   String get journalCarryHint;
 
   /// No description provided for @journalFutureHint.
   ///
   /// In fr, this message translates to:
-  /// **'Les tâches encore en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.'**
+  /// **'Les tâches reportables en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.'**
   String get journalFutureHint;
 
   /// No description provided for @journalPastHint.
   ///
   /// In fr, this message translates to:
-  /// **'Cette journée est conservée dans ton historique. Les tâches restées ouvertes ont été reportées.'**
+  /// **'Cette journée est conservée dans ton historique. Seules les tâches reportables restées ouvertes ont été reportées.'**
   String get journalPastHint;
 
   /// No description provided for @journalEmptyTitle.
@@ -3057,6 +3057,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chaque petit pas mérite d’être reconnu.'**
   String get onboardingJournalQuote;
+
+  /// No description provided for @journalReportable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reportable'**
+  String get journalReportable;
+
+  /// No description provided for @journalReportableHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si elle n’est pas accomplie, la tâche passe automatiquement au lendemain. Sinon, elle reste en échec dans le bilan du jour prévu.'**
+  String get journalReportableHelp;
+
+  /// No description provided for @journalFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non accomplie · non reportable'**
+  String get journalFailed;
+
+  /// No description provided for @journalPlannedToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévue pour aujourd’hui'**
+  String get journalPlannedToday;
+
+  /// No description provided for @commandBestStreak.
+  ///
+  /// In fr, this message translates to:
+  /// **'Record de série : {count, plural, =0{0 succès} =1{1 succès} other{{count} succès}} consécutifs'**
+  String commandBestStreak(int count);
+
+  /// No description provided for @resistanceRecordActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série record en cours'**
+  String get resistanceRecordActive;
+
+  /// No description provided for @journalUnfinished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non accomplies · {count}'**
+  String journalUnfinished(int count);
 }
 
 class _AppLocalizationsDelegate

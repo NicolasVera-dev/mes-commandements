@@ -864,9 +864,9 @@
   },
   "journalCompletedToday": "Accomplie aujourd’hui",
   "journalCompletedDay": "Accomplie ce jour-là",
-  "journalCarryHint": "Les tâches inachevées passent au lendemain, sans doublon. Tu peux les replanifier à tout moment.",
-  "journalFutureHint": "Les tâches encore en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.",
-  "journalPastHint": "Cette journée est conservée dans ton historique. Les tâches restées ouvertes ont été reportées.",
+  "journalCarryHint": "Les tâches reportables inachevées passent au lendemain, sans doublon. Les autres restent dans le bilan du jour prévu.",
+  "journalFutureHint": "Les tâches reportables en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.",
+  "journalPastHint": "Cette journée est conservée dans ton historique. Seules les tâches reportables restées ouvertes ont été reportées.",
   "journalEmptyTitle": "De la place pour tes projets",
   "journalEmptyBody": "Prévois quelques actions réalistes et retrouve ici la satisfaction de les accomplir.",
   "journalEmptyPast": "Aucune tâche prévue ce jour-là.",
@@ -938,5 +938,26 @@
   "hiddenCommandStatus": "Masqué · en pause",
   "onboardingJournalTitle": "Savoure le travail accompli",
   "onboardingJournalBody": "Prépare ta journée dans ton carnet de bord. Coche tes tâches, retrouve celles à reprendre et prends un instant pour apprécier tes avancées.",
-  "onboardingJournalQuote": "Chaque petit pas mérite d’être reconnu."
+  "onboardingJournalQuote": "Chaque petit pas mérite d’être reconnu.",
+  "journalReportable": "Reportable",
+  "journalReportableHelp": "Si elle n’est pas accomplie, la tâche passe automatiquement au lendemain. Sinon, elle reste en échec dans le bilan du jour prévu.",
+  "journalFailed": "Non accomplie · non reportable",
+  "journalPlannedToday": "Prévue pour aujourd’hui",
+  "commandBestStreak": "Record de série : {count, plural, =0{0 succès} =1{1 succès} other{{count} succès}} consécutifs",
+  "@commandBestStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resistanceRecordActive": "Série record en cours",
+  "journalUnfinished": "Non accomplies · {count}",
+  "@journalUnfinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -487,9 +487,9 @@
   },
   "journalCompletedToday": "Completed today",
   "journalCompletedDay": "Completed that day",
-  "journalCarryHint": "Unfinished tasks carry over to the next day without duplicates. You can reschedule them at any time.",
-  "journalFutureHint": "Open tasks are shown provisionally. Complete them today and they will no longer carry over to tomorrow.",
-  "journalPastHint": "This day is preserved in your history. Tasks left open have carried over.",
+  "journalCarryHint": "Unfinished tasks with carry-over enabled move to the next day without duplicates. Others remain in their planned day’s review.",
+  "journalFutureHint": "Open tasks with carry-over enabled are shown provisionally. Complete them today and they will no longer carry over to tomorrow.",
+  "journalPastHint": "This day is preserved in your history. Only unfinished tasks with carry-over enabled have carried over.",
   "journalEmptyTitle": "Room for your plans",
   "journalEmptyBody": "Plan a few realistic actions and enjoy the satisfaction of completing them here.",
   "journalEmptyPast": "No tasks were planned for this day.",
@@ -561,5 +561,26 @@
   "hiddenCommandStatus": "Hidden · paused",
   "onboardingJournalTitle": "Enjoy what you accomplish",
   "onboardingJournalBody": "Plan your day in your journal. Check off your tasks, pick up where you left off and take a moment to appreciate your progress.",
-  "onboardingJournalQuote": "Every small step deserves recognition."
+  "onboardingJournalQuote": "Every small step deserves recognition.",
+  "journalReportable": "Carry over",
+  "journalReportableHelp": "An unfinished task automatically carries over to the next day. Otherwise it stays marked as missed in the review for its planned day.",
+  "journalFailed": "Missed · does not carry over",
+  "journalPlannedToday": "Planned for today",
+  "commandBestStreak": "Best streak: {count, plural, =0{0 successes} =1{1 success} other{{count} successes}} in a row",
+  "@commandBestStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resistanceRecordActive": "Record streak in progress",
+  "journalUnfinished": "Unfinished · {count}",
+  "@journalUnfinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

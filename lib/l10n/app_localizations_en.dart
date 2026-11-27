@@ -1530,15 +1530,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalCarryHint =>
-      'Unfinished tasks carry over to the next day without duplicates. You can reschedule them at any time.';
+      'Unfinished tasks with carry-over enabled move to the next day without duplicates. Others remain in their planned day’s review.';
 
   @override
   String get journalFutureHint =>
-      'Open tasks are shown provisionally. Complete them today and they will no longer carry over to tomorrow.';
+      'Open tasks with carry-over enabled are shown provisionally. Complete them today and they will no longer carry over to tomorrow.';
 
   @override
   String get journalPastHint =>
-      'This day is preserved in your history. Tasks left open have carried over.';
+      'This day is preserved in your history. Only unfinished tasks with carry-over enabled have carried over.';
 
   @override
   String get journalEmptyTitle => 'Room for your plans';
@@ -1699,4 +1699,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingJournalQuote => 'Every small step deserves recognition.';
+
+  @override
+  String get journalReportable => 'Carry over';
+
+  @override
+  String get journalReportableHelp =>
+      'An unfinished task automatically carries over to the next day. Otherwise it stays marked as missed in the review for its planned day.';
+
+  @override
+  String get journalFailed => 'Missed · does not carry over';
+
+  @override
+  String get journalPlannedToday => 'Planned for today';
+
+  @override
+  String commandBestStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count successes',
+      one: '1 success',
+      zero: '0 successes',
+    );
+    return 'Best streak: $_temp0 in a row';
+  }
+
+  @override
+  String get resistanceRecordActive => 'Record streak in progress';
+
+  @override
+  String journalUnfinished(int count) {
+    return 'Unfinished · $count';
+  }
 }

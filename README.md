@@ -245,13 +245,21 @@ Le filtre de statut **En pause** est disponible dans les filtres et leur barre d
 
 ---
 
+## Cohérence mobile et records (1.4)
+
+Les créations de commandement, résistance et tâche utilisent la même fenêtre : hauteur de 90 % de l’écran, respect de la zone sûre, poignée visible et clavier fermé à l’ouverture. Le clavier s’ouvre uniquement après sélection d’un champ. Les titres des trois pages principales partagent le même composant typographique. Le déplacement d’une tâche conserve sa carte sans ajouter de fond blanc.
+
+Le détail d’un commandement affiche sa meilleure série de succès, calculée sur tout l’historique, avec les jours inactifs et les pauses neutralisés comme pour la série courante. Une résistance affiche un trophée lorsqu’elle dépasse le record à battre au début de sa série. Le trophée reste visible pendant cette série, même après synchronisation du record, et disparaît à la rechute. Égaler le précédent record ne suffit pas à le déclencher.
+
+---
+
 ## Carnet de bord (1.4)
 
 Le troisième onglet **Carnet de bord** sert à planifier des actions ponctuelles et à valoriser le travail accompli. Les commandements restent dédiés aux habitudes récurrentes et les résistances aux habitudes à éviter. L’interface du carnet est disponible en français et en anglais et reprend les thèmes clair et sombre de Rituel.
 
 ### Préparer et accomplir sa journée
 
-- Ajouter une tâche avec le bouton **Nouvelle tâche**, choisir sa date et, si utile, activer une priorité visuelle.
+- Ajouter une tâche avec le bouton **Nouvelle tâche**, choisir sa date (affichée « Prévue pour aujourd’hui » le jour même), son caractère reportable et, si utile, activer une priorité visuelle.
 - Cocher une tâche pour la terminer aujourd’hui, ou la décocher le même jour pour la rouvrir. Les accomplissements sont regroupés dans une section dédiée avec une présentation verte, une progression animée et un retour haptique.
 - Réorganiser les tâches ouvertes par appui long. Leur menu permet de modifier le titre et la priorité, de replanifier ou de supprimer.
 - Supprimer par glissement ou depuis le menu, puis utiliser **Annuler** dans le bandeau pour restaurer la tâche le même jour. Le bandeau se ferme automatiquement après cinq secondes et peut être fermé immédiatement avec sa croix.
@@ -259,7 +267,10 @@ Le troisième onglet **Carnet de bord** sert à planifier des actions ponctuelle
 
 ### Reports et historique
 
-Les dates du carnet suivent le calendrier local de l’appareil. Une tâche ouverte reste visible au fil des jours sans duplication ni écriture automatique à minuit. Ses périodes de planification permettent de conserver les scores passés lors d’une replanification. Une suppression retire la tâche du planning courant et futur, mais conserve ses engagements passés. Les tâches passées sont en lecture seule ; les notes de bilan restent modifiables.
+L’option **Reportable** est activée par défaut et peut être modifiée à la création ou à l’édition. Désactivée, la tâche n’apparaît que le jour prévu : si elle n’est pas accomplie, elle reste à 0 % dans le bilan de cette journée, avec une présentation d’échec, et ne revient pas le lendemain. Elle n’est pas supprimée de l’historique. Modifier l’option ne réécrit pas les engagements passés. Les tâches existantes restent reportables par défaut.
+
+
+Les dates du carnet suivent le calendrier local de l’appareil. Une tâche ouverte **reportable** reste visible au fil des jours sans duplication ni écriture automatique à minuit. Ses périodes de planification permettent de conserver les scores passés lors d’une replanification. Une suppression retire la tâche du planning courant et futur, mais conserve ses engagements passés. Les tâches passées sont en lecture seule ; les notes de bilan restent modifiables.
 
 Le retard indique le nombre de jours depuis le début de la période de planification active. Une replanification explicite fait repartir ce délai à la nouvelle date choisie ; la date d’origine reste conservée. Le carnet s’actualise au changement de jour et au retour dans l’application.
 

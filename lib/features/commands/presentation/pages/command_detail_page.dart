@@ -387,6 +387,7 @@ class _DetailContentState extends State<_DetailContent> {
                 CommandStreakFromRepository(
                   command: command,
                   compact: false,
+                  showRecord: true,
                   titleIndent: 44,
                 ),
                 if (description.isNotEmpty) ...[

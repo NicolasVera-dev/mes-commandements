@@ -1538,15 +1538,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get journalCarryHint =>
-      'Les tâches inachevées passent au lendemain, sans doublon. Tu peux les replanifier à tout moment.';
+      'Les tâches reportables inachevées passent au lendemain, sans doublon. Les autres restent dans le bilan du jour prévu.';
 
   @override
   String get journalFutureHint =>
-      'Les tâches encore en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.';
+      'Les tâches reportables en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.';
 
   @override
   String get journalPastHint =>
-      'Cette journée est conservée dans ton historique. Les tâches restées ouvertes ont été reportées.';
+      'Cette journée est conservée dans ton historique. Seules les tâches reportables restées ouvertes ont été reportées.';
 
   @override
   String get journalEmptyTitle => 'De la place pour tes projets';
@@ -1709,4 +1709,37 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get onboardingJournalQuote =>
       'Chaque petit pas mérite d’être reconnu.';
+
+  @override
+  String get journalReportable => 'Reportable';
+
+  @override
+  String get journalReportableHelp =>
+      'Si elle n’est pas accomplie, la tâche passe automatiquement au lendemain. Sinon, elle reste en échec dans le bilan du jour prévu.';
+
+  @override
+  String get journalFailed => 'Non accomplie · non reportable';
+
+  @override
+  String get journalPlannedToday => 'Prévue pour aujourd’hui';
+
+  @override
+  String commandBestStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count succès',
+      one: '1 succès',
+      zero: '0 succès',
+    );
+    return 'Record de série : $_temp0 consécutifs';
+  }
+
+  @override
+  String get resistanceRecordActive => 'Série record en cours';
+
+  @override
+  String journalUnfinished(int count) {
+    return 'Non accomplies · $count';
+  }
 }

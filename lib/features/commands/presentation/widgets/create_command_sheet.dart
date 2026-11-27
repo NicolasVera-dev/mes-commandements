@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../app/widgets/creation_sheet.dart';
+
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -17,10 +20,8 @@ Future<void> showCreateCommandSheet({
   required BuildContext context,
   required Frequency initialFrequency,
 }) {
-  return showModalBottomSheet<void>(
+  return showCreationSheet<void>(
     context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
     builder: (context) {
       return _CreateCommandSheet(initialFrequency: initialFrequency);
     },

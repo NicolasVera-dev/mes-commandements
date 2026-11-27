@@ -2,6 +2,11 @@
 
 ## 1.4.0 — en développement
 
+- Uniformisation des fenêtres de création, des titres de pages et du glisser-déposer des tâches.
+- Option Reportable pour les tâches, activée par défaut, avec historique des échecs conservé.
+- Affichage du record de série des commandements et trophée des résistances en série record.
+- Libellé « Prévue pour aujourd’hui » et fermeture du clavier à l’ouverture d’une création.
+
 - Onboarding enrichi avec une page carnet de bord et un en-tête fixe logo / RITUEL.
 - Défilement automatique discret toutes les huit secondes, en boucle, avec les indicateurs d’origine et respect des réglages d’accessibilité.
 

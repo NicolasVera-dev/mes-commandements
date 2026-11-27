@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../app/widgets/creation_sheet.dart';
+
 import 'package:provider/provider.dart';
 
 import '../../../../app/localization/localization.dart';
@@ -10,10 +13,8 @@ Future<void> showJournalTaskSheet(
   BuildContext context, {
   required JournalDay day,
   JournalTask? task,
-}) => showModalBottomSheet<void>(
+}) => showCreationSheet<void>(
   context: context,
-  isScrollControlled: true,
-  showDragHandle: true,
   builder: (_) => _TaskEditor(day: day, task: task),
 );
 
@@ -30,6 +31,7 @@ class _TaskEditorState extends State<_TaskEditor> {
   late final TextEditingController _title;
   late JournalDay _day;
   late bool _priority;
+  late bool _carryForward;
   bool _saving = false;
 
   @override
@@ -38,6 +40,7 @@ class _TaskEditorState extends State<_TaskEditor> {
     _title = TextEditingController(text: widget.task?.title);
     _day = widget.day;
     _priority = widget.task?.priority ?? false;
+    _carryForward = widget.task?.carryForward ?? true;
   }
 
   @override
@@ -52,9 +55,19 @@ class _TaskEditorState extends State<_TaskEditor> {
     final provider = context.read<JournalProvider>();
     try {
       if (widget.task case final task?) {
-        await provider.edit(task.id, title: _title.text, priority: _priority);
+        await provider.edit(
+          task.id,
+          title: _title.text,
+          priority: _priority,
+          carryForward: _carryForward,
+        );
       } else {
-        await provider.add(title: _title.text, day: _day, priority: _priority);
+        await provider.add(
+          title: _title.text,
+          day: _day,
+          priority: _priority,
+          carryForward: _carryForward,
+        );
       }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
@@ -95,7 +108,7 @@ class _TaskEditorState extends State<_TaskEditor> {
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _title,
-                  autofocus: true,
+                  autofocus: false,
                   enabled: !_saving,
                   maxLength: 200,
                   textCapitalization: TextCapitalization.sentences,
@@ -118,9 +131,11 @@ class _TaskEditorState extends State<_TaskEditor> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.calendar_today_outlined),
                     title: Text(
-                      strings.journalPlannedFor(
-                        dates.formatMediumDate(_day.date),
-                      ),
+                      _day == context.watch<JournalProvider>().today
+                          ? strings.journalPlannedToday
+                          : strings.journalPlannedFor(
+                              dates.formatMediumDate(_day.date),
+                            ),
                     ),
                     onTap: _saving
                         ? null
@@ -146,6 +161,15 @@ class _TaskEditorState extends State<_TaskEditor> {
                   onChanged: _saving
                       ? null
                       : (value) => setState(() => _priority = value),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(strings.journalReportable),
+                  subtitle: Text(strings.journalReportableHelp),
+                  value: _carryForward,
+                  onChanged: _saving
+                      ? null
+                      : (value) => setState(() => _carryForward = value),
                 ),
                 const SizedBox(height: 16),
                 FilledButton.icon(

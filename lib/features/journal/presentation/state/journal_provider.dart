@@ -115,13 +115,14 @@ class JournalProvider extends ChangeNotifier {
     required String title,
     required JournalDay day,
     bool priority = false,
+    bool carryForward = true,
   }) {
     if (day.isBefore(today)) throw ArgumentError('Cannot plan in the past');
     return _write('new', (uid) {
       final task = JournalTask(
         id: _repository.newTaskId(uid),
         title: title,
-        plans: [JournalPlan(start: day)],
+        plans: [JournalPlan(start: day, carryForward: carryForward)],
         priority: priority,
         order: _clock().microsecondsSinceEpoch.toDouble(),
       );
@@ -138,6 +139,7 @@ class JournalProvider extends ChangeNotifier {
     String id, {
     required String title,
     required bool priority,
+    bool? carryForward,
   }) => _write(id, (uid) {
     final task = _task(id);
     if (task.removedDay != null || task.completedDay != null) {
@@ -145,7 +147,9 @@ class JournalProvider extends ChangeNotifier {
     }
     return _repository.saveTask(
       uid,
-      task.edit(title: title, priority: priority),
+      task
+          .edit(title: title, priority: priority)
+          .withCarryForward(carryForward ?? task.carryForward, today),
     );
   });
 

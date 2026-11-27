@@ -33,6 +33,7 @@ class FirestoreJournalRepository implements JournalRepository {
               return JournalPlan(
                 start: JournalDay.parse(plan['start'] as String),
                 end: _day(plan['end']),
+                carryForward: plan['carryForward'] as bool? ?? true,
               );
             }).toList(),
             originalDay: _day(data['originalDay']),
@@ -67,7 +68,13 @@ class FirestoreJournalRepository implements JournalRepository {
         'priority': task.priority,
         'order': task.order,
         'plans': task.plans
-            .map((p) => {'start': p.start.key, 'end': p.end?.key})
+            .map(
+              (p) => {
+                'start': p.start.key,
+                'end': p.end?.key,
+                'carryForward': p.carryForward,
+              },
+            )
             .toList(),
         'originalDay': task.originalDay.key,
         'completedDay': task.completedDay?.key,

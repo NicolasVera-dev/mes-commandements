@@ -16,8 +16,8 @@ class FirestoreResistanceRepository implements ResistanceRepository {
   FirestoreResistanceRepository({
     required AuthRepository authRepository,
     FirebaseFirestore? firestore,
-  })  : _authRepository = authRepository,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  }) : _authRepository = authRepository,
+       _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, Object?>> _collectionForUser(String uid) {
     return _firestore.collection('users/$uid/resistances');
@@ -27,14 +27,18 @@ class FirestoreResistanceRepository implements ResistanceRepository {
     required String uid,
     required String resistanceId,
   }) {
-    return _firestore.collection('users/$uid/resistances/$resistanceId/relapses');
+    return _firestore.collection(
+      'users/$uid/resistances/$resistanceId/relapses',
+    );
   }
 
   CollectionReference<Map<String, Object?>> _dayNotesCollection({
     required String uid,
     required String resistanceId,
   }) {
-    return _firestore.collection('users/$uid/resistances/$resistanceId/day_notes');
+    return _firestore.collection(
+      'users/$uid/resistances/$resistanceId/day_notes',
+    );
   }
 
   Future<String?> _currentUserId() async {
@@ -71,6 +75,8 @@ class FirestoreResistanceRepository implements ResistanceRepository {
           ? Timestamp.fromDate(r.lastRelapseAtUtc!.toUtc())
           : null,
       'bestStreakDays': r.bestStreakDays,
+      if (r.bestStreakBeforeRun != null)
+        'bestStreakBeforeRun': r.bestStreakBeforeRun,
     };
   }
 
@@ -90,21 +96,18 @@ class FirestoreResistanceRepository implements ResistanceRepository {
       }
 
       final collection = _collectionForUser(user.uid);
-      sub = collection.snapshots().listen(
-        (snapshot) {
-          final list = snapshot.docs
-              .map(
-                (doc) => Resistance.fromMap(
-                  id: doc.id,
-                  map: Map<String, Object?>.from(doc.data()),
-                ),
-              )
-              .toList();
-          list.sort((a, b) => a.position.compareTo(b.position));
-          controller.add(list);
-        },
-        onError: controller.addError,
-      );
+      sub = collection.snapshots().listen((snapshot) {
+        final list = snapshot.docs
+            .map(
+              (doc) => Resistance.fromMap(
+                id: doc.id,
+                map: Map<String, Object?>.from(doc.data()),
+              ),
+            )
+            .toList();
+        list.sort((a, b) => a.position.compareTo(b.position));
+        controller.add(list);
+      }, onError: controller.addError);
     }
 
     authSub = _authRepository.authStateChanges().listen(
@@ -156,8 +159,12 @@ class FirestoreResistanceRepository implements ResistanceRepository {
     final uid = await _currentUserId();
     if (uid == null) return;
     final ref = _collectionForUser(uid).doc(resistanceId);
-    await _purgeSubcollection(_relapsesCollection(uid: uid, resistanceId: resistanceId));
-    await _purgeSubcollection(_dayNotesCollection(uid: uid, resistanceId: resistanceId));
+    await _purgeSubcollection(
+      _relapsesCollection(uid: uid, resistanceId: resistanceId),
+    );
+    await _purgeSubcollection(
+      _dayNotesCollection(uid: uid, resistanceId: resistanceId),
+    );
     await ref.delete();
   }
 
@@ -168,7 +175,9 @@ class FirestoreResistanceRepository implements ResistanceRepository {
     final collection = _collectionForUser(uid);
     const maxBatchSize = 500;
     for (var i = 0; i < updates.length; i += maxBatchSize) {
-      final end = i + maxBatchSize > updates.length ? updates.length : i + maxBatchSize;
+      final end = i + maxBatchSize > updates.length
+          ? updates.length
+          : i + maxBatchSize;
       final chunk = updates.sublist(i, end);
       final batch = _firestore.batch();
       for (final u in chunk) {
@@ -202,6 +211,7 @@ class FirestoreResistanceRepository implements ResistanceRepository {
     batch.update(_collectionForUser(uid).doc(resistanceId), <String, Object?>{
       'lastRelapseAtUtc': Timestamp.fromDate(relapsedAtUtc.toUtc()),
       'bestStreakDays': newBestStreakDays,
+      'bestStreakBeforeRun': newBestStreakDays,
     });
     try {
       await batch.commit();

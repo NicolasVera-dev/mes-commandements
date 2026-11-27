@@ -5,15 +5,18 @@ import 'journal_day.dart';
 class JournalPlan {
   final JournalDay start;
   final JournalDay? end;
+  final bool carryForward;
 
-  JournalPlan({required this.start, this.end}) {
+  JournalPlan({required this.start, this.end, this.carryForward = true}) {
     if (end != null && end!.isBefore(start)) {
       throw ArgumentError('Invalid plan');
     }
   }
 
   bool contains(JournalDay day) =>
-      !day.isBefore(start) && (end == null || !day.isAfter(end!));
+      !day.isBefore(start) &&
+      (end == null || !day.isAfter(end!)) &&
+      (carryForward || day == start);
 }
 
 class JournalTask {
@@ -60,6 +63,10 @@ class JournalTask {
       throw ArgumentError('Completion outside plan');
     }
   }
+
+  bool get carryForward => plans.last.carryForward;
+  bool isNonReportableOn(JournalDay day) =>
+      plans.any((p) => p.contains(day) && !p.carryForward);
 
   JournalDay get scheduledDay => plans.last.start;
 
@@ -125,6 +132,26 @@ class JournalTask {
     completedDay: completedDay,
   );
 
+  JournalTask withCarryForward(bool value, JournalDay today) {
+    if (value == carryForward) return this;
+    if (completedDay != null || removedDay != null) {
+      throw StateError('Task is closed');
+    }
+    final target = scheduledDay.isAfter(today) ? scheduledDay : today;
+    final replanned = reschedule(target, today);
+    return JournalTask(
+      id: id,
+      title: title,
+      priority: priority,
+      order: order,
+      originalDay: originalDay,
+      plans: [
+        ...replanned.plans.take(replanned.plans.length - 1),
+        JournalPlan(start: target, carryForward: value),
+      ],
+    );
+  }
+
   JournalTask reschedule(JournalDay target, JournalDay today) {
     if (target.isBefore(today) || completedDay != null || removedDay != null) {
       throw StateError('Invalid reschedule');
@@ -135,6 +162,7 @@ class JournalTask {
       history.add(
         JournalPlan(
           start: plan.start,
+          carryForward: plan.carryForward,
           end: plan.end != null && plan.end!.isBefore(today)
               ? plan.end
               : today.add(-1),
@@ -149,7 +177,7 @@ class JournalTask {
       originalDay: originalDay,
       plans: [
         ...history,
-        JournalPlan(start: target),
+        JournalPlan(start: target, carryForward: carryForward),
       ],
     );
   }
