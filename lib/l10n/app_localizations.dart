@@ -2767,7 +2767,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalPastHint.
   ///
   /// In fr, this message translates to:
-  /// **'Cette journée est conservée dans ton historique. Seules les tâches reportables restées ouvertes ont été reportées.'**
+  /// **'Le bilan de tes engagements pour cette journée.'**
   String get journalPastHint;
 
   /// No description provided for @journalEmptyTitle.
@@ -2785,7 +2785,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalEmptyPast.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune tâche prévue ce jour-là.'**
+  /// **'Rien de consigné ce jour-là'**
   String get journalEmptyPast;
 
   /// No description provided for @journalEditTask.
@@ -3099,6 +3099,108 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Non accomplies · {count}'**
   String journalUnfinished(int count);
+
+  /// No description provided for @journalTaskUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tâche modifiée.'**
+  String get journalTaskUpdated;
+
+  /// No description provided for @relapseNoteAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter ou modifier une note'**
+  String get relapseNoteAction;
+
+  /// No description provided for @relapseNoteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note de rechute'**
+  String get relapseNoteTitle;
+
+  /// No description provided for @relapseNoteHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui s’est passé, ce que tu souhaites retenir…'**
+  String get relapseNoteHint;
+
+  /// No description provided for @relapseNoteSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note enregistrée.'**
+  String get relapseNoteSaved;
+
+  /// No description provided for @relapseNoteRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note supprimée.'**
+  String get relapseNoteRemoved;
+
+  /// No description provided for @relapseNoteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'La note n’a pas pu être enregistrée. Réessaie dans un instant.'**
+  String get relapseNoteError;
+
+  /// No description provided for @journalCalendarTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier du carnet'**
+  String get journalCalendarTitle;
+
+  /// No description provided for @journalCalendarSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réussi'**
+  String get journalCalendarSuccess;
+
+  /// No description provided for @journalCalendarFailure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incomplet'**
+  String get journalCalendarFailure;
+
+  /// No description provided for @journalCalendarEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune tâche'**
+  String get journalCalendarEmpty;
+
+  /// No description provided for @journalCalendarCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get journalCalendarCurrent;
+
+  /// No description provided for @journalCalendarPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifié'**
+  String get journalCalendarPlanned;
+
+  /// No description provided for @journalCalendarDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'{date} : {status}, {done} sur {total} accomplis'**
+  String journalCalendarDay(String date, String status, int done, int total);
+
+  /// No description provided for @journalCalendarHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vert : tous les engagements tenus. Rouge : une journée passée avec des tâches inachevées.'**
+  String get journalCalendarHelp;
+
+  /// No description provided for @journalPastNoScore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journée sans engagements'**
+  String get journalPastNoScore;
+
+  /// No description provided for @journalPastEmptyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune tâche enregistrée : cette journée ne compte ni comme une réussite ni comme un échec.'**
+  String get journalPastEmptyHint;
 }
 
 class _AppLocalizationsDelegate

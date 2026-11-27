@@ -253,7 +253,15 @@ Le détail d’un commandement affiche sa meilleure série de succès, calculée
 
 ---
 
+## Notes des rechutes
+
+Dans le détail d’une résistance, toucher une rechute de l’historique ou son icône de note pour ajouter, modifier ou supprimer sa note (300 caractères maximum). La note peut être complétée après coup. L’enregistrement modifie uniquement la note de cette rechute : la date, la série perdue et les compteurs restent inchangés. La suppression d’une note demande confirmation et ne supprime pas la rechute. Les notes sont synchronisées avec le compte. Le formulaire partage le composant des notes de commandement : boutons sur une seule ligne et enregistrement disponible uniquement après modification. La fenêtre se ferme après succès, sans bandeau supplémentaire.
+
+---
+
 ## Carnet de bord (1.4)
+
+La modification d’une tâche affiche une confirmation de succès pendant trois secondes, avec fermeture manuelle possible.
 
 Le troisième onglet **Carnet de bord** sert à planifier des actions ponctuelles et à valoriser le travail accompli. Les commandements restent dédiés aux habitudes récurrentes et les résistances aux habitudes à éviter. L’interface du carnet est disponible en français et en anglais et reprend les thèmes clair et sombre de Rituel.
 
@@ -276,11 +284,13 @@ Le retard indique le nombre de jours depuis le début de la période de planific
 
 ### Score et bilan personnel
 
-Le score correspond au nombre de tâches accomplies ce jour-là divisé par le nombre de tâches prévues ce jour-là, arrondi en pourcentage. Chaque tâche a le même poids ; les priorités sont uniquement des repères visuels. À zéro, le compteur affiche **0 tâche accomplie sur X**. Une journée sans tâche n’a pas de score. Les tâches des jours futurs restent prévisionnelles : terminer une tâche aujourd’hui la retire des jours suivants.
+Le score correspond au nombre de tâches accomplies ce jour-là divisé par le nombre de tâches prévues ce jour-là, arrondi en pourcentage. Chaque tâche a le même poids ; les priorités sont uniquement des repères visuels. À zéro, le compteur affiche **0 tâche accomplie sur X**. Une journée sans tâche n’a pas de score. Dans le passé, elle affiche « Journée sans engagements » et « Rien de consigné ce jour-là », avec un message neutre : elle ne compte ni comme une réussite ni comme un échec. Les journées passées avec des tâches affichent un texte de bilan. Les tâches des jours futurs restent prévisionnelles : terminer une tâche aujourd’hui la retire des jours suivants.
 
 Par exemple, une tâche prévue lundi et terminée mardi reste inachevée dans le bilan du lundi et compte comme accomplie le mardi. Supprimer ou replanifier une tâche lundi la retire du calcul du lundi ; effectuer cette action mardi ne modifie pas le score du lundi. Atteindre 100 % déclenche un message qui invite à apprécier le travail accompli.
 
-**Mon bilan** permet d’enregistrer un ressenti facultatif et une note de 4 000 caractères maximum pour aujourd’hui ou une journée passée. L’enregistrement est explicite via **Enregistrer**. L’aperçu des sept derniers jours donne accès aux journées correspondantes et distingue les jours sans tâche des jours à 0 %.
+**Mon bilan** permet d’enregistrer un ressenti facultatif et une note de 4 000 caractères maximum pour aujourd’hui ou une journée passée. L’enregistrement est explicite via **Enregistrer**. L’aperçu des sept derniers jours donne accès aux journées correspondantes et distingue les jours sans tâche des jours à 0 %. Le bouton calendrier en haut à droite ouvre un calendrier complet, navigable par mois ; toucher son en-tête permet aussi de choisir une autre année. Toucher un jour ouvre sa liste et son bilan.
+
+Le contour extérieur d’aujourd’hui reste distinct. Un contour vert signale une journée dont toutes les tâches sont accomplies ; un contour rouge signale une journée passée avec au moins une tâche inachevée, y compris si le pourcentage arrondi affiche 100 %. Aujourd’hui reste en cours tant que des tâches ne sont pas terminées. Les jours sans tâche sont neutres et les jours futurs restent prévisionnels.
 
 ### Persistance et vérifications
 

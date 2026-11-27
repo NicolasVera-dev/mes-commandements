@@ -8,6 +8,7 @@ import '../../domain/usecases/compute_resistance_streak_usecase.dart';
 import '../state/resistance_provider.dart';
 import '../utils/resistance_streak_color.dart';
 import '../widgets/resistance_relapse_dialog.dart';
+import '../widgets/relapse_note_sheet.dart';
 import 'edit_resistance_page.dart';
 import '../../../../app/localization/localization.dart';
 
@@ -236,12 +237,22 @@ class _ResistanceDetailBodyState extends State<_ResistanceDetailBody> {
             }
             return Column(
               children: list.map((rel) {
-                final dateStr =
-                    '${rel.relapsedAtUtc.toLocal().day}/${rel.relapsedAtUtc.toLocal().month}/${rel.relapsedAtUtc.year}';
+                final dateStr = MaterialLocalizations.of(context)
+                    .formatMediumDate(rel.relapsedAtUtc.toLocal());
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     title: Text(dateStr),
+                    onTap: () => showRelapseNoteSheet(context, rel),
+                    trailing: IconButton(
+                      tooltip: context.l10n.relapseNoteAction,
+                      icon: Icon(
+                        rel.note?.isNotEmpty == true
+                            ? Icons.sticky_note_2
+                            : Icons.note_add_outlined,
+                      ),
+                      onPressed: () => showRelapseNoteSheet(context, rel),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

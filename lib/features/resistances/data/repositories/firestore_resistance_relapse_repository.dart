@@ -7,21 +7,43 @@ import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../domain/entities/resistance_relapse.dart';
 import '../../domain/repositories/resistance_relapse_repository.dart';
 
-class FirestoreResistanceRelapseRepository implements ResistanceRelapseRepository {
+class FirestoreResistanceRelapseRepository
+    implements ResistanceRelapseRepository {
   final FirebaseFirestore _firestore;
   final AuthRepository _authRepository;
 
   FirestoreResistanceRelapseRepository({
     required AuthRepository authRepository,
     FirebaseFirestore? firestore,
-  })  : _authRepository = authRepository,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  }) : _authRepository = authRepository,
+       _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, Object?>> _relapsesCollection({
     required String uid,
     required String resistanceId,
   }) {
-    return _firestore.collection('users/$uid/resistances/$resistanceId/relapses');
+    return _firestore.collection(
+      'users/$uid/resistances/$resistanceId/relapses',
+    );
+  }
+
+  @override
+  Future<void> saveNote({
+    required String resistanceId,
+    required String relapseId,
+    required String note,
+  }) async {
+    if (note.trim().length > ResistanceRelapse.maxNoteLength)
+      throw ArgumentError('Note too long');
+    final uid = (await _authRepository.authStateChanges().first)?.uid;
+    if (uid == null) throw StateError('Not signed in');
+    // Update just the note: dates, streaks and other relapse data stay intact.
+    await _relapsesCollection(
+      uid: uid,
+      resistanceId: resistanceId,
+    ).doc(relapseId).update({
+      'note': note.trim().isEmpty ? FieldValue.delete() : note.trim(),
+    });
   }
 
   @override
@@ -39,24 +61,23 @@ class FirestoreResistanceRelapseRepository implements ResistanceRelapseRepositor
         return;
       }
 
-      final query = _relapsesCollection(uid: user.uid, resistanceId: resistanceId)
-          .orderBy('relapsedAtUtc', descending: true);
+      final query = _relapsesCollection(
+        uid: user.uid,
+        resistanceId: resistanceId,
+      ).orderBy('relapsedAtUtc', descending: true);
 
-      sub = query.snapshots().listen(
-        (snapshot) {
-          final list = snapshot.docs
-              .map(
-                (doc) => ResistanceRelapse.fromMap(
-                  id: doc.id,
-                  resistanceId: resistanceId,
-                  map: Map<String, Object?>.from(doc.data()),
-                ),
-              )
-              .toList(growable: false);
-          controller.add(list);
-        },
-        onError: controller.addError,
-      );
+      sub = query.snapshots().listen((snapshot) {
+        final list = snapshot.docs
+            .map(
+              (doc) => ResistanceRelapse.fromMap(
+                id: doc.id,
+                resistanceId: resistanceId,
+                map: Map<String, Object?>.from(doc.data()),
+              ),
+            )
+            .toList(growable: false);
+        controller.add(list);
+      }, onError: controller.addError);
     }
 
     authSub = _authRepository.authStateChanges().listen(

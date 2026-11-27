@@ -866,10 +866,10 @@
   "journalCompletedDay": "Accomplie ce jour-là",
   "journalCarryHint": "Les tâches reportables inachevées passent au lendemain, sans doublon. Les autres restent dans le bilan du jour prévu.",
   "journalFutureHint": "Les tâches reportables en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.",
-  "journalPastHint": "Cette journée est conservée dans ton historique. Seules les tâches reportables restées ouvertes ont été reportées.",
+  "journalPastHint": "Le bilan de tes engagements pour cette journée.",
   "journalEmptyTitle": "De la place pour tes projets",
   "journalEmptyBody": "Prévois quelques actions réalistes et retrouve ici la satisfaction de les accomplir.",
-  "journalEmptyPast": "Aucune tâche prévue ce jour-là.",
+  "journalEmptyPast": "Rien de consigné ce jour-là",
   "journalEditTask": "Modifier la tâche",
   "journalReschedule": "Replanifier",
   "journalRemoved": "Tâche supprimée du planning.",
@@ -959,5 +959,38 @@
         "type": "int"
       }
     }
-  }
+  },
+  "journalTaskUpdated": "Tâche modifiée.",
+  "relapseNoteAction": "Ajouter ou modifier une note",
+  "relapseNoteTitle": "Note de rechute",
+  "relapseNoteHint": "Ce qui s’est passé, ce que tu souhaites retenir…",
+  "relapseNoteSaved": "Note enregistrée.",
+  "relapseNoteRemoved": "Note supprimée.",
+  "relapseNoteError": "La note n’a pas pu être enregistrée. Réessaie dans un instant.",
+  "journalCalendarTitle": "Calendrier du carnet",
+  "journalCalendarSuccess": "Réussi",
+  "journalCalendarFailure": "Incomplet",
+  "journalCalendarEmpty": "Aucune tâche",
+  "journalCalendarCurrent": "En cours",
+  "journalCalendarPlanned": "Planifié",
+  "journalCalendarDay": "{date} : {status}, {done} sur {total} accomplis",
+  "@journalCalendarDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journalCalendarHelp": "Vert : tous les engagements tenus. Rouge : une journée passée avec des tâches inachevées.",
+  "journalPastNoScore": "Journée sans engagements",
+  "journalPastEmptyHint": "Aucune tâche enregistrée : cette journée ne compte ni comme une réussite ni comme un échec."
 }

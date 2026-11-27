@@ -16,6 +16,7 @@ import '../widgets/journal_task_card.dart';
 import '../widgets/journal_task_sheet.dart';
 import '../../../../app/widgets/page_title.dart';
 import '../widgets/journal_week_overview.dart';
+import '../widgets/journal_calendar_dialog.dart';
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key});
@@ -231,7 +232,7 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
             tooltip: strings.journalCalendar,
             icon: const Icon(Icons.calendar_month_outlined),
             onPressed: () async {
-              final day = await _pickDay();
+              final day = await showJournalCalendar(context, _day);
               if (day != null && mounted) _selectDay(day);
             },
           ),
@@ -344,7 +345,11 @@ class _JournalPageState extends State<JournalPage> with WidgetsBindingObserver {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  JournalProgressCard(summary: summary, isFuture: future),
+                  JournalProgressCard(
+                    summary: summary,
+                    isFuture: future,
+                    isPast: past,
+                  ),
                   const SizedBox(height: 12),
                   if (!future)
                     OutlinedButton.icon(
