@@ -159,6 +159,13 @@ void main() {
     final restored = LanguageService(preferences: preferences);
     expect(restored.locale.languageCode, 'fr');
     restored.dispose();
+    Navigator.of(tester.element(find.text('Apparence'))).pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Carnet de bord'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mes accomplissements'), findsOneWidget);
+    expect(find.text('Nouvelle tâche'), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     language.dispose();
   });

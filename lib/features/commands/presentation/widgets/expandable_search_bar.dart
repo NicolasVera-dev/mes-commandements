@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../app/localization/localization.dart';
+import '../../../../app/widgets/page_title.dart';
 
 /// Barre de recherche repliable (titres [collapsedTitle] + champ étendu).
 /// La requête est pilotée par le parent ([searchQuery] / [onSearchQueryChanged]).
@@ -162,15 +163,7 @@ class _CollapsedTitle extends StatelessWidget {
       key: const ValueKey('collapsedRow'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Text(
-            collapsedTitle,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(height: 1.12, fontWeight: FontWeight.w700),
-          ),
-        ),
+        Expanded(child: PageTitle(collapsedTitle)),
         IconButton(
           icon: const Icon(Icons.search_rounded),
           tooltip: context.l10n.rechercher,

@@ -17,10 +17,15 @@ class Resistance {
   final int? accentColorValue;
   final int position;
   final List<String> tags;
+
   /// Dernière rechute enregistrée ; `null` si aucune.
   final DateTime? lastRelapseAtUtc;
+
   /// Meilleur streak (jours) jamais atteint avant une rechute.
   final int bestStreakDays;
+
+  /// Record to beat at the start of this run, independent of live best updates.
+  final int? bestStreakBeforeRun;
 
   Resistance({
     required this.id,
@@ -33,12 +38,13 @@ class Resistance {
     this.tags = const <String>[],
     this.lastRelapseAtUtc,
     this.bestStreakDays = 0,
-  })  : assert(title.trim().isNotEmpty, 'Le titre ne doit pas être vide.'),
-        assert(title.trim().length <= maxTitleLength),
-        assert(description.length <= maxDescriptionLength),
-        assert(tags.length <= maxTagsCount),
-        assert(tags.every((t) => t.trim().length <= maxTagLength)),
-        assert(bestStreakDays >= 0);
+    this.bestStreakBeforeRun,
+  }) : assert(title.trim().isNotEmpty, 'Le titre ne doit pas être vide.'),
+       assert(title.trim().length <= maxTitleLength),
+       assert(description.length <= maxDescriptionLength),
+       assert(tags.length <= maxTagsCount),
+       assert(tags.every((t) => t.trim().length <= maxTagLength)),
+       assert(bestStreakDays >= 0);
 
   Resistance copyWith({
     String? id,
@@ -53,6 +59,7 @@ class Resistance {
     bool clearLastRelapseAtUtc = false,
     bool clearAccentColorValue = false,
     int? bestStreakDays,
+    int? bestStreakBeforeRun,
   }) {
     return Resistance(
       id: id ?? this.id,
@@ -69,6 +76,7 @@ class Resistance {
           ? null
           : (lastRelapseAtUtc ?? this.lastRelapseAtUtc),
       bestStreakDays: bestStreakDays ?? this.bestStreakDays,
+      bestStreakBeforeRun: bestStreakBeforeRun ?? this.bestStreakBeforeRun,
     );
   }
 
@@ -83,6 +91,8 @@ class Resistance {
       'tags': tags,
       'lastRelapseAtUtc': lastRelapseAtUtc?.toUtc().toIso8601String(),
       'bestStreakDays': bestStreakDays,
+      if (bestStreakBeforeRun != null)
+        'bestStreakBeforeRun': bestStreakBeforeRun,
     };
   }
 
@@ -98,7 +108,8 @@ class Resistance {
     final title = rawTitle.length > maxTitleLength
         ? rawTitle.substring(0, maxTitleLength)
         : rawTitle;
-    final createdAtUtc = _parseDateTime(map['createdAtUtc']) ?? DateTime.utc(1970, 1, 1);
+    final createdAtUtc =
+        _parseDateTime(map['createdAtUtc']) ?? DateTime.utc(1970, 1, 1);
     final rawAccentColor = map['accentColorValue'];
     final accentColorValue = rawAccentColor is num
         ? rawAccentColor.toInt()
@@ -110,11 +121,14 @@ class Resistance {
     final rawTags = map['tags'];
     final tags = rawTags is List
         ? rawTags
-            .map((e) => e.toString().trim())
-            .where((t) => t.isNotEmpty)
-            .take(maxTagsCount)
-            .map((t) => t.length > maxTagLength ? t.substring(0, maxTagLength) : t)
-            .toList(growable: false)
+              .map((e) => e.toString().trim())
+              .where((t) => t.isNotEmpty)
+              .take(maxTagsCount)
+              .map(
+                (t) =>
+                    t.length > maxTagLength ? t.substring(0, maxTagLength) : t,
+              )
+              .toList(growable: false)
         : const <String>[];
     final rawEmoji = (map['emoji'] ?? '').toString().trim();
     final emoji = rawEmoji.isEmpty ? defaultEmoji : rawEmoji;
@@ -135,6 +149,9 @@ class Resistance {
       tags: tags,
       lastRelapseAtUtc: lastRelapseAtUtc,
       bestStreakDays: bestStreakDays < 0 ? 0 : bestStreakDays,
+      bestStreakBeforeRun: map['bestStreakBeforeRun'] is num
+          ? (map['bestStreakBeforeRun'] as num).toInt().clamp(0, 2147483647)
+          : null,
     );
   }
 

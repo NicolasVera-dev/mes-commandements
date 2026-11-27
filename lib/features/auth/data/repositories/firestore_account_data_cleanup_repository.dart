@@ -6,9 +6,8 @@ class FirestoreAccountDataCleanupRepository
     implements AccountDataCleanupRepository {
   final FirebaseFirestore _firestore;
 
-  FirestoreAccountDataCleanupRepository({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreAccountDataCleanupRepository({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   Future<void> _purgeSubcollection(
     CollectionReference<Map<String, Object?>> collection,
@@ -38,9 +37,14 @@ class FirestoreAccountDataCleanupRepository
   }
 
   @override
-  Future<void> deleteAllUserData({
-    required String uid,
-  }) async {
+  Future<void> deleteAllUserData({required String uid}) async {
+    await _purgeSubcollection(
+      _firestore.collection('users/$uid/journal_tasks'),
+    );
+    await _purgeSubcollection(
+      _firestore.collection('users/$uid/journal_reflections'),
+    );
+
     final commandsCollection = _firestore.collection('users/$uid/commands');
     final commandsSnapshot = await commandsCollection.get();
 
@@ -50,7 +54,9 @@ class FirestoreAccountDataCleanupRepository
       await commandDoc.reference.delete();
     }
 
-    final resistancesCollection = _firestore.collection('users/$uid/resistances');
+    final resistancesCollection = _firestore.collection(
+      'users/$uid/resistances',
+    );
     final resistancesSnapshot = await resistancesCollection.get();
     for (final doc in resistancesSnapshot.docs) {
       await _deleteResistanceDoc(doc.reference);

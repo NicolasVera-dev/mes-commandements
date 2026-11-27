@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../app/widgets/creation_sheet.dart';
+
 import 'package:provider/provider.dart';
 
 import '../../../../app/widgets/creation_template_picker.dart';
@@ -12,10 +15,8 @@ import 'resistance_creation_templates.dart';
 import '../../../../app/localization/localization.dart';
 
 Future<void> showCreateResistanceSheet({required BuildContext context}) {
-  return showModalBottomSheet<void>(
+  return showCreationSheet<void>(
     context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
     builder: (context) => const _CreateResistanceSheet(),
   );
 }

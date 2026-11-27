@@ -1421,4 +1421,315 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notePermissionDelete =>
       'Firestore refused to delete. Deploy the repository rules (cycle_notes): firebase deploy --only firestore:rules';
+
+  @override
+  String get journalTitle => 'Daily journal';
+
+  @override
+  String get journalAddTask => 'New task';
+
+  @override
+  String get journalTaskTitle => 'What would you like to accomplish?';
+
+  @override
+  String get journalTaskHint => 'A concrete action for your day';
+
+  @override
+  String get journalTaskRequired => 'Enter a task (200 characters maximum).';
+
+  @override
+  String journalPlannedFor(String date) {
+    return 'Planned for $date';
+  }
+
+  @override
+  String journalOriginalDate(String date) {
+    return 'Originally planned for $date';
+  }
+
+  @override
+  String get journalPriority => 'Daily priority';
+
+  @override
+  String get journalPriorityHelp =>
+      'A visual reminder that does not change your score.';
+
+  @override
+  String get journalToday => 'Today';
+
+  @override
+  String get journalTomorrow => 'Tomorrow';
+
+  @override
+  String get journalCalendar => 'Choose a day';
+
+  @override
+  String get journalPreviousDay => 'Previous day';
+
+  @override
+  String get journalNextDay => 'Next day';
+
+  @override
+  String get journalAccomplishments => 'My accomplishments';
+
+  @override
+  String journalCompletedCount(int done, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: '$done tasks completed',
+      one: '$done task completed',
+      zero: '0 tasks completed',
+    );
+    return '$_temp0 out of $total';
+  }
+
+  @override
+  String get journalScoreHelp =>
+      'Every task counts equally. Each day keeps a record of your commitments, even when a task carries over. Deleting or rescheduling a task today removes it from today’s score.';
+
+  @override
+  String get journalNoScore => 'No score yet';
+
+  @override
+  String get journalCelebrate =>
+      'You kept every commitment. Enjoy what you have accomplished!';
+
+  @override
+  String get journalProgress => 'Every completed task moves your day forward.';
+
+  @override
+  String get journalStart => 'One first step is enough to get your day going.';
+
+  @override
+  String journalPending(int count) {
+    return 'To do · $count';
+  }
+
+  @override
+  String journalDone(int count) {
+    return 'Completed · $count';
+  }
+
+  @override
+  String journalLate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days overdue',
+      one: '1 day overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journalCompletedToday => 'Completed today';
+
+  @override
+  String get journalCompletedDay => 'Completed that day';
+
+  @override
+  String get journalCarryHint =>
+      'Unfinished tasks with carry-over enabled move to the next day without duplicates. Others remain in their planned day’s review.';
+
+  @override
+  String get journalFutureHint =>
+      'Open tasks with carry-over enabled are shown provisionally. Complete them today and they will no longer carry over to tomorrow.';
+
+  @override
+  String get journalPastHint =>
+      'This day is preserved in your history. Only unfinished tasks with carry-over enabled have carried over.';
+
+  @override
+  String get journalEmptyTitle => 'Room for your plans';
+
+  @override
+  String get journalEmptyBody =>
+      'Plan a few realistic actions and enjoy the satisfaction of completing them here.';
+
+  @override
+  String get journalEmptyPast => 'No tasks were planned for this day.';
+
+  @override
+  String get journalEditTask => 'Edit task';
+
+  @override
+  String get journalReschedule => 'Reschedule';
+
+  @override
+  String get journalRemoved => 'Task removed from your plan.';
+
+  @override
+  String get journalCompletedFeedback => 'A commitment kept. Well done!';
+
+  @override
+  String get journalAllDoneFeedback => 'Everything is done for today!';
+
+  @override
+  String get journalError =>
+      'The journal could not be updated. Please try again in a moment.';
+
+  @override
+  String get journalLoadError =>
+      'The journal is temporarily unavailable. Your data is still saved.';
+
+  @override
+  String get journalRetry => 'Try again';
+
+  @override
+  String get journalBalance => 'Daily review';
+
+  @override
+  String get journalReviewAction => 'My review';
+
+  @override
+  String get journalFeeling => 'How I feel';
+
+  @override
+  String get journalMoodDifficult => 'Difficult';
+
+  @override
+  String get journalMoodMixed => 'Mixed';
+
+  @override
+  String get journalMoodSatisfied => 'Satisfied';
+
+  @override
+  String get journalReflection => 'What I take away';
+
+  @override
+  String get journalReflectionHint =>
+      'A win, a challenge or an idea for tomorrow…';
+
+  @override
+  String get journalReflectionHelp =>
+      'Optional. Take a moment to recognize what you have accomplished.';
+
+  @override
+  String get journalReflectionSaved => 'Review saved.';
+
+  @override
+  String get journalWeek => 'My last 7 days';
+
+  @override
+  String journalWeekDay(String date, int score) {
+    return '$date: $score%';
+  }
+
+  @override
+  String journalWeekEmpty(String date) {
+    return '$date: no tasks';
+  }
+
+  @override
+  String get journalReorderHint => 'Touch and hold to reorder your tasks.';
+
+  @override
+  String get journalSignIn =>
+      'Sign in to access your journal and plan your day.';
+
+  @override
+  String get journalReadOnly => 'Past days remain unchanged.';
+
+  @override
+  String get journalDeleteTask => 'Delete task';
+
+  @override
+  String get journalTaskActions => 'Task actions';
+
+  @override
+  String get journalFutureScore => 'Planning ahead';
+
+  @override
+  String get journalSave => 'Save';
+
+  @override
+  String get journalCancel => 'Cancel';
+
+  @override
+  String get journalUndo => 'Undo';
+
+  @override
+  String get journalSignInAction => 'Sign in';
+
+  @override
+  String hiddenCommandsTitle(int count) {
+    return 'Hidden commandments ($count)';
+  }
+
+  @override
+  String get hiddenCommandsHelp =>
+      'These commandments are paused. Their history is preserved and they no longer trigger reminders. Filters and search also apply to this section.';
+
+  @override
+  String get hideCommandTitle => 'Hide this commandment?';
+
+  @override
+  String get hideCommandMessage =>
+      'It will be paused indefinitely and removed from the usual views. You can find it under “Hidden commandments”, with all its history.';
+
+  @override
+  String get hideCommandAction => 'Hide commandment';
+
+  @override
+  String get showCommandTitle => 'Show this commandment again?';
+
+  @override
+  String get showCommandMessage =>
+      'It will return to the list and remain paused. You can resume it whenever you are ready.';
+
+  @override
+  String get showCommandAction => 'Show again';
+
+  @override
+  String get commandHiddenFeedback => 'Commandment hidden and paused.';
+
+  @override
+  String get commandShownFeedback => 'Commandment shown again, still paused.';
+
+  @override
+  String get hiddenCommandStatus => 'Hidden · paused';
+
+  @override
+  String get onboardingJournalTitle => 'Enjoy what you accomplish';
+
+  @override
+  String get onboardingJournalBody =>
+      'Plan your day in your journal. Check off your tasks, pick up where you left off and take a moment to appreciate your progress.';
+
+  @override
+  String get onboardingJournalQuote => 'Every small step deserves recognition.';
+
+  @override
+  String get journalReportable => 'Carry over';
+
+  @override
+  String get journalReportableHelp =>
+      'An unfinished task automatically carries over to the next day. Otherwise it stays marked as missed in the review for its planned day.';
+
+  @override
+  String get journalFailed => 'Missed · does not carry over';
+
+  @override
+  String get journalPlannedToday => 'Planned for today';
+
+  @override
+  String commandBestStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count successes',
+      one: '1 success',
+      zero: '0 successes',
+    );
+    return 'Best streak: $_temp0 in a row';
+  }
+
+  @override
+  String get resistanceRecordActive => 'Record streak in progress';
+
+  @override
+  String journalUnfinished(int count) {
+    return 'Unfinished · $count';
+  }
 }

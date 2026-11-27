@@ -5,12 +5,15 @@ import '../entities/resistance.dart';
 class ComputeResistanceStreakUseCase {
   const ComputeResistanceStreakUseCase();
 
+  bool isRecord({required Resistance resistance, required DateTime nowUtc}) {
+    final current = execute(resistance: resistance, nowUtc: nowUtc);
+    return current > 0 &&
+        current > (resistance.bestStreakBeforeRun ?? resistance.bestStreakDays);
+  }
+
   /// Jours écoulés sans rechute : **0** le jour de création ou le jour d’une rechute,
   /// puis +1 par jour calendaire UTC suivant.
-  int execute({
-    required Resistance resistance,
-    required DateTime nowUtc,
-  }) {
+  int execute({required Resistance resistance, required DateTime nowUtc}) {
     final now = nowUtc.toUtc();
     final today = DateTime.utc(now.year, now.month, now.day);
     final created = resistance.createdAtUtc.toUtc();

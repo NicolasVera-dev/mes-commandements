@@ -415,5 +415,172 @@
   "jourCourtDimanche": "Su",
   "erreurEnregistrementNote": "Unable to save the note. Please try again.",
   "notePermissionSave": "Firestore refused to save. Deploy the repository rules (cycle_notes): firebase deploy --only firestore:rules",
-  "notePermissionDelete": "Firestore refused to delete. Deploy the repository rules (cycle_notes): firebase deploy --only firestore:rules"
+  "notePermissionDelete": "Firestore refused to delete. Deploy the repository rules (cycle_notes): firebase deploy --only firestore:rules",
+  "journalTitle": "Daily journal",
+  "journalAddTask": "New task",
+  "journalTaskTitle": "What would you like to accomplish?",
+  "journalTaskHint": "A concrete action for your day",
+  "journalTaskRequired": "Enter a task (200 characters maximum).",
+  "journalPlannedFor": "Planned for {date}",
+  "@journalPlannedFor": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journalOriginalDate": "Originally planned for {date}",
+  "@journalOriginalDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journalPriority": "Daily priority",
+  "journalPriorityHelp": "A visual reminder that does not change your score.",
+  "journalToday": "Today",
+  "journalTomorrow": "Tomorrow",
+  "journalCalendar": "Choose a day",
+  "journalPreviousDay": "Previous day",
+  "journalNextDay": "Next day",
+  "journalAccomplishments": "My accomplishments",
+  "journalCompletedCount": "{done, plural, =0{0 tasks completed} =1{{done} task completed} other{{done} tasks completed}} out of {total}",
+  "@journalCompletedCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journalScoreHelp": "Every task counts equally. Each day keeps a record of your commitments, even when a task carries over. Deleting or rescheduling a task today removes it from today’s score.",
+  "journalNoScore": "No score yet",
+  "journalCelebrate": "You kept every commitment. Enjoy what you have accomplished!",
+  "journalProgress": "Every completed task moves your day forward.",
+  "journalStart": "One first step is enough to get your day going.",
+  "journalPending": "To do · {count}",
+  "@journalPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journalDone": "Completed · {count}",
+  "@journalDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journalLate": "{count, plural, =1{1 day overdue} other{{count} days overdue}}",
+  "@journalLate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journalCompletedToday": "Completed today",
+  "journalCompletedDay": "Completed that day",
+  "journalCarryHint": "Unfinished tasks with carry-over enabled move to the next day without duplicates. Others remain in their planned day’s review.",
+  "journalFutureHint": "Open tasks with carry-over enabled are shown provisionally. Complete them today and they will no longer carry over to tomorrow.",
+  "journalPastHint": "This day is preserved in your history. Only unfinished tasks with carry-over enabled have carried over.",
+  "journalEmptyTitle": "Room for your plans",
+  "journalEmptyBody": "Plan a few realistic actions and enjoy the satisfaction of completing them here.",
+  "journalEmptyPast": "No tasks were planned for this day.",
+  "journalEditTask": "Edit task",
+  "journalReschedule": "Reschedule",
+  "journalRemoved": "Task removed from your plan.",
+  "journalCompletedFeedback": "A commitment kept. Well done!",
+  "journalAllDoneFeedback": "Everything is done for today!",
+  "journalError": "The journal could not be updated. Please try again in a moment.",
+  "journalLoadError": "The journal is temporarily unavailable. Your data is still saved.",
+  "journalRetry": "Try again",
+  "journalBalance": "Daily review",
+  "journalReviewAction": "My review",
+  "journalFeeling": "How I feel",
+  "journalMoodDifficult": "Difficult",
+  "journalMoodMixed": "Mixed",
+  "journalMoodSatisfied": "Satisfied",
+  "journalReflection": "What I take away",
+  "journalReflectionHint": "A win, a challenge or an idea for tomorrow…",
+  "journalReflectionHelp": "Optional. Take a moment to recognize what you have accomplished.",
+  "journalReflectionSaved": "Review saved.",
+  "journalWeek": "My last 7 days",
+  "journalWeekDay": "{date}: {score}%",
+  "@journalWeekDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "journalWeekEmpty": "{date}: no tasks",
+  "@journalWeekEmpty": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "journalReorderHint": "Touch and hold to reorder your tasks.",
+  "journalSignIn": "Sign in to access your journal and plan your day.",
+  "journalReadOnly": "Past days remain unchanged.",
+  "journalDeleteTask": "Delete task",
+  "journalTaskActions": "Task actions",
+  "journalFutureScore": "Planning ahead",
+  "journalSave": "Save",
+  "journalCancel": "Cancel",
+  "journalUndo": "Undo",
+  "journalSignInAction": "Sign in",
+  "hiddenCommandsTitle": "Hidden commandments ({count})",
+  "@hiddenCommandsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hiddenCommandsHelp": "These commandments are paused. Their history is preserved and they no longer trigger reminders. Filters and search also apply to this section.",
+  "hideCommandTitle": "Hide this commandment?",
+  "hideCommandMessage": "It will be paused indefinitely and removed from the usual views. You can find it under “Hidden commandments”, with all its history.",
+  "hideCommandAction": "Hide commandment",
+  "showCommandTitle": "Show this commandment again?",
+  "showCommandMessage": "It will return to the list and remain paused. You can resume it whenever you are ready.",
+  "showCommandAction": "Show again",
+  "commandHiddenFeedback": "Commandment hidden and paused.",
+  "commandShownFeedback": "Commandment shown again, still paused.",
+  "hiddenCommandStatus": "Hidden · paused",
+  "onboardingJournalTitle": "Enjoy what you accomplish",
+  "onboardingJournalBody": "Plan your day in your journal. Check off your tasks, pick up where you left off and take a moment to appreciate your progress.",
+  "onboardingJournalQuote": "Every small step deserves recognition.",
+  "journalReportable": "Carry over",
+  "journalReportableHelp": "An unfinished task automatically carries over to the next day. Otherwise it stays marked as missed in the review for its planned day.",
+  "journalFailed": "Missed · does not carry over",
+  "journalPlannedToday": "Planned for today",
+  "commandBestStreak": "Best streak: {count, plural, =0{0 successes} =1{1 success} other{{count} successes}} in a row",
+  "@commandBestStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resistanceRecordActive": "Record streak in progress",
+  "journalUnfinished": "Unfinished · {count}",
+  "@journalUnfinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

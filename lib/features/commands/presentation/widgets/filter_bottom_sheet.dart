@@ -191,6 +191,17 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                       _statuses = next;
                     }),
                   ),
+                  FilterChip(
+                    label: Text(context.l10n.enPause),
+                    selected: _statuses.contains(CommandStatusFilter.paused),
+                    onSelected: (_) => setState(() {
+                      final next = Set<CommandStatusFilter>.from(_statuses);
+                      if (!next.remove(CommandStatusFilter.paused)) {
+                        next.add(CommandStatusFilter.paused);
+                      }
+                      _statuses = next;
+                    }),
+                  ),
                 ],
               ),
               const SizedBox(height: 18),

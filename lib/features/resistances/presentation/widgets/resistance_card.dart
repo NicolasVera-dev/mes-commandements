@@ -286,6 +286,20 @@ class ResistanceCard extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
+                    if (_streakUseCase.isRecord(
+                      resistance: resistance,
+                      nowUtc: DateTime.now().toUtc(),
+                    ))
+                      Tooltip(
+                        message: context.l10n.resistanceRecordActive,
+                        child: Semantics(
+                          label: context.l10n.resistanceRecordActive,
+                          child: const Text(
+                            '🏆',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ),
+                      ),
                     Text(
                       '$streak',
                       style:

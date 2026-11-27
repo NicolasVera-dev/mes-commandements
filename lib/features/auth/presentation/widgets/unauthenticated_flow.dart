@@ -25,7 +25,10 @@ class _UnauthenticatedFlowState extends State<UnauthenticatedFlow> {
         MaterialPage<void>(
           key: const ValueKey<String>('onboarding'),
           name: 'onboarding',
-          child: OnboardingWelcomePage(onCommencer: _openLogin),
+          child: OnboardingWelcomePage(
+            onCommencer: _openLogin,
+            isActive: !_loginOpen,
+          ),
         ),
         if (_loginOpen)
           const MaterialPage<void>(
