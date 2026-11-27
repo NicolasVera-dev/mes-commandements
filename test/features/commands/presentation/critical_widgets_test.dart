@@ -73,6 +73,9 @@ class _FakeCommandRepository implements CommandRepository {
   }
 
   @override
+  Future<void> setHidden(String commandId, {required bool hidden}) async {}
+
+  @override
   Future<void> pause(String commandId, {DateTime? untilUtc}) async {}
 
   @override
@@ -328,7 +331,9 @@ void main() {
       final now = DateTime.now().toUtc();
       final year = now.year + 1;
       final command = _command(id: 'pause', progress: 1).copyWith(
-        pauses: [CommandPause(startUtc: now, endUtc: DateTime.utc(year, 11, 9))],
+        pauses: [
+          CommandPause(startUtc: now, endUtc: DateTime.utc(year, 11, 9)),
+        ],
       );
       repo.emit([command]);
 
@@ -382,6 +387,48 @@ void main() {
   });
 
   group('Page détail', () {
+    testWidgets('shows the longest successful streak in command details', (
+      tester,
+    ) async {
+      final repo = _FakeCommandRepository();
+      final provider = CommandProvider(repository: repo);
+      final events = _FakeCommandEventRepository();
+      final now = DateTime.now().toUtc();
+      final today = DateTime.utc(now.year, now.month, now.day);
+      final command = _command(
+        id: 'record',
+        progress: 0,
+        createdAt: today.subtract(const Duration(days: 5)),
+      );
+      repo.emit([command]);
+      await tester.pumpWidget(
+        _wrap(
+          provider: provider,
+          eventRepository: events,
+          child: const CommandDetailPage(commandId: 'record'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      events.emit([
+        for (final n in [5, 4, 3])
+          command.toEvent(
+            type: CommandEventType.complete,
+            actionAtUtc: today.subtract(Duration(days: n)),
+          ),
+      ]);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Record de série : 3 succès consécutifs'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      provider.dispose();
+      repo.dispose();
+      events.dispose();
+    });
+
     testWidgets('confirme le reset et revient après suppression', (
       tester,
     ) async {
@@ -431,9 +478,10 @@ void main() {
       expect(find.byType(CommandDetailPage), findsOneWidget);
 
       repo.emit([
-        _command(id: 'c-actions', progress: 1).copyWith(
-          pauses: [CommandPause(startUtc: DateTime.now().toUtc())],
-        ),
+        _command(
+          id: 'c-actions',
+          progress: 1,
+        ).copyWith(pauses: [CommandPause(startUtc: DateTime.now().toUtc())]),
       ]);
       await tester.pump();
       await tester.pump();

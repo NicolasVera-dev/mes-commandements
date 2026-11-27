@@ -1,11 +1,6 @@
 import '../entities/command.dart';
 
-enum CommandStatusFilter {
-  all,
-  notStarted,
-  started,
-  completed,
-}
+enum CommandStatusFilter { all, notStarted, started, completed, paused }
 
 enum CommandSort {
   alpha,
@@ -25,12 +20,23 @@ class FilterAndSortCommandsUseCase {
     required Set<String> tags,
     required CommandSort sort,
     required String searchQuery,
+    bool hiddenOnly = false,
+    DateTime? now,
   }) {
     final q = searchQuery.trim().toLowerCase();
+    final instant = now ?? DateTime.now().toUtc();
 
     final filtered = commands
-        .where((c) => frequencies == null ? true : frequencies.contains(c.frequency))
-        .where((c) => statuses.isEmpty ? true : statuses.contains(_statusOf(c)))
+        .where((c) => c.isHidden == hiddenOnly)
+        .where(
+          (c) => frequencies == null ? true : frequencies.contains(c.frequency),
+        )
+        .where(
+          (c) =>
+              statuses.isEmpty ||
+              statuses.contains(CommandStatusFilter.all) ||
+              statuses.contains(_statusOf(c, instant)),
+        )
         .where((c) => tags.isEmpty ? true : c.tags.any(tags.contains))
         .where((c) => q.isEmpty ? true : c.title.toLowerCase().contains(q))
         .toList(growable: false);
@@ -67,7 +73,10 @@ class FilterAndSortCommandsUseCase {
     return filtered;
   }
 
-  CommandStatusFilter _statusOf(Command command) {
+  CommandStatusFilter _statusOf(Command command, DateTime now) {
+    if (command.isHidden || command.isPausedAt(now)) {
+      return CommandStatusFilter.paused;
+    }
     if (command.isCompleted()) return CommandStatusFilter.completed;
     if (command.isStarted()) return CommandStatusFilter.started;
     return CommandStatusFilter.notStarted;

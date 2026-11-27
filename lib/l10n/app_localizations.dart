@@ -2595,6 +2595,612 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Suppression refusée par Firestore. Déployez les règles du dépôt (cycle_notes) : firebase deploy --only firestore:rules'**
   String get notePermissionDelete;
+
+  /// No description provided for @journalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carnet de bord'**
+  String get journalTitle;
+
+  /// No description provided for @journalAddTask.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle tâche'**
+  String get journalAddTask;
+
+  /// No description provided for @journalTaskTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Que veux-tu accomplir ?'**
+  String get journalTaskTitle;
+
+  /// No description provided for @journalTaskHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une action concrète pour ta journée'**
+  String get journalTaskHint;
+
+  /// No description provided for @journalTaskRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indique une tâche (200 caractères maximum).'**
+  String get journalTaskRequired;
+
+  /// No description provided for @journalPlannedFor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévue pour le {date}'**
+  String journalPlannedFor(String date);
+
+  /// No description provided for @journalOriginalDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévue à l’origine le {date}'**
+  String journalOriginalDate(String date);
+
+  /// No description provided for @journalPriority.
+  ///
+  /// In fr, this message translates to:
+  /// **'Priorité du jour'**
+  String get journalPriority;
+
+  /// No description provided for @journalPriorityHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un repère visuel, sans modifier le score.'**
+  String get journalPriorityHelp;
+
+  /// No description provided for @journalToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd’hui'**
+  String get journalToday;
+
+  /// No description provided for @journalTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demain'**
+  String get journalTomorrow;
+
+  /// No description provided for @journalCalendar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une journée'**
+  String get journalCalendar;
+
+  /// No description provided for @journalPreviousDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour précédent'**
+  String get journalPreviousDay;
+
+  /// No description provided for @journalNextDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour suivant'**
+  String get journalNextDay;
+
+  /// No description provided for @journalAccomplishments.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes accomplissements'**
+  String get journalAccomplishments;
+
+  /// No description provided for @journalCompletedCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{done, plural, =0{0 tâche accomplie} =1{{done} tâche accomplie} other{{done} tâches accomplies}} sur {total}'**
+  String journalCompletedCount(int done, int total);
+
+  /// No description provided for @journalScoreHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque tâche a le même poids. Le bilan du jour garde la trace de tes engagements, même si une tâche est reportée. Supprimer ou replanifier une tâche aujourd’hui la retire du score d’aujourd’hui.'**
+  String get journalScoreHelp;
+
+  /// No description provided for @journalNoScore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de score'**
+  String get journalNoScore;
+
+  /// No description provided for @journalCelebrate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as tenu tous tes engagements. Savoure le travail accompli !'**
+  String get journalCelebrate;
+
+  /// No description provided for @journalProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque tâche accomplie fait avancer ta journée.'**
+  String get journalProgress;
+
+  /// No description provided for @journalStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un premier pas suffit pour lancer ta journée.'**
+  String get journalStart;
+
+  /// No description provided for @journalPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'À accomplir · {count}'**
+  String journalPending(int count);
+
+  /// No description provided for @journalDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accomplies · {count}'**
+  String journalDone(int count);
+
+  /// No description provided for @journalLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 jour de retard} other{{count} jours de retard}}'**
+  String journalLate(int count);
+
+  /// No description provided for @journalCompletedToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accomplie aujourd’hui'**
+  String get journalCompletedToday;
+
+  /// No description provided for @journalCompletedDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accomplie ce jour-là'**
+  String get journalCompletedDay;
+
+  /// No description provided for @journalCarryHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les tâches reportables inachevées passent au lendemain, sans doublon. Les autres restent dans le bilan du jour prévu.'**
+  String get journalCarryHint;
+
+  /// No description provided for @journalFutureHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les tâches reportables en cours sont affichées à titre prévisionnel. Termine-les aujourd’hui et elles ne seront plus à reprendre demain.'**
+  String get journalFutureHint;
+
+  /// No description provided for @journalPastHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le bilan de tes engagements pour cette journée.'**
+  String get journalPastHint;
+
+  /// No description provided for @journalEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'De la place pour tes projets'**
+  String get journalEmptyTitle;
+
+  /// No description provided for @journalEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévois quelques actions réalistes et retrouve ici la satisfaction de les accomplir.'**
+  String get journalEmptyBody;
+
+  /// No description provided for @journalEmptyPast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de consigné ce jour-là'**
+  String get journalEmptyPast;
+
+  /// No description provided for @journalEditTask.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la tâche'**
+  String get journalEditTask;
+
+  /// No description provided for @journalReschedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Replanifier'**
+  String get journalReschedule;
+
+  /// No description provided for @journalRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tâche supprimée du planning.'**
+  String get journalRemoved;
+
+  /// No description provided for @journalCompletedFeedback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un engagement tenu. Bien joué !'**
+  String get journalCompletedFeedback;
+
+  /// No description provided for @journalAllDoneFeedback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est accompli pour aujourd’hui !'**
+  String get journalAllDoneFeedback;
+
+  /// No description provided for @journalError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le carnet n’a pas pu être mis à jour. Réessaie dans un instant.'**
+  String get journalError;
+
+  /// No description provided for @journalLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le carnet est momentanément indisponible. Tes données restent conservées.'**
+  String get journalLoadError;
+
+  /// No description provided for @journalRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get journalRetry;
+
+  /// No description provided for @journalBalance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bilan de la journée'**
+  String get journalBalance;
+
+  /// No description provided for @journalReviewAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon bilan'**
+  String get journalReviewAction;
+
+  /// No description provided for @journalFeeling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment je me sens'**
+  String get journalFeeling;
+
+  /// No description provided for @journalMoodDifficult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Difficile'**
+  String get journalMoodDifficult;
+
+  /// No description provided for @journalMoodMixed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mitigé'**
+  String get journalMoodMixed;
+
+  /// No description provided for @journalMoodSatisfied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Satisfait'**
+  String get journalMoodSatisfied;
+
+  /// No description provided for @journalReflection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que je retiens'**
+  String get journalReflection;
+
+  /// No description provided for @journalReflectionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une réussite, une difficulté ou une idée pour demain…'**
+  String get journalReflectionHint;
+
+  /// No description provided for @journalReflectionHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Facultatif. Prends un instant pour reconnaître ce que tu as accompli.'**
+  String get journalReflectionHelp;
+
+  /// No description provided for @journalReflectionSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bilan enregistré.'**
+  String get journalReflectionSaved;
+
+  /// No description provided for @journalWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes 7 derniers jours'**
+  String get journalWeek;
+
+  /// No description provided for @journalWeekDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'{date} : {score} %'**
+  String journalWeekDay(String date, int score);
+
+  /// No description provided for @journalWeekEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'{date} : aucune tâche'**
+  String journalWeekEmpty(String date);
+
+  /// No description provided for @journalReorderHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appui long pour réorganiser tes tâches.'**
+  String get journalReorderHint;
+
+  /// No description provided for @journalSignIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connecte-toi pour retrouver ton carnet et préparer ta journée.'**
+  String get journalSignIn;
+
+  /// No description provided for @journalReadOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les journées passées restent inchangées.'**
+  String get journalReadOnly;
+
+  /// No description provided for @journalDeleteTask.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la tâche'**
+  String get journalDeleteTask;
+
+  /// No description provided for @journalTaskActions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actions de la tâche'**
+  String get journalTaskActions;
+
+  /// No description provided for @journalFutureScore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journée en préparation'**
+  String get journalFutureScore;
+
+  /// No description provided for @journalSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get journalSave;
+
+  /// No description provided for @journalCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get journalCancel;
+
+  /// No description provided for @journalUndo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get journalUndo;
+
+  /// No description provided for @journalSignInAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get journalSignInAction;
+
+  /// No description provided for @hiddenCommandsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandements masqués ({count})'**
+  String hiddenCommandsTitle(int count);
+
+  /// No description provided for @hiddenCommandsHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ces commandements sont en pause. Leur historique est conservé et ils ne déclenchent plus de rappels. Les filtres et la recherche s’appliquent aussi à cette section.'**
+  String get hiddenCommandsHelp;
+
+  /// No description provided for @hideCommandTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer ce commandement ?'**
+  String get hideCommandTitle;
+
+  /// No description provided for @hideCommandMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il sera mis en pause sans date de reprise et retiré des affichages habituels. Tu le retrouveras dans « Commandements masqués », avec tout son historique.'**
+  String get hideCommandMessage;
+
+  /// No description provided for @hideCommandAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer le commandement'**
+  String get hideCommandAction;
+
+  /// No description provided for @showCommandTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réafficher ce commandement ?'**
+  String get showCommandTitle;
+
+  /// No description provided for @showCommandMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il retrouvera sa place dans la liste et restera en pause. Tu pourras le reprendre quand tu le souhaites.'**
+  String get showCommandMessage;
+
+  /// No description provided for @showCommandAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réafficher'**
+  String get showCommandAction;
+
+  /// No description provided for @commandHiddenFeedback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandement masqué et mis en pause.'**
+  String get commandHiddenFeedback;
+
+  /// No description provided for @commandShownFeedback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandement réaffiché, toujours en pause.'**
+  String get commandShownFeedback;
+
+  /// No description provided for @hiddenCommandStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masqué · en pause'**
+  String get hiddenCommandStatus;
+
+  /// No description provided for @onboardingJournalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Savoure le travail accompli'**
+  String get onboardingJournalTitle;
+
+  /// No description provided for @onboardingJournalBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prépare ta journée dans ton carnet de bord. Coche tes tâches, retrouve celles à reprendre et prends un instant pour apprécier tes avancées.'**
+  String get onboardingJournalBody;
+
+  /// No description provided for @onboardingJournalQuote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque petit pas mérite d’être reconnu.'**
+  String get onboardingJournalQuote;
+
+  /// No description provided for @journalReportable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reportable'**
+  String get journalReportable;
+
+  /// No description provided for @journalReportableHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si elle n’est pas accomplie, la tâche passe automatiquement au lendemain. Sinon, elle reste en échec dans le bilan du jour prévu.'**
+  String get journalReportableHelp;
+
+  /// No description provided for @journalFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non accomplie · non reportable'**
+  String get journalFailed;
+
+  /// No description provided for @journalPlannedToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prévue pour aujourd’hui'**
+  String get journalPlannedToday;
+
+  /// No description provided for @commandBestStreak.
+  ///
+  /// In fr, this message translates to:
+  /// **'Record de série : {count, plural, =0{0 succès} =1{1 succès} other{{count} succès}} consécutifs'**
+  String commandBestStreak(int count);
+
+  /// No description provided for @resistanceRecordActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Série record en cours'**
+  String get resistanceRecordActive;
+
+  /// No description provided for @journalUnfinished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non accomplies · {count}'**
+  String journalUnfinished(int count);
+
+  /// No description provided for @journalTaskUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tâche modifiée.'**
+  String get journalTaskUpdated;
+
+  /// No description provided for @relapseNoteAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter ou modifier une note'**
+  String get relapseNoteAction;
+
+  /// No description provided for @relapseNoteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note de rechute'**
+  String get relapseNoteTitle;
+
+  /// No description provided for @relapseNoteHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui s’est passé, ce que tu souhaites retenir…'**
+  String get relapseNoteHint;
+
+  /// No description provided for @relapseNoteSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note enregistrée.'**
+  String get relapseNoteSaved;
+
+  /// No description provided for @relapseNoteRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note supprimée.'**
+  String get relapseNoteRemoved;
+
+  /// No description provided for @relapseNoteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'La note n’a pas pu être enregistrée. Réessaie dans un instant.'**
+  String get relapseNoteError;
+
+  /// No description provided for @journalCalendarTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier du carnet'**
+  String get journalCalendarTitle;
+
+  /// No description provided for @journalCalendarSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réussi'**
+  String get journalCalendarSuccess;
+
+  /// No description provided for @journalCalendarFailure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incomplet'**
+  String get journalCalendarFailure;
+
+  /// No description provided for @journalCalendarEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune tâche'**
+  String get journalCalendarEmpty;
+
+  /// No description provided for @journalCalendarCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get journalCalendarCurrent;
+
+  /// No description provided for @journalCalendarPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifié'**
+  String get journalCalendarPlanned;
+
+  /// No description provided for @journalCalendarDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'{date} : {status}, {done} sur {total} accomplis'**
+  String journalCalendarDay(String date, String status, int done, int total);
+
+  /// No description provided for @journalCalendarHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vert : tous les engagements tenus. Rouge : une journée passée avec des tâches inachevées.'**
+  String get journalCalendarHelp;
+
+  /// No description provided for @journalPastNoScore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journée sans engagements'**
+  String get journalPastNoScore;
+
+  /// No description provided for @journalPastEmptyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune tâche enregistrée : cette journée ne compte ni comme une réussite ni comme un échec.'**
+  String get journalPastEmptyHint;
 }
 
 class _AppLocalizationsDelegate

@@ -72,7 +72,12 @@ class ResistanceProvider extends ChangeNotifier {
       final streak = _streakUseCase.execute(resistance: r, nowUtc: now);
       if (streak <= r.bestStreakDays) continue;
       try {
-        await _repository.update(r.copyWith(bestStreakDays: streak));
+        await _repository.update(
+          r.copyWith(
+            bestStreakDays: streak,
+            bestStreakBeforeRun: r.bestStreakBeforeRun ?? r.bestStreakDays,
+          ),
+        );
       } catch (e, st) {
         if (kDebugMode) {
           debugPrint('Sync bestStreakDays (${r.id}): $e');

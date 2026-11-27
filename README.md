@@ -1,378 +1,212 @@
-# Mes Commandements
+# Rituel
 
-Une application Flutter de suivi d'objectifs et d'habitudes, centrée sur une expérience mobile fluide. Créez vos **commandements** (objectifs à répéter par cycle), vos **résistances** (habitudes à ne plus céder), personnalisez vos cartes et consultez l’historique (progression ou rechutes).
+Rituel aide à tenir ses engagements et à apprécier le travail accompli. L’application réunit trois espaces : les **Commandements** pour les habitudes à construire, les **Résistances** pour celles à éviter et le **Carnet de bord** pour organiser ses journées.
 
----
+Application Flutter destinée à Android et iOS, avec synchronisation par compte Firebase. L’interface est disponible en français et en anglais, en thème clair, sombre ou système.
 
-## Fonctionnalités
+**Version du projet : `1.4.0+15`**, définie dans [pubspec.yaml](pubspec.yaml).
 
-- 🔐 **Authentification complète** : inscription, connexion, réinitialisation de mot de passe, paramètres de compte
-- 🌐 **Langue de l’application** : français ou anglais depuis les paramètres, avec mémorisation du choix sur l’appareil
-- ✅ **Gestion des commandements** : création, édition, suppression, reset manuel
-- 📈 **Suivi visuel de progression** : barre dynamique, micro-animations, état complété/non complété
-- 🔁 **Reset automatique par fréquence** : quotidien, hebdomadaire, mensuel, annuel
-- 🧭 **Page détail riche** : historique par période, résumé de cycles réussis/échoués, navigation temporelle
-- 📝 **Notes de cycle** : dans le détail, une note optionnelle par période de l’historique (jour, semaine, mois ou année) ; une icône discrète marque les périodes qui en ont une ; ouvrez-la en touchant la case ou la ligne ; tout est synchronisé avec le compte et supprimé avec le commandement
-- 🔥 **Badge de série (streak)** : un badge sous le titre dans la liste et le détail. Huit paliers de réussite, huit paliers d’occasions manquées et un badge « Reprise ». Les seuils dépendent de la fréquence du commandement.
-- 🗂️ **Historique d'événements** : enregistrement des actions (`increment`, `complete`, `resetAuto`, `resetManual`) pour chaque commandement
-- 🎨 **Personnalisation** : emoji, couleur d'accent, tags, ordre manuel par drag & drop
-- 🔍 **Recherche, filtres et tri** : fréquence, statut, tags, recherche texte en direct
-- 🛡️ **Résistances** : liste dédiée pour ce que vous voulez arrêter ; **série en jours sans craquer** (compteur à **0** le jour de création, +1 par jour calendaire UTC ; le **record** suit la même règle au moment d’une rechute), action **« J’ai craqué »** bien visible (rouge d’erreur, **même teinte** en thème clair et sombre), rechute avec **note optionnelle**, fiche détail, historique, **notes par jour** sur le calendrier ; création / édition avec emoji (grille **orientée addictions** : tabac, alcool, écrans, jeux, etc.), couleur d’accent et tags
-- 🔎 **Résistances — recherche & filtres** : même logique que l’accueil commandements (barre repliable, filtres par tags, tri manuel ou par série) ; **réordonnancement par glisser-déposer** uniquement en tri manuel, sans filtre ni recherche active
-- 📐 **Affichage des cartes** (paramètres compte) : mode **Standard** ou **Compact** appliqué **aux commandements et aux résistances** (liste plus dense, cartes plus petites)
-- ⌨️ **Saisie texte** : sur les formulaires commandements / résistances (titres, descriptions, notes associées aux rechutes ou aux jours), le clavier propose une **capitalisation type phrase** (première lettre) ; les **tags** restent en saisie libre (minuscules par défaut) ; les écrans **connexion / inscription / mot de passe** ne forcent pas ce comportement
-- ☁️ **Synchronisation Firestore en temps réel** par utilisateur connecté
-- 🔔 **Rappels locaux** (optionnels) : notifications intelligentes par fréquence pour les commandements non terminés du cycle en cours ; réglage dans **Paramètres du compte** (activation, heure globale) ; préférences en local (`SharedPreferences`), pas dans Firestore ; **désactivés par défaut**
-- 🌙 **UI Material 3 dark** et support multi-plateformes (Android, iOS, Web, Windows, macOS, Linux)
-- ↔️ **Navigation principale** : bascule **Commandements / Résistances** par la barre du bas ou par **glissement horizontal** entre les deux vues
+## Utiliser Rituel
 
----
+La barre de navigation et le glissement horizontal donnent accès aux trois espaces. Les paramètres permettent de choisir la langue, le thème, la densité des cartes et les rappels. Le choix de langue est conservé au redémarrage.
 
-## Stack technique
+Sans connexion, quatre pages présentent l’application. Elles défilent automatiquement toutes les huit secondes, sans compte à rebours visible, et restent accessibles par glissement manuel. Le défilement automatique est suspendu lorsque les réglages d’accessibilité l’exigent.
 
-| Technologie | Rôle |
-|---|---|
-| [Flutter](https://flutter.dev) | Framework UI cross-platform |
-| [Dart](https://dart.dev) | Langage de programmation |
-| [Provider](https://pub.dev/packages/provider) | Gestion d'état (ChangeNotifier) |
-| [firebase_core](https://pub.dev/packages/firebase_core) | Initialisation Firebase |
-| [firebase_auth](https://pub.dev/packages/firebase_auth) | Authentification email/mot de passe |
-| [cloud_firestore](https://pub.dev/packages/cloud_firestore) | Persistance temps réel |
-| [shared_preferences](https://pub.dev/packages/shared_preferences) | Thème, préférences locales et options des rappels |
-| [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications), [timezone](https://pub.dev/packages/timezone), [flutter_timezone](https://pub.dev/packages/flutter_timezone) | Planification des rappels locaux et fuseau horaire de l’appareil |
-| [table_calendar](https://pub.dev/packages/table_calendar), [flex_color_picker](https://pub.dev/packages/flex_color_picker) | Calendriers et couleur d’accent dans les formulaires |
-| Material Design 3 | Système de design |
+### Commandements : construire ses habitudes
 
----
+- Créer un objectif quotidien, hebdomadaire, mensuel ou annuel, avec une cible, une description et, pour les objectifs quotidiens, des jours planifiés.
+- Personnaliser les cartes avec un emoji, une couleur et des tags ; rechercher, filtrer, trier et réorganiser les commandements.
+- Suivre sa progression, ses séries de succès ou d’échecs et son record de série dans le détail.
+- Consulter la description complète et l’historique par cycle ; ajouter une note à chaque période.
+- Mettre un commandement en pause, puis le reprendre immédiatement ou au prochain cycle : lendemain, semaine suivante, mois suivant ou année suivante selon sa fréquence.
+- Masquer un commandement pour le retirer de la liste habituelle tout en conservant son historique. Le masquage le met en pause indéfinie. La section repliable **Commandements masqués** permet de le retrouver, le réafficher ou le supprimer définitivement. Le réaffichage conserve la pause.
 
-## Architecture
+Les actions de gestion sont regroupées dans le menu **…**. Les pauses neutralisent les cycles concernés et suspendent les rappels. Le filtre **En pause** permet de retrouver les commandements suspendus.
 
-Le projet suit l'architecture **Clean Architecture** avec une séparation stricte en couches :
+### Résistances : suivre les habitudes à éviter
 
-```
-lib/
-├── app/
-│   ├── app_root.dart
-│   ├── app_theme.dart
-│   ├── theme_service.dart
-│   └── user_preferences_service.dart
-└── features/
-    ├── auth/
-    │   ├── data/
-    │   ├── domain/
-    │   └── presentation/
-    ├── commands/
-    │   ├── data/
-    │   ├── domain/
-    │   └── presentation/
-    ├── resistances/
-    │   ├── data/
-    │   ├── domain/
-    │   └── presentation/
-    └── notifications/
-        ├── data/
-        ├── domain/
-        └── presentation/
-```
+- Créer une résistance avec une description, un emoji, une couleur et des tags.
+- Suivre le nombre de jours sans rechute et son record ; un trophée apparaît lorsque la série dépasse le précédent record et reste visible jusqu’à la rechute.
+- Enregistrer une rechute avec **J’ai craqué**, puis consulter l’historique et le calendrier.
+- Ajouter, modifier ou supprimer une note sur une rechute, y compris après coup, sans modifier sa date ni la série associée. Chaque note est limitée à 300 caractères et sa suppression demande confirmation.
+- Ajouter des notes par jour, rechercher et filtrer par tags, trier ou réorganiser les résistances.
 
-- **Domain** : entités métier (`Command`, événements, fréquence), interfaces repository, règles/use cases, contrat `NotificationScheduler` et calcul des créneaux de rappel
-- **Data** : implémentations Firebase Auth, Firestore (commandements, événements, notes par cycle, **résistances**, rechutes, notes au jour, nettoyage des données compte), planificateur de notifications locales et préférences de rappels
-- **Presentation** : providers d'état, pages et widgets UI (auth, navigation accueil commandements / résistances, listes, détail, édition, visualisations de cycles, badges de série, carte de réglage des rappels)
+Les séries de résistance comptent les jours calendaires UTC : le compteur est à zéro le jour de création ou de rechute. Le formulaire des notes de rechute est partagé avec celui des notes de commandement.
 
----
+### Carnet de bord : planifier et faire le bilan
 
-## Prérequis
+Créer une tâche, choisir sa date, lui donner une priorité si nécessaire, puis la cocher une fois accomplie. Les tâches ouvertes se réorganisent par appui long ; leur menu permet de les modifier, les replanifier ou les supprimer. La suppression est aussi disponible par glissement et peut être annulée pendant cinq secondes.
 
-- [Flutter](https://flutter.dev/docs/get-started/install) **3.47.9 stable** avec **Dart SDK ^3.13.0** (version utilisée pour la mise à jour : Dart 3.13.7)
-- Compte / projet **Firebase** (Auth + Firestore) — les fichiers sensibles ne sont pas versionnés : copiez `lib/firebase_options.example.dart` vers `lib/firebase_options.dart`, `android/app/google-services.json.example` vers `android/app/google-services.json`, puis exécutez `flutterfire configure` (ou collez les fichiers fournis par la console Firebase). Voir les commentaires en tête de `firebase_options.example.dart`.
-- Pour Android : Android Studio / SDK (le build active le *core library desugaring* requis par les notifications locales)
-- Pour iOS / macOS : Xcode avec Swift 6.2 minimum (requis par le SDK Firebase actuel). Pour un iPhone sous iOS 27 : **Xcode 27 et macOS Tahoe 26.6 minimum**, selon les [prérequis Apple](https://developer.apple.com/xcode/system-requirements/). La cible minimale de l’application est **iOS 15**.
-- Pour Windows : Visual Studio avec les workloads C++
+**Report et retard**
 
----
+L’option **Reportable**, activée par défaut, reporte automatiquement une tâche inachevée aux jours suivants, avec son retard visible. Désactivée, la tâche reste attachée au jour prévu : si elle n’est pas accomplie, elle apparaît en échec dans cette journée et ne revient pas le lendemain.
 
-## Installation
+Une replanification remet le délai de retard à zéro à la nouvelle date. Les engagements des journées passées sont conservés, y compris après une modification de l’option de report ou une suppression. Les dates du carnet suivent le calendrier local de l’appareil.
+
+**Score quotidien**
+
+Le score est la proportion de tâches accomplies parmi les tâches prévues ce jour-là, arrondie en pourcentage. Toutes les tâches ont le même poids ; la priorité est un repère visuel. Une tâche terminée mardi après avoir été prévue lundi reste inachevée dans le bilan du lundi et compte comme accomplie le mardi.
+
+Une journée sans tâche reste sans score et ne compte ni comme une réussite ni comme un échec. Les journées passées affichent un bilan rétrospectif ; leurs tâches sont en lecture seule. Les journées futures servent à la planification.
+
+**Calendrier et bilan personnel**
+
+L’aperçu des sept derniers jours et le calendrier complet permettent de retrouver une journée. Le calendrier entoure les journées réussies en vert et les journées passées incomplètes en rouge. Aujourd’hui garde son propre contour ; les jours sans tâche restent neutres. Toucher l’en-tête du calendrier permet de changer d’année.
+
+**Mon bilan** permet de conserver un ressenti et une note de 4 000 caractères maximum pour aujourd’hui ou une journée passée.
+
+### Rappels
+
+Les rappels locaux concernent les commandements encore incomplets. Ils sont désactivés par défaut et se règlent dans les paramètres, avec une heure commune, fixée par défaut à 18 h dans le fuseau de l’appareil.
+
+Les créneaux dépendent de la fréquence : tous les jours pour le quotidien, mercredi et dimanche pour l’hebdomadaire, sept et deux jours avant la fin du mois pour le mensuel, les 1er novembre et 1er décembre pour l’annuel. Les commandements en pause ou masqués sont exclus.
+
+## Développer en local
+
+### Prérequis
+
+- Flutter **3.47.9 minimum**, avec Dart **3.13.x** compatible avec la contrainte `^3.13.0`.
+- Un projet Firebase avec **Authentication email/mot de passe** et **Cloud Firestore** activés.
+- Pour Android : SDK Android et environnement Java compatibles avec la configuration Gradle du projet.
+- Pour iOS : un Mac, Xcode compatible avec l’iOS de l’appareil et une équipe de signature Apple. La cible minimale de l’application est **iOS 15**. Les dépendances natives Firebase utilisent Swift Package Manager et nécessitent Swift 6.2 minimum.
+- Pour les outils Firebase et les tests de règles : Node.js, Firebase CLI et Java 21 ou supérieur pour l’émulateur.
+
+Les parcours de validation et de publication concernent Android et iOS. Le dépôt contient aussi des cibles Web et desktop ; leur présence ne garantit pas la prise en charge de toutes les fonctionnalités. Les rappels sont implémentés pour Android, iOS et macOS ; la configuration Firebase Linux n’est pas fournie.
+
+### Installation et configuration Firebase
 
 ```bash
-# Cloner le dépôt
-git clone https://github.com/NicolasVera-dev/mes-commandements.git
+git clone git@github.com:NicolasVera-dev/mes-commandements.git
 cd mes-commandements
-
-# Fichiers Firebase locaux (non suivis par Git)
-cp lib/firebase_options.example.dart lib/firebase_options.dart
-cp android/app/google-services.json.example android/app/google-services.json
-# Puis : flutterfire configure — ou remplir les fichiers avec votre projet Firebase
-
-# Installer les dépendances
+git switch develop
 mkdir -p build/ios/SourcePackages build/macos/SourcePackages
 flutter pub get
 ```
 
----
-
-## Lancer l'application
+Configurer ensuite le projet Firebase avec FlutterFire CLI :
 
 ```bash
-# Sur l'appareil par défaut
-flutter run
-
-# Sur une plateforme spécifique
-flutter run -d chrome    # Web
-flutter run -d android   # Android
-flutter run -d <identifiant-iphone> # iOS : identifiant donné par flutter devices
-flutter run -d windows   # Windows
-flutter run -d macos     # macOS
-flutter run -d linux     # Linux
+dart pub global activate flutterfire_cli
+flutterfire configure --project=ID_PROJET_FIREBASE
 ```
 
----
+Les fichiers de configuration sont locaux et ignorés par Git :
 
-## Relancer sur un iPhone
+- `lib/firebase_options.dart` ; un modèle est disponible dans `lib/firebase_options.example.dart`.
+- `android/app/google-services.json` ; un modèle `.example` est fourni.
+- `ios/Runner/GoogleService-Info.plist` et `macos/Runner/GoogleService-Info.plist` pour les cibles Apple concernées.
 
-1. Installer une version de macOS et de Xcode compatible avec l’iOS du téléphone (voir les prérequis ci-dessus), ouvrir Xcode et terminer l’installation de ses composants iOS.
-2. Brancher l’iPhone en USB, le déverrouiller, accepter « Faire confiance » et activer le mode développeur dans Réglages → Confidentialité et sécurité.
-3. Dans Xcode, ouvrir `ios/Runner.xcworkspace`, ajouter le compte Apple dans les réglages et vérifier l’équipe dans **Runner → Signing & Capabilities** (signature automatique, identifiant `com.nvadev.rituel`).
-4. Vérifier que `lib/firebase_options.dart` contient la configuration Firebase réelle du projet ; ne pas écraser ce fichier local avec le modèle.
-5. Exécuter :
+Utiliser les configurations du projet Firebase choisi. Ne pas remplacer une configuration locale fonctionnelle par un modèle. Le fichier `firebase.json` décrit la configuration du dépôt et doit correspondre au projet utilisé.
+
+Publier les règles et index sur le projet Firebase choisi avant d’utiliser les données synchronisées :
 
 ```bash
-flutter pub get
+npx --yes firebase-tools deploy --only firestore --project ID_PROJET_FIREBASE
+```
+
+### Lancer l’application
+
+```bash
 flutter doctor -v
 flutter devices
-flutter run -d <identifiant-iphone>
-
-# Installation autonome sur le téléphone (sans débogueur)
-flutter run --release -d <identifiant-iphone>
+flutter run -d ID_APPAREIL
 ```
 
-Les dépendances iOS utilisent Swift Package Manager ; Xcode les résout au premier build. Les fichiers `Package.resolved` sont versionnés pour reproduire les versions natives. Xcode 16.2 ne peut pas résoudre le SDK Firebase actuel (Swift 6.2 requis).
+Pour un iPhone, brancher et déverrouiller l’appareil, accepter la relation de confiance et activer le mode développeur. Ouvrir `ios/Runner.xcworkspace` dans Xcode et vérifier **Runner → Signing & Capabilities** : équipe Apple, signature automatique et identifiant `com.nvadev.rituel`.
 
----
-
-## Build
+Pour installer une version release autonome sur l’appareil :
 
 ```bash
-flutter build apk       # Android (APK)
-flutter build appbundle # Android (AAB)
-flutter build ios       # iOS
-flutter build web       # Web
-flutter build windows   # Windows
-flutter build macos     # macOS
-flutter build linux     # Linux
+flutter run --release -d ID_APPAREIL
 ```
 
----
+Si la copie des plugins échoue après un `flutter clean`, recréer les dossiers `build/ios/SourcePackages` et `build/macos/SourcePackages`, puis relancer `flutter pub get`.
 
-## Android release (AAB) + obfuscation
+### Tests et analyse
 
-Préparez d'abord la signature release Android avec le fichier `android/key.properties` (non versionné) :
+```bash
+flutter test
+flutter analyze
+
+# Contrôles ciblés du carnet de bord
+flutter test test/features/journal
+```
+
+Les tests couvrent les règles métier, les repositories, les changements de compte et les parcours d’interface français/anglais, notamment sur petit écran et avec du texte agrandi.
+
+Pour tester les règles Firestore avec un émulateur local, sans données de production :
+
+```bash
+npx --yes firebase-tools emulators:exec --only firestore --project demo-rituel-journal 'python3 test/firestore/journal_rules_test.py'
+```
+
+Les traductions se trouvent dans `lib/l10n/app_fr.arb` et `lib/l10n/app_en.arb`. Après modification, exécuter `flutter gen-l10n` et vérifier les deux langues. Les dépendances sont décrites dans `pubspec.yaml` et verrouillées dans `pubspec.lock` ; `flutter pub outdated` permet de contrôler leur état.
+
+## Architecture et données
+
+Flutter fournit l’interface Material 3, Provider la gestion d’état, Firebase Auth l’authentification et Firestore la persistance. Les préférences locales utilisent SharedPreferences ; les calendriers reposent sur TableCalendar et les rappels sur Flutter Local Notifications.
+
+```text
+lib/
+├── main.dart
+├── app/                 # Navigation, thème, préférences et composants communs
+├── l10n/                # Traductions français / anglais
+└── features/
+    ├── auth/            # Compte et authentification
+    ├── commands/        # Objectifs récurrents, cycles et séries
+    ├── resistances/     # Séries sans rechute et notes
+    ├── journal/         # Tâches, reports, scores et bilans
+    └── notifications/   # Préférences et planification des rappels
+
+test/                    # Tests métier, données, interface et règles Firestore
+```
+
+Chaque fonctionnalité sépare les règles métier et contrats dans **domain**, les implémentations de persistance dans **data**, et les pages, widgets et providers dans **presentation**. Les composants partagés, dont les fenêtres de création et le formulaire des notes, sont regroupés dans `lib/app`.
+
+Les données sont rangées sous `users/{uid}` : commandements avec événements et notes de cycle, résistances avec rechutes et notes quotidiennes, tâches dans `journal_tasks` et bilans dans `journal_reflections`. Les règles de [firestore.rules](firestore.rules) limitent l’accès au compte propriétaire. La suppression du compte inclut le nettoyage de ces collections.
+
+Les contenus sont actuellement stockés en clair dans Firestore : il n’y a pas de chiffrement de bout en bout côté application. La langue et les préférences de rappels sont conservées sur l’appareil.
+
+## Compiler pour les stores
+
+L’identifiant Android et iOS est **`com.nvadev.rituel`**. La version et le numéro de build viennent de `pubspec.yaml` (`versionName+versionCode` sur Android). Utiliser un numéro de build supérieur à ceux déjà envoyés aux stores.
+
+### Android : bundle signé pour Google Play
+
+Créer le fichier local `android/key.properties` avec la clé d’envoi attendue par Google Play :
 
 ```properties
-storeFile=/absolute/path/to/your-upload-keystore.jks
+storeFile=/chemin/absolu/vers/upload-keystore.jks
 storePassword=...
 keyAlias=upload
 keyPassword=...
 ```
 
-Commande recommandée pour une build release durcie (R8 + shrink resources + obfuscation Dart) :
+Ce fichier, la clé privée et les fichiers de symboles doivent rester hors du dépôt.
 
 ```bash
 flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
 ```
 
-Important :
-- Conserver le dossier `build/debug-info/` dans un stockage privé sécurisé (nécessaire pour la symbolication des crashs obfusqués).
-- Ne pas commiter ce dossier dans un dépôt public.
+Le bundle est généré dans `build/app/outputs/bundle/release/app-release.aab`. La configuration release active la signature, R8 et la réduction des ressources. Conserver les symboles de `build/debug-info/` et le fichier de correspondance R8 associé au build pour analyser les crashs.
 
----
+Importer le bundle dans la Play Console et joindre les [notes de version français/anglais](docs/releases/1.4.0-play-store.txt). Une diffusion en test interne permet de vérifier l’installation et les parcours sur Android avant la publication.
 
-## Internal testing (Google Play Console)
+### iOS : archive pour App Store Connect
 
-1. Construire l'AAB :
-   ```bash
-   flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
-   ```
-2. Ouvrir la Play Console > `Testing` > `Internal testing`.
-3. Créer une nouvelle release (`Create new release`) et uploader le fichier `.aab`.
-4. Ajouter les testeurs (emails individuels ou Google Group).
-5. Publier la release interne.
-6. Installer l'app depuis le lien de test généré par Google Play.
-
-Note : incrémenter `version` dans `pubspec.yaml` (`versionName+versionCode`) à chaque nouvel upload.
-
----
-
-## Tests
-
-```bash
-# Lancer tous les tests
-flutter test
-
-# Avec couverture de code
-flutter test --coverage
-
-# Analyser le code
-flutter analyze
-```
-
----
-
-## Structure des fichiers clés
-
-```
-lib/
-├── main.dart                                                # Firebase, fuseau tz, notifications, MultiProvider
-├── firebase_options.example.dart                            # Modèle sans secrets → copier en firebase_options.dart
-├── firebase_options.dart                                    # Local uniquement (.gitignore), généré par FlutterFire
-├── app/
-│   ├── app_root.dart                                        # Listener reset auto → AuthGate → MainShell
-│   ├── main_shell.dart                                      # PageView + NavigationBar (commandements / résistances)
-│   ├── app_theme.dart
-│   ├── theme_service.dart
-│   └── user_preferences_service.dart
-└── features/
-    ├── auth/
-    │   ├── data/repositories/
-    │   │   ├── firebase_auth_repository.dart
-    │   │   └── firestore_account_data_cleanup_repository.dart
-    │   ├── domain/repositories/
-    │   │   ├── auth_repository.dart
-    │   │   └── account_data_cleanup_repository.dart
-    │   └── presentation/
-    │       ├── pages/                                       # login, signup, reset, compte
-    │       ├── state/auth_provider.dart
-    │       └── widgets/                                     # auth_gate, champs mot de passe, etc.
-    ├── notifications/
-    │   ├── data/
-    │   │   ├── local_notification_scheduler.dart
-    │   │   └── notification_preferences_service.dart
-    │   ├── domain/
-    │   │   ├── notification_scheduler.dart
-    │   │   ├── reminder_slot_calculator.dart
-    │   │   └── local_notification_ids.dart
-    │   └── presentation/
-    │       └── widgets/                                 # notification_settings_card (compte)
-    ├── commands/
-    │   ├── data/repositories/
-    │   │   ├── firestore_command_repository.dart
-    │   │   ├── firestore_command_event_repository.dart
-    │   │   └── firestore_cycle_note_repository.dart
-    │   ├── domain/
-    │   │   ├── entities/                                    # command, events, périodes, reset report...
-    │   │   ├── repositories/                                # contrats command / command_event / cycle_note
-    │   │   ├── services/                                    # génération des clés de cycle
-    │   │   └── usecases/                                    # filtres, cycles, résumés, streak, reset...
-    │   └── presentation/
-    │       ├── pages/                                       # home, détail, édition
-    │       ├── state/command_provider.dart
-    │       ├── utils/                                       # style des visualisations de cycles
-    │       └── widgets/                                     # cartes, filtres, calendriers, barres, streak…
-    └── resistances/
-        ├── data/repositories/                               # Firestore résistance, rechute, note du jour
-        ├── domain/                                          # entités, use cases (série, filtre/tri, rechute…)
-        └── presentation/
-            ├── pages/                                       # accueil, détail, édition
-            ├── state/                                       # resistance_provider, day_note_provider
-            └── widgets/                                     # carte, formulaires, filtres, dialogue rechute…
-```
-
----
-
-## Série (streak) — résumé
-
-- **Où** : sous le titre sur la **carte** (liste) et dans la **carte d’en-tête** du **détail** ; style pill, couleurs sémantiques (succès / échec) via `AppSemanticColors`.
-- **Règle** : seuls les cycles depuis la création et les jours planifiés comptent. Un cycle réussi compte dès sa validation. Un cycle sans réussite compte comme manqué après sa clôture.
-- **Priorité** : la première réussite après une occasion manquée affiche « Reprise » pour le cycle en cours. Les séries positives commencent à deux réussites et les séries négatives à une occasion manquée.
-- **Seuils quotidiens** : 2, 3, 5, 7, 14, 30, 60 et 100 réussites, ou 1, 2, 3, 5, 7, 10, 14 et 21 occasions manquées. Le badge affiche la longueur réelle de la série. Les autres fréquences ont leurs propres seuils.
-- **Fichiers principaux** : `lib/features/commands/domain/usecases/compute_streak_usecase.dart`, `presentation/widgets/command_streak_badge.dart`, `command_streak_from_repository.dart`, flux `CommandEventRepository.watchEventsFrom` dans `firestore_command_event_repository.dart`.
-- **Données de test** : script optionnel `tool/seed_streak_test_data.dart` (connexion Auth + écriture Firestore) — voir l’en-tête du fichier pour les variables d’environnement `SEED_EMAIL`, `SEED_PASSWORD`, `SEED_CLEAN`.
-
----
-
-## Modèle de données
-
-```dart
-class Command {
-  final String id;
-  final String title;
-  final String description;
-  final int target;
-  final int progress;
-  final Frequency frequency;
-  final DateTime? lastResetAt;
-  final DateTime? createdAt;
-  final String emoji;
-  final int? accentColorValue;
-  final int position;
-  final List<String> tags;
-}
-
-enum Frequency { daily, weekly, monthly, yearly }
-
-class CommandEvent {
-  final CommandEventType type;
-  final DateTime actionAtUtc;
-  final int progressAfterAction;
-  final int targetAtAction;
-  final String cycleKey;
-}
-
-enum CommandEventType { increment, resetAuto, resetManual, complete }
-```
-
-### Résistance (aperçu)
-
-```dart
-class Resistance {
-  final String id;
-  final String title;
-  final String description;
-  final DateTime createdAtUtc;
-  final String emoji;
-  final int? accentColorValue;
-  final int position;
-  final List<String> tags;
-  final DateTime? lastRelapseAtUtc;
-  final int bestStreakDays;
-  // … sérialisation Firestore dans le code source
-}
-```
-
-Les **rechutes** et les **notes par jour** sont stockées dans des collections dédiées (voir `firestore.rules` et les repositories sous `features/resistances/data/`).
-
----
-
-## Rappels locaux (résumé)
-
-- **Où** : écran **Paramètres du compte**, section « Rappels », après « Apparence ».
-- **Comportement** : une notification par **fréquence** (quotidien, hebdomadaire, mensuel, annuel) uniquement s’il reste au moins un commandement **non complété** (`progress < target`) pour cette fréquence ; replanification après sync Firestore et après les actions qui changent la progression.
-- **Défaut** : rappels **désactivés** ; heure par défaut **18:00** (locale) une fois activés.
-- **Créneaux** (à l’heure choisie, fuseau de l’appareil) : quotidien chaque jour ; hebdomadaire mercredi et dimanche ; mensuel 7 jours et 2 jours avant la fin du mois ; annuel 1er novembre et 1er décembre.
-- **Plateformes** : planification effective sur Android, iOS et macOS ; pas de rappels sur Web dans l’implémentation actuelle.
-- **Android** : permissions et receivers nécessaires sont déclarés dans `AndroidManifest.xml` (notifications, alarmes exactes, redémarrage pour la replanification côté système).
-
----
-
-
-## Maintenance et branches
-
-`develop` est la branche d’intégration et le point de départ des nouveaux développements. Créer une branche de travail depuis `develop`, valider les tests et les builds concernés, puis fusionner dans `develop` avec un commit de merge. Les branches de version existantes (`v1.1.0`, `v1.2.0`) restent des repères historiques. La branche `main` ne doit être mise à jour que lors d’une livraison préparée.
-
-```bash
-git switch develop
-git pull --ff-only origin develop
-git switch -c codex/feature/ma-fonctionnalite
-```
-
-Pour contrôler les dépendances : `flutter pub outdated`. Les dépendances indirectes verrouillées par Flutter ou d’autres paquets restent à la dernière version compatible, sans `dependency_overrides`. Après `flutter clean`, recréer les dossiers `build/ios/SourcePackages` et `build/macos/SourcePackages` avant `flutter pub get` si la copie des plugins échoue.
-
-Les outils Android sont alignés sur Flutter 3.47.9 : Gradle 9.3.1, AGP 9.1.0 et Kotlin 2.4.0. Flutter conserve les modes de compatibilité `android.builtInKotlin=false` et `android.newDsl=false` pour les plugins. La cible Android est l’API 36 via les valeurs du SDK Flutter.
-
-Avant une publication, augmenter `version` et le numéro de build dans `pubspec.yaml` selon la dernière version réellement envoyée aux stores, puis générer les artefacts signés :
+Avec la configuration Firebase et la signature Apple renseignées :
 
 ```bash
 flutter build ipa --release
-flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
 ```
 
-Les signatures, les déclarations de confidentialité et les fiches des stores doivent être vérifiées avant l’envoi. La mise à jour des dépendances ne constitue pas une validation par les stores.
+Les archives et l’IPA sont générées sous `build/ios/`. La distribution App Store ou TestFlight nécessite les certificats et profils adaptés au compte Apple Developer.
+
+## Organisation Git
+
+- `develop` reçoit les versions intégrées par MR et sert de base au développement suivant.
+- `codex/integration/X.Y` regroupe les fonctionnalités d’une version.
+- `codex/feature/...` isole chaque fonctionnalité, fusionnée dans l’intégration après tests et validation sur appareil.
+- `codex/release/X.Y.Z` prépare la version à publier et fait l’objet d’une MR vers `develop`.
+
+Les sources versionnées incluent les fichiers de verrouillage des dépendances. Les configurations Firebase locales, clés de signature et artefacts de compilation restent exclus du dépôt.

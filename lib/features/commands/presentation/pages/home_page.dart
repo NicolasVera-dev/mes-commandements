@@ -10,6 +10,7 @@ import '../widgets/command_card.dart';
 import '../widgets/expandable_search_bar.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/filter_chips_bar.dart';
+import '../widgets/hidden_commands_section.dart';
 import '../../../../app/command_card_display_mode.dart';
 import '../../../../app/command_card_layout_service.dart';
 import '../../../auth/presentation/state/auth_provider.dart';
@@ -79,7 +80,18 @@ class _HomePageState extends State<HomePage> {
       sort: _sort,
     );
 
-    _scheduleClampScrollAfterListShrink(newFilteredCount: commands.length);
+    final hiddenCommands = commandProvider.commandsFilteredSorted(
+      frequencies: _selectedFrequencies,
+      statuses: _selectedStatuses,
+      tags: _selectedTags,
+      sort: _sort,
+      hiddenOnly: true,
+    );
+    final hiddenSection = HiddenCommandsSection(commands: hiddenCommands);
+
+    _scheduleClampScrollAfterListShrink(
+      newFilteredCount: commands.length + hiddenCommands.length,
+    );
 
     final hasActiveFilters =
         _selectedFrequencies != null ||
@@ -281,7 +293,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           )
-                        : commands.isEmpty
+                        : commands.isEmpty && hiddenCommands.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -315,6 +327,7 @@ class _HomePageState extends State<HomePage> {
                               800,
                             ),
                             itemCount: commands.length,
+                            footer: hiddenSection,
                             buildDefaultDragHandles: false,
                             onReorderStart: (_) {
                               setState(() => _isDragging = true);
@@ -376,10 +389,15 @@ class _HomePageState extends State<HomePage> {
                             scrollCacheExtent: const ScrollCacheExtent.pixels(
                               800,
                             ),
-                            itemCount: commands.length,
+                            itemCount:
+                                commands.length +
+                                (hiddenCommands.isEmpty ? 0 : 1),
                             separatorBuilder: (context, index) =>
                                 SizedBox(height: cardListGap),
                             itemBuilder: (context, index) {
+                              if (index == commands.length) {
+                                return hiddenSection;
+                              }
                               final command = commands[index];
                               return CommandCard(
                                 key: ValueKey<String>(command.id),

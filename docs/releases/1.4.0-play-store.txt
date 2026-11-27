@@ -1,0 +1,16 @@
+<fr-FR>
+Nouveau : le Carnet de bord ! Planifiez vos tâches, suivez votre progression et faites le bilan de vos journées.
+• Report des tâches au choix, priorités et calendrier complet.
+• Masquez vos commandements en conservant leur historique.
+• Retrouvez vos records de séries et annotez les rechutes de vos résistances.
+• Accueil enrichi et formulaires harmonisés.
+• Plusieurs corrections pour un suivi quotidien plus clair.
+</fr-FR>
+<en-US>
+New: the Daily journal! Plan your tasks, track your progress and reflect on your day.
+• Optional task carry-over, priorities and a complete calendar.
+• Hide commandments while keeping their history.
+• See your streak records and add notes to resistance relapses.
+• Refreshed welcome screens and consistent creation forms.
+• Fixes for clearer day-to-day tracking.
+</en-US>

@@ -25,6 +25,9 @@ abstract class CommandRepository {
 
   Future<void> resetProgress(String commandId);
 
+  /// Hiding also pauses indefinitely; showing keeps the command paused.
+  Future<void> setHidden(String commandId, {required bool hidden});
+
   Future<void> pause(String commandId, {DateTime? untilUtc});
 
   Future<void> resume(String commandId, {required bool nextCycle});

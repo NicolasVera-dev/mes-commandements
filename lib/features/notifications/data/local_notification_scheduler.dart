@@ -141,6 +141,7 @@ class LocalNotificationScheduler implements NotificationScheduler {
         final incomplete = commands
             .where(
               (c) =>
+                  !c.isHidden &&
                   c.frequency == frequency &&
                   c.progress < c.target &&
                   !c.isPausedAt(now),

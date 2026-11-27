@@ -39,6 +39,9 @@ import 'features/notifications/data/local_notification_scheduler.dart';
 import 'features/notifications/data/notification_preferences_service.dart';
 import 'features/notifications/domain/notification_scheduler.dart';
 
+import 'features/journal/data/firestore_journal_repository.dart';
+import 'features/journal/presentation/state/journal_provider.dart';
+
 class MyApp extends StatelessWidget {
   final AuthRepository authRepository;
   final CommandEventRepository commandEventRepository;
@@ -71,6 +74,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => JournalProvider(
+            repository: FirestoreJournalRepository(
+              firestore: firestoreOverride,
+            ),
+            userIds: authRepository.authStateChanges().map((user) => user?.uid),
+          ),
+        ),
         if (languageService != null)
           ChangeNotifierProvider<LanguageService>.value(
             value: languageService!,
