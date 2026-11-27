@@ -1546,7 +1546,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get journalPastHint =>
-      'Cette journée est conservée dans ton historique. Seules les tâches reportables restées ouvertes ont été reportées.';
+      'Le bilan de tes engagements pour cette journée.';
 
   @override
   String get journalEmptyTitle => 'De la place pour tes projets';
@@ -1556,7 +1556,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Prévois quelques actions réalistes et retrouve ici la satisfaction de les accomplir.';
 
   @override
-  String get journalEmptyPast => 'Aucune tâche prévue ce jour-là.';
+  String get journalEmptyPast => 'Rien de consigné ce jour-là';
 
   @override
   String get journalEditTask => 'Modifier la tâche';
@@ -1742,4 +1742,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String journalUnfinished(int count) {
     return 'Non accomplies · $count';
   }
+
+  @override
+  String get journalTaskUpdated => 'Tâche modifiée.';
+
+  @override
+  String get relapseNoteAction => 'Ajouter ou modifier une note';
+
+  @override
+  String get relapseNoteTitle => 'Note de rechute';
+
+  @override
+  String get relapseNoteHint =>
+      'Ce qui s’est passé, ce que tu souhaites retenir…';
+
+  @override
+  String get relapseNoteSaved => 'Note enregistrée.';
+
+  @override
+  String get relapseNoteRemoved => 'Note supprimée.';
+
+  @override
+  String get relapseNoteError =>
+      'La note n’a pas pu être enregistrée. Réessaie dans un instant.';
+
+  @override
+  String get journalCalendarTitle => 'Calendrier du carnet';
+
+  @override
+  String get journalCalendarSuccess => 'Réussi';
+
+  @override
+  String get journalCalendarFailure => 'Incomplet';
+
+  @override
+  String get journalCalendarEmpty => 'Aucune tâche';
+
+  @override
+  String get journalCalendarCurrent => 'En cours';
+
+  @override
+  String get journalCalendarPlanned => 'Planifié';
+
+  @override
+  String journalCalendarDay(String date, String status, int done, int total) {
+    return '$date : $status, $done sur $total accomplis';
+  }
+
+  @override
+  String get journalCalendarHelp =>
+      'Vert : tous les engagements tenus. Rouge : une journée passée avec des tâches inachevées.';
+
+  @override
+  String get journalPastNoScore => 'Journée sans engagements';
+
+  @override
+  String get journalPastEmptyHint =>
+      'Aucune tâche enregistrée : cette journée ne compte ni comme une réussite ni comme un échec.';
 }

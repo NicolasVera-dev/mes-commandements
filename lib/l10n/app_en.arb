@@ -489,10 +489,10 @@
   "journalCompletedDay": "Completed that day",
   "journalCarryHint": "Unfinished tasks with carry-over enabled move to the next day without duplicates. Others remain in their planned day’s review.",
   "journalFutureHint": "Open tasks with carry-over enabled are shown provisionally. Complete them today and they will no longer carry over to tomorrow.",
-  "journalPastHint": "This day is preserved in your history. Only unfinished tasks with carry-over enabled have carried over.",
+  "journalPastHint": "A look back at your commitments for this day.",
   "journalEmptyTitle": "Room for your plans",
   "journalEmptyBody": "Plan a few realistic actions and enjoy the satisfaction of completing them here.",
-  "journalEmptyPast": "No tasks were planned for this day.",
+  "journalEmptyPast": "Nothing recorded for this day",
   "journalEditTask": "Edit task",
   "journalReschedule": "Reschedule",
   "journalRemoved": "Task removed from your plan.",
@@ -582,5 +582,38 @@
         "type": "int"
       }
     }
-  }
+  },
+  "journalTaskUpdated": "Task updated.",
+  "relapseNoteAction": "Add or edit a note",
+  "relapseNoteTitle": "Relapse note",
+  "relapseNoteHint": "What happened, what you would like to remember…",
+  "relapseNoteSaved": "Note saved.",
+  "relapseNoteRemoved": "Note deleted.",
+  "relapseNoteError": "The note could not be saved. Please try again in a moment.",
+  "journalCalendarTitle": "Journal calendar",
+  "journalCalendarSuccess": "Completed",
+  "journalCalendarFailure": "Incomplete",
+  "journalCalendarEmpty": "No tasks",
+  "journalCalendarCurrent": "In progress",
+  "journalCalendarPlanned": "Planned",
+  "journalCalendarDay": "{date}: {status}, {done} of {total} completed",
+  "@journalCalendarDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journalCalendarHelp": "Green: all commitments met. Red: a past day with unfinished tasks.",
+  "journalPastNoScore": "A day without commitments",
+  "journalPastEmptyHint": "No tasks recorded: this day counts as neither a success nor a failure."
 }

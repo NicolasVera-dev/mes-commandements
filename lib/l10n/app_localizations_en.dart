@@ -1537,8 +1537,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Open tasks with carry-over enabled are shown provisionally. Complete them today and they will no longer carry over to tomorrow.';
 
   @override
-  String get journalPastHint =>
-      'This day is preserved in your history. Only unfinished tasks with carry-over enabled have carried over.';
+  String get journalPastHint => 'A look back at your commitments for this day.';
 
   @override
   String get journalEmptyTitle => 'Room for your plans';
@@ -1548,7 +1547,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Plan a few realistic actions and enjoy the satisfaction of completing them here.';
 
   @override
-  String get journalEmptyPast => 'No tasks were planned for this day.';
+  String get journalEmptyPast => 'Nothing recorded for this day';
 
   @override
   String get journalEditTask => 'Edit task';
@@ -1732,4 +1731,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String journalUnfinished(int count) {
     return 'Unfinished · $count';
   }
+
+  @override
+  String get journalTaskUpdated => 'Task updated.';
+
+  @override
+  String get relapseNoteAction => 'Add or edit a note';
+
+  @override
+  String get relapseNoteTitle => 'Relapse note';
+
+  @override
+  String get relapseNoteHint =>
+      'What happened, what you would like to remember…';
+
+  @override
+  String get relapseNoteSaved => 'Note saved.';
+
+  @override
+  String get relapseNoteRemoved => 'Note deleted.';
+
+  @override
+  String get relapseNoteError =>
+      'The note could not be saved. Please try again in a moment.';
+
+  @override
+  String get journalCalendarTitle => 'Journal calendar';
+
+  @override
+  String get journalCalendarSuccess => 'Completed';
+
+  @override
+  String get journalCalendarFailure => 'Incomplete';
+
+  @override
+  String get journalCalendarEmpty => 'No tasks';
+
+  @override
+  String get journalCalendarCurrent => 'In progress';
+
+  @override
+  String get journalCalendarPlanned => 'Planned';
+
+  @override
+  String journalCalendarDay(String date, String status, int done, int total) {
+    return '$date: $status, $done of $total completed';
+  }
+
+  @override
+  String get journalCalendarHelp =>
+      'Green: all commitments met. Red: a past day with unfinished tasks.';
+
+  @override
+  String get journalPastNoScore => 'A day without commitments';
+
+  @override
+  String get journalPastEmptyHint =>
+      'No tasks recorded: this day counts as neither a success nor a failure.';
 }

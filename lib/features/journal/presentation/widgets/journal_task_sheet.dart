@@ -53,6 +53,8 @@ class _TaskEditorState extends State<_TaskEditor> {
     if (!_form.currentState!.validate()) return;
     setState(() => _saving = true);
     final provider = context.read<JournalProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final strings = context.l10n;
     try {
       if (widget.task case final task?) {
         await provider.edit(
@@ -69,7 +71,18 @@ class _TaskEditorState extends State<_TaskEditor> {
           carryForward: _carryForward,
         );
       }
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+        if (widget.task != null)
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(strings.journalTaskUpdated),
+              persist: false,
+              duration: const Duration(seconds: 3),
+              showCloseIcon: true,
+            ),
+          );
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)

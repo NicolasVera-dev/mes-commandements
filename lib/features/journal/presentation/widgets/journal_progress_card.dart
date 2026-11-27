@@ -7,10 +7,12 @@ import '../../domain/services/journal_day_summary.dart';
 class JournalProgressCard extends StatelessWidget {
   final JournalDaySummary summary;
   final bool isFuture;
+  final bool isPast;
   const JournalProgressCard({
     super.key,
     required this.summary,
     this.isFuture = false,
+    this.isPast = false,
   });
 
   @override
@@ -90,7 +92,9 @@ class JournalProgressCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       score == null
-                          ? strings.journalNoScore
+                          ? (isPast
+                                ? strings.journalPastNoScore
+                                : strings.journalNoScore)
                           : strings.journalCompletedCount(
                               summary.completed.length,
                               summary.tasks.length,
@@ -124,8 +128,12 @@ class JournalProgressCard extends StatelessWidget {
             Text(
               isFuture
                   ? strings.journalFutureHint
+                  : isPast && score == null
+                  ? strings.journalPastEmptyHint
                   : allDone
                   ? strings.journalCelebrate
+                  : isPast
+                  ? strings.journalPastHint
                   : summary.completed.isEmpty
                   ? strings.journalStart
                   : strings.journalProgress,

@@ -33,6 +33,32 @@ Future<void> mount(
 }
 
 void main() {
+  for (final language in ['fr', 'en']) {
+    testWidgets('$language: empty past day has retrospective neutral copy', (
+      tester,
+    ) async {
+      final provider = JournalProvider(
+        repository: FirestoreJournalRepository(
+          firestore: FakeFirebaseFirestore(),
+        ),
+        userIds: Stream.value('a'),
+        clock: () => DateTime(2026, 11, 27),
+      );
+      final strings = lookupAppLocalizations(Locale(language));
+      await mount(tester, provider, language);
+      expect(find.text(strings.journalStart), findsOneWidget);
+      await tester.tap(find.byTooltip(strings.journalPreviousDay));
+      await tester.pumpAndSettle();
+      expect(find.text(strings.journalPastNoScore), findsOneWidget);
+      expect(find.text(strings.journalPastEmptyHint), findsOneWidget);
+      expect(find.text(strings.journalEmptyPast), findsOneWidget);
+      expect(find.text(strings.journalStart), findsNothing);
+      expect(find.text(strings.journalNoScore), findsNothing);
+      expect(find.text('0 %'), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      provider.dispose();
+    });
+  }
   testWidgets(
     'one-day task is created without a keyboard and stays missed in its original day',
     (tester) async {
@@ -149,6 +175,18 @@ void main() {
         expect(find.text('Envoyer le devis'), findsOneWidget);
         expect(find.text(strings.journalCompletedCount(0, 1)), findsOneWidget);
         expect(find.text('0 %'), findsOneWidget);
+        await tester.tap(find.byType(PopupMenuButton<JournalTaskAction>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(strings.journalEditTask));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextFormField), 'Devis modifié');
+        await tester.ensureVisible(find.text(strings.journalSave));
+        await tester.tap(find.text(strings.journalSave));
+        await tester.pumpAndSettle();
+        expect(find.text(strings.journalTaskUpdated), findsOneWidget);
+        await tester.pump(const Duration(seconds: 4));
+        await tester.pumpAndSettle();
+        expect(find.text(strings.journalTaskUpdated), findsNothing);
         await tester.tap(find.byType(Checkbox));
         await tester.pumpAndSettle();
         expect(find.text('100 %'), findsOneWidget);

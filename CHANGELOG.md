@@ -2,6 +2,12 @@
 
 ## 1.4.0 — en développement
 
+- Notes de résistances uniformisées avec celles des commandements, sans bandeau superflu après suppression.
+- Messages rétrospectifs et neutres pour les journées passées sans tâche.
+- Confirmation de succès après modification d’une tâche.
+- Ajout, modification et suppression des notes sur les rechutes existantes.
+- Calendrier complet du carnet avec contours de réussite, d’incomplétude et du jour courant.
+
 - Uniformisation des fenêtres de création, des titres de pages et du glisser-déposer des tâches.
 - Option Reportable pour les tâches, activée par défaut, avec historique des échecs conservé.
 - Affichage du record de série des commandements et trophée des résistances en série record.
